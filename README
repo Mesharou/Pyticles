@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#0. Setup a python virtual environment
+#see Virtual_Python_install
+#or
+see conda_install_datarmor
+
+#1. Compile the Fortran modules using f2py [included in numpy module]:
+
+cd Modules
+make
+
+#2. Set up your configuration in "Pyticles.py"
+
+vi Pyticles.py
+
+#3. Edit the names of your ROMS files and location in "Modules/R_files.py"
+
+vi Modules/R_files.py
+
+#4. Run the script
+
+python Pyticles.py -1 #-1 means use all available procs, or you can use a smaller number of procs by giving a number (1,2,3,4, etc.)
