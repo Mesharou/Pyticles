@@ -64,7 +64,7 @@ config = 'case1'
 # load simulation parameters
 ###################################################################################
 
-print 'Loading simul'
+print('Loading simul')
 simul = load(simul = parameters)
 depths = simul.coord[4]
 
@@ -109,15 +109,15 @@ pdepth[plon==0] = np.nan
 plat[plon==0] = np.nan
 plon[plon==0] = np.nan
 
-print 'mean depth is', np.nanmean(pdepth)
+print('mean depth is', np.nanmean(pdepth))
 
 ptopo = part.map_topo(simul,px,py,ng,coord=coord)
 
 
 #############################################
 
-print np.nansum(pdepth<-ptopo)
-print np.nanargmin(pdepth+ptopo)
+print(np.nansum(pdepth<-ptopo))
+print(np.nanargmin(pdepth+ptopo))
 
 '''
 #print px[2703],py[2703],pz[2703],pdepth[2703],ptopo[2703]

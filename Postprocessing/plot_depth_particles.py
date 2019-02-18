@@ -61,7 +61,7 @@ config = 'ATLBIG'
 # load simulation parameters
 ###################################################################################
 
-print 'Loading simul'
+print('Loading simul')
 simul = load(simul = parameters)
 depths = simul.coord[4]
 
@@ -83,7 +83,7 @@ pdepth[plon==0] = np.nan
 plat[plon==0] = np.nan
 plon[plon==0] = np.nan
 
-print 'mean depth is', np.nanmean(pdepth)
+print('mean depth is', np.nanmean(pdepth))
 #ptopo = part.map_topo(simul,px,py,ng,coord=coord)
 
 #############################################
@@ -131,12 +131,12 @@ for pp in np.arange(nq_injection):
 #########################################
 
 
-print ' ... make plot ... '
+print(' ... make plot ... ')
 fig = plt.figure(figsize=(7,3))
 plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.5)
 
 #------------ map --------------------------
-print ' ... subplot 1 ... '
+print(' ... subplot 1 ... ')
 ax = plt.subplot(121,axisbg='gray')
 m = Basemap(projection='lcc',resolution='i',\
                     lon_0=lonLS,lat_0=latLS,\
@@ -162,7 +162,7 @@ ax.tick_params(labelsize=fs)
 m.plot(part.rho2psi(simul.x)[:,jsec],part.rho2psi(simul.y)[:,jsec],'y--',lw=0.5,latlon=True)
 
 #------------ section --------------------------
-print ' ... subplot 2 ... '
+print(' ... subplot 2 ... ')
 ax = plt.subplot(122,axisbg='white')
 step = 1
 

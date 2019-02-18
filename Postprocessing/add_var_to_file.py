@@ -61,7 +61,7 @@ meanflow = False
 
 ###################################################################################
 
-print 'Loading file'
+print('Loading file')
 nc = Dataset(ncfile, 'r')
 parameters = nc.simulation
 base = nc.base
@@ -83,7 +83,7 @@ nc.close()
 # load simulation parameters
 ###################################################################################
 
-print 'Loading simul'
+print('Loading simul')
 simul = load(simul = parameters)
 depths = simul.coord[4]
 
@@ -119,7 +119,7 @@ for varname in ['rho','rho1']:
     
     nc = Dataset(ncfile, 'a')
 
-    if 'p'+varname not in nc.variables.keys(): 
+    if 'p'+varname not in list(nc.variables.keys()): 
         nc.createVariable('p'+varname,'d',('time','nq',))
 
     nc.close()
@@ -132,7 +132,7 @@ for varname in ['rho','rho1']:
     ###################################################################################
 
         itime = np.int(np.abs(time[0] - filetime) / np.abs(dtime))
-        print itime, time[itime]
+        print(itime, time[itime])
         if not meanflow: simul.update(np.floor(filetime));
         
         alpha_time = filetime - np.floor(filetime)
@@ -152,7 +152,7 @@ for varname in ['rho','rho1']:
             adv3d = True
             pz = ionetcdf.get(ncfile,'pz',simul,time=itime)
 
-        print 'filetime, itime', filetime, itime
+        print('filetime, itime', filetime, itime)
 
         coord = part.subsection(px,py,ny=simul.coordmax[1],nx=simul.coordmax[3],offset=10)
         tstart = tm.time()
@@ -179,7 +179,7 @@ for varname in ['rho','rho1']:
         
         ###################################################################################
 
-        print 'get var.......................', tm.time()-tstart
+        print('get var.......................', tm.time()-tstart)
         tstart = tm.time()
         
         #if ng>0:
@@ -193,7 +193,7 @@ for varname in ['rho','rho1']:
         else:
             pvar = part.map_var2d(simul,myvar,px,py,ng,coord=coord) 
 
-        print 'interpolate to particules.....', tm.time()-tstart
+        print('interpolate to particules.....', tm.time()-tstart)
         tstart = tm.time() 
 
         ###################################################################################

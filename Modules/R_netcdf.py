@@ -62,44 +62,44 @@ class ionetcdf(object):
 
         if isinstance(data,int) or isinstance(data,float):
 
-            if name not in newnc.variables.keys():
+            if name not in list(newnc.variables.keys()):
 		        newnc.createVariable(name, 'f', (dim0,) )
             newnc.variables[name][nctime]=data
             
         else:
 
-            print '                           '
-            if name not in newnc.variables.keys():
-                print 'name not in newnc.variables.keys()'
+            print('                           ')
+            if name not in list(newnc.variables.keys()):
+                print('name not in newnc.variables.keys()')
                 if netcdf_format=='NETCDF3_CLASSIC':
-                    print 'netcdf_format==NETCDF3_CLASSIC'
+                    print('netcdf_format==NETCDF3_CLASSIC')
                     if len(data.shape)>2:
-                        print 'len(data.shape)>2'
+                        print('len(data.shape)>2')
                         newnc.createVariable(name, 'f', (dim0,dim3[kmin],dim2[jmin],dim1[imin],))
                     else:
-                        print 'len(data.shape)=2'
+                        print('len(data.shape)=2')
                         newnc.createVariable(name, 'f', (dim0,dim2[jmin],dim1[imin],) )
-                        print 'ok'
+                        print('ok')
                 else:  
-                    print 'netcdf_format==NETCDF4'
+                    print('netcdf_format==NETCDF4')
                     if len(data.shape)>2:
-                        print 'len(data.shape)>2'
+                        print('len(data.shape)>2')
                         #newnc.createVariable(name, 'f4', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) ,zlib=zlib,chunksizes = (1,1,700,600))
                         newnc.createVariable(name, 'f4', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) ,zlib=zlib)
                     else:
-                        print 'len(data.shape)=2'
+                        print('len(data.shape)=2')
                         #newnc.createVariable(name, 'f4', (dim0,dim2[jmin],dim1[imin],) ,zlib=zlib,chunksizes = (1,700,600))                  
                         newnc.createVariable(name, 'f4', (dim0,dim2[jmin],dim1[imin],) ,zlib=zlib) 
             if len(data.shape)>2:
-                 print 'newnc.variables[name][:].shape',newnc.variables[name][:].shape
-                 print 'data.shape',data.shape
+                 print('newnc.variables[name][:].shape',newnc.variables[name][:].shape)
+                 print('data.shape',data.shape)
                  newnc.variables[name][nctime,iz1:iz2,iy1:iy2,ix1:ix2]=data.T
             else:
-                 print 'data.T.shape',data.T.shape
-                 print '[ix1,ix2,iy1,iy2,iz1,iz2]',[ix1,ix2,iy1,iy2,iz1,iz2]
-                 print 'imin,jmin,nctime',imin,jmin,nctime                   
-                 print 'newnc.variables[name][:].shape',newnc.variables[name][:].shape
-                 print 'imin,jmin,nctime',imin,jmin,nctime    
+                 print('data.T.shape',data.T.shape)
+                 print('[ix1,ix2,iy1,iy2,iz1,iz2]',[ix1,ix2,iy1,iy2,iz1,iz2])
+                 print('imin,jmin,nctime',imin,jmin,nctime)                   
+                 print('newnc.variables[name][:].shape',newnc.variables[name][:].shape)
+                 print('imin,jmin,nctime',imin,jmin,nctime)    
                  newnc.variables[name][nctime,iy1:iy2,ix1:ix2]=data.T
 
 
@@ -114,7 +114,7 @@ class ionetcdf(object):
                 try:
                     newnc.variables[name].long_name = var.longname
                 except :
-                    print 'no long_name specified'
+                    print('no long_name specified')
 
 
             if 'units' in kwargs:
@@ -123,7 +123,7 @@ class ionetcdf(object):
                 try:
                     newnc.variables[name].units = var.unit
                 except :
-                    print 'no long_name specified'
+                    print('no long_name specified')
  
 
                 
@@ -135,7 +135,7 @@ class ionetcdf(object):
 
 
 
-            if 'ocean_time' not in newnc.variables.keys():
+            if 'ocean_time' not in list(newnc.variables.keys()):
                 newnc.createVariable('ocean_time', 'f', (dim0,) )
                 
 
@@ -171,7 +171,7 @@ class ionetcdf(object):
         newnc.createDimension(dim2[1], ny-1) 
         newnc.createDimension(dim3[1], nz) 
         newnc.createDimension(dim3[2], np.max([nz-1,1])) 
-        print 'create', newfile
+        print('create', newfile)
         
         return newnc
 
@@ -263,7 +263,7 @@ class ionetcdf(object):
             
             if nctime==None:  nctime = len(newnc.dimensions['time'])
 
-            if name not in newnc.variables.keys():
+            if name not in list(newnc.variables.keys()):
                 newnc.createVariable(name, 'f', (dim0,) )
             newnc.variables[name][nctime]=data
             
@@ -308,9 +308,9 @@ class ionetcdf(object):
 
 
 
-            print name
+            print(name)
 
-            if name not in newnc.variables.keys():
+            if name not in list(newnc.variables.keys()):
                 if netcdf_format=='NETCDF3_CLASSIC':
                     if len(data.shape)>2:
                         newnc.createVariable(name, 'f', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) )
@@ -328,14 +328,14 @@ class ionetcdf(object):
                  newnc.variables[name][nctime,:,:]=data.T
 
             try:
-                print simul.oceantime
-                if 'ocean_time' not in newnc.variables.keys():
+                print(simul.oceantime)
+                if 'ocean_time' not in list(newnc.variables.keys()):
                     newnc.createVariable('ocean_time', 'f', (dim0,) )
 
                 newnc.variables['ocean_time'][nctime]=simul.oceantime
                 
             except:
-                print 'no oceantime in simul'
+                print('no oceantime in simul')
 
                 
         newnc.close()

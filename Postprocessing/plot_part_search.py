@@ -34,7 +34,7 @@ fifig = './'
 
 
 
-print 'Loading file'
+print('Loading file')
 nc = Dataset(ncfile, 'r', format='NETCDF3_CLASSIC')
 parameters = nc.simulation
 base = nc.base
@@ -56,7 +56,7 @@ nc.close()
 # load simulation parameters
 ###################################################################################
 
-print 'Loading simul'
+print('Loading simul')
 simul = load(simul = parameters)
 depths = simul.coord[4]
 
@@ -67,7 +67,7 @@ depths = simul.coord[4]
 
 time = ionetcdf.get(ncfile,'ocean_time',simul)
 time[0]=time[1]-(time[2]-time[1])
-time_int=range(simul.time0,simul.ncname.tend+1,simul.dtime)[:len(time)]
+time_int=list(range(simul.time0,simul.ncname.tend+1,simul.dtime))[:len(time)]
 
 nqmx  = nq
 
@@ -85,7 +85,7 @@ def load_p(name):
     
 def load_time():  
     time = ionetcdf.get(ncfile,'ocean_time',simul)
-    time_int=range(simul.time0,simul.ncname.tend+1,simul.dtime)[:len(time)]
+    time_int=list(range(simul.time0,simul.ncname.tend+1,simul.dtime))[:len(time)]
     #############
     return time[lim1:lim2],time_int[lim1:lim2]
 
@@ -119,7 +119,7 @@ pv,time_add = load_p('pv')
 # Compute pdepth (actual depth) from pz
 ###########################
 
-print 'depth...'
+print('depth...')
 try:
     pdepth,time_add= load_p('pdepth')
     pdepth[np.isnan(pt)] = np.nan
@@ -136,7 +136,7 @@ except:
 # Compute ptopo (topography at each particule position)
 ###########################
 
-print 'topo...'
+print('topo...')
 ptopo = copy(pdepth); ptopo[:]=np.nan
 for it in range(ptopo.shape[1]):
     ptopo[:,it] = part.map_topo(simul,px[:,it],py[:,it])
@@ -150,7 +150,7 @@ ptopo[np.isnan(pt)] = np.nan
 # Compute pmask (mask at each particule position)
 ###########################
 
-print 'mask...'
+print('mask...')
 pmask = copy(pdepth); pmask[:]=np.nan
 mymask = copy(simul.mask)
 mymask[np.isnan(mymask)] = 0.
@@ -173,16 +173,16 @@ def plot_selection(filetime,ipart):
 ###################################################################################
 
 def plot_part(filetime, ipart):
-    execfile('subplot_part.py')
+    exec(compile(open('subplot_part.py').read(), 'subplot_part.py', 'exec'))
 
 ###################################################################################
     
 def make_plot(which_plot,filetime=0,ipart=[0]):
     proc=mp.Process(target=which_plot, args=(filetime,ipart))
     proc.daemon=True; proc.start(); 
-    print proc, proc.is_alive()
+    print(proc, proc.is_alive())
     proc.join()
-    print proc, proc.is_alive()
+    print(proc, proc.is_alive())
 
 ###################################################################################
 
@@ -211,7 +211,7 @@ for iq in range(nq):
     if (np.abs(px[iq,-1]-px[iq,-3])<1e-2) and (np.abs(py[iq,-1]-py[iq,-3])<1e-2):
         mask.append(iq)
 
-print 'nb of particules in mask is' , len(mask)
+print('nb of particules in mask is' , len(mask))
 
 make_plot(plot_selection,0,mask)
 
