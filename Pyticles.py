@@ -70,7 +70,7 @@ import time as tm
 from netCDF4 import Dataset
 import multiprocessing as mp; import ctypes   
 import resource
-import Queue
+import queue
 
 #add the Modules folder in your python PATH
 sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
@@ -111,21 +111,21 @@ else:
     #define nproc as specified
     nproc = int(sys.argv[1])
 
-print '-----------------------------------'  
+print('-----------------------------------')
 
 
 
 #Use multiprocess version of the code   
-print 'Parallel version'
+print('Parallel version')
 
 #If nproc<0: use all available processors
 if nproc<=0: 
     nproc=mp.cpu_count();
 else:
     nproc = np.min([mp.cpu_count(),nproc])
-print nproc, ' processors will be used'
-    
-print '-----------------------------------'     
+print(nproc, ' processors will be used')
+
+print('-----------------------------------')
 
 ###################################################################################
 ###################################################################################
@@ -387,7 +387,7 @@ if not restart:
                 for j in range(x.shape[1]):
                     ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
                     if maskrho[ix,iy]==1:
-                        f = interp1d(z_w[ix,iy], range(nz+1), kind='cubic')
+                        f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
                         z[k,j,i] = f(depths0[k])
                     else:
                         z[k,j,i] = 0.
@@ -432,8 +432,8 @@ if not restart:
         '''
         nq_injection = nq
         nq = np.nanmin([nq_injection*(N_injection+1),nqmx])
-        print 'it would take', nq_injection*N_injection - nqmx, ' more pyticles'
-        print 'to be able to release through all the simulation'
+        print('it would take', nq_injection*N_injection - nqmx, ' more pyticles')
+        print('to be able to release through all the simulation')
         nq_1=nq_injection
     else:
         nq_1=-1  
@@ -446,10 +446,9 @@ if not restart:
 
     if continuous_injection:
         px[:nq_1]=px0; py[:nq_1]=py0; pz[:nq_1]=pz0
-
-        print 'px0', px0
-        print 'py0', py0
-        print 'pz0', pz0
+        print('px0', px0)
+        print('py0', py0)
+        print('pz0', pz0)
 
     else: 
         px[:]=px0; py[:]=py0; pz[:]=pz0
@@ -569,18 +568,16 @@ def run_process(my_func):
 ###################################################################################
 
 def update_xyz():
-    
-    execfile('Pyticles_subroutines/update_xyz_largemem.py')  
+     exec(compile(open('Pyticles_subroutines/update_xyz_largemem.py').read(),\
+             'Pyticles_subroutines/update_xyz_largemem.py', 'exec'))
 
-
-    
 ###################################################################################
 # Compte T,S at each pyticles positions -> ptemp,psalt
 ###################################################################################
 
 def update_ts():   
-
-    execfile('Pyticles_subroutines/update_ts.py')
+    exec(compile(open('Pyticles_subroutines/update_ts.py').read(),\
+            'Pyticles_subroutines/update_ts.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
@@ -588,7 +585,8 @@ def update_ts():
 
 def update_t():   
 
-    execfile('Pyticles_subroutines/update_t.py')
+    exec(compile(open('Pyticles_subroutines/update_t.py').read(), \
+            'Pyticles_subroutines/update_t.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
@@ -596,41 +594,40 @@ def update_t():
 
 def update_depth():   
 
-    execfile('Pyticles_subroutines/update_depth.py')
+    exec(compile(open('Pyticles_subroutines/update_depth.py').read(), \
+            'Pyticles_subroutines/update_depth.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
 ###################################################################################
 
 def update_lonlat():   
-
-    execfile('Pyticles_subroutines/update_lonlat.py')
+    exec(compile(open('Pyticles_subroutines/update_lonlat.py').read(), \
+            'Pyticles_subroutines/update_lonlat.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
 ###################################################################################
 
 def update_topo():   
-
-    execfile('Pyticles_subroutines/update_topo.py')
-
+    exec(compile(open('Pyticles_subroutines/update_topo.py').read(), \
+            'Pyticles_subroutines/update_topo.py', 'exec'))
 
 ###################################################################################
 # Compte u,v at each pyticles positions -> pu,pv
 ###################################################################################
 
 def update_uv_2d():   
-
-    execfile('Pyticles_subroutines/update_uv_2d.py')
+    exec(compile(open('Pyticles_subroutines/update_uv_2d.py').read(), \
+            'Pyticles_subroutines/update_uv_2d.py', 'exec'))
 
 ###################################################################################
 # Create output file and write time, px,py,pz ( and ptemp,psalt)
 ###################################################################################
 
 def write_output():   
-
-    execfile('Pyticles_subroutines/write_output.py')
-    
+    exec(compile(open('Pyticles_subroutines/write_output.py').read(), \
+            'Pyticles_subroutines/write_output.py', 'exec'))
     
 ###################################################################################
 
@@ -755,14 +752,14 @@ if not restart:
 else:
     newfile = restart_file
 
-print 'newfile', newfile
+print('newfile', newfile)
 
 ###################################################################################
 #START OF THE TIME LOOP
 ###################################################################################
 
-print ' '
-print ' '
+print (' ')
+print (' ')
 tstart = tm.time()
 
 ###############################
@@ -781,7 +778,7 @@ itime=restart_time
 
 for time in timerange:
 
-    print 'time is ', time
+    print('time is ', time)
 
     alpha_time = time - np.floor(time)
 
@@ -789,7 +786,7 @@ for time in timerange:
     # Define domainstimerange
     # (Find index range (zero based) in which the particles are expected to stay until the next frame)
     ###################################################################################
-    if debug: print 'max. vel. is ',  maxvel
+    if debug: print('max. vel. is ',  maxvel)
 
     tightcoord= part.subsection(px,py,dx,dy,maxvel*0.,delt[0],nx,ny,ng)
     coord= part.subsection(px,py,dx,dy,maxvel,delt[0],nx,ny,ng, nadv= nadv)
@@ -797,9 +794,9 @@ for time in timerange:
     nx_s,ny_s = coord[3]-coord[2], coord[1]-coord[0]
     i0=coord[2]; j0=coord[0]
 
-    print 'coord is ', coord
+    print('coord is ', coord)
     
-    print 'Compute coord............................', tm.time()-tstart
+    print('Compute coord............................', tm.time()-tstart)
     tstart = tm.time()   
 
 
@@ -816,7 +813,7 @@ for time in timerange:
         ptemp = shared_array(nq,prec='double'); psalt = shared_array(nq,prec='double')
         r = run_process(update_ts)
 
-        print 'get T,S..................................', tm.time()-tstart
+        print('get T,S..................................', tm.time()-tstart)
         tstart = tm.time()   
 
     elif write_t:
@@ -824,7 +821,7 @@ for time in timerange:
         ptemp = shared_array(nq,prec='double')
         r = run_process(update_t)
 
-        print 'get T....................................', tm.time()-tstart
+        print('get T....................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -833,7 +830,7 @@ for time in timerange:
         pu = shared_array(nq,prec='double'); pv = shared_array(nq,prec='double')
         r = run_process(update_uv_2d)
 
-        print 'get u,v..................................', tm.time()-tstart
+        print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -842,7 +839,7 @@ for time in timerange:
         plon = shared_array(nq,prec='double'); plat = shared_array(nq,prec='double')
         r = run_process(update_lonlat)
 
-        print 'get lon,lat..............................', tm.time()-tstart
+        print('get lon,lat..............................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -851,7 +848,7 @@ for time in timerange:
         pdepth = shared_array(nq,prec='double'); 
         r = run_process(update_depth)
 
-        print 'get depth................................', tm.time()-tstart
+        print('get depth................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -860,7 +857,7 @@ for time in timerange:
         ptopo = shared_array(nq,prec='double');
         r = run_process(update_topo)
 
-        print 'get topo................................', tm.time()-tstart
+        print('get topo................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -879,10 +876,11 @@ for time in timerange:
 
     if write_uv: del pu,pv
 
-    print 'Write in file............................', tm.time()-tstart
+    print('Write in file............................', tm.time()-tstart)
     tstart = tm.time()
 
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+    if debug: print('memory usage', \
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
     
 
 
@@ -891,7 +889,8 @@ for time in timerange:
     # (we are calling it as a subprocess in order to keep a clean memory after computation)
     ###################################################################################
 
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+    if debug: print('memory usage',\
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
     
     ###################################################################################
     # Devide domain into subdomains to diminish use of ram
@@ -900,7 +899,7 @@ for time in timerange:
 
     nsub_x = 1+(coord[3]-coord[2])/1000
     nsub_y = 1+(coord[1]-coord[0])/1000
-    print 'nsub_x,nsub_y',nsub_x,nsub_y
+    print('nsub_x,nsub_y',nsub_x,nsub_y)
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
@@ -913,12 +912,12 @@ for time in timerange:
 
     if nsub_x*nsub_y==1:
         subcoord = coord
-        subsubrange = range(nq)
+        subsubrange = list(range(nq))
         r = run_process(update_xyz);
         
     else:
         subtightcoord = [0,0,0,0]; subcoord = [0,0,0,0]; 
-        for isub,jsub in product(range(nsub_x),range(nsub_y)):
+        for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
             
             #subtightcoord will be used for test if particle should be advected or not
             subtightcoord[0] = max(0, tightcoord[0] + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
@@ -944,7 +943,7 @@ for time in timerange:
             subsubrange_saves.append(copy(subsubrange))
                     
         # run process for each subcoord and corresponding subsubrange of points
-        for isub,jsub in product(range(nsub_x),range(nsub_y)):
+        for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
             subtightcoord = subtightcoord_saves[jsub+isub*nsub_y]
             subcoord = subcoord_saves[jsub+isub*nsub_y]
             subsubrange = subsubrange_saves[jsub+isub*nsub_y]
@@ -955,10 +954,10 @@ for time in timerange:
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
     if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2) : simul.update(np.int(np.floor(time)+simul.dtime));
 
-    print 'Total computation of px,py,pz............', tm.time()-tstart
+    print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
         
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+    if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
 
     ###################################################################################
     # Realease new pyticles (if continuous injection)
@@ -982,14 +981,14 @@ for time in timerange:
 
     #wait = raw_input("PRESS ENTER TO CONTINUE.")
 
-    print 'Plot selection...........................', tm.time()-tstart
+    print('Plot selection...........................', tm.time()-tstart)
     tstart = tm.time()    
         
-    print ' '
-    print ' '
+    print(' ')
+    print(' ')
         
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-    if debug: print 'error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2)
+    if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
+    if debug: print('error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2))
 
         
         
