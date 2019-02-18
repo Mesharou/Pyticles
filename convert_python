@@ -1,7 +1,8 @@
 #!/bin/bash
 # Bash script to convert python from 2 to 3
 
-FILE_DIR=/home/jeremy/Bureau/Project/Pyticles/Pyticles_subroutines  
+
+FILE_DIR=$(pwd)  
 cd $FILE_DIR
 
 for file in $(ls *.py)
