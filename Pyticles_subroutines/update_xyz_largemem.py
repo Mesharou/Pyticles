@@ -5,10 +5,10 @@
 ##LM
 w_sed0= -25
 w_sed = w_sed0/(3600.*24.)
-print ' '
-print ' ===========> Vitesse de sedimentation :'
-print ' w(m/d), w(m/sec) = ',w_sed0, w_sed
-print ' '
+print(' ')
+print(' ===========> Vitesse de sedimentation :')
+print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
+print(' ')
 ##LM
 
 timing=False #timing for this subroutine
@@ -43,7 +43,7 @@ pm_s = shared_array(nx_s,ny_s)
 pn_s = shared_array(nx_s,ny_s)
 mask_s = shared_array(nx_s,ny_s)
 
-print 'Create u,v,w shared arrays...............', tm.time()-tstart
+print(('Create u,v,w shared arrays...............', tm.time()-tstart))
 tstart = tm.time()   
     
 ###################################################################################      
@@ -62,7 +62,7 @@ if np.isnan(pm_s[0,0]):
     pn_s[:]= part.periodize2d_fromvar(simul,simul.pn,coord=subcoord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
     mask_s[:]= part.periodize2d_fromvar(simul,maskrho,coord=subcoord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
 
-    if subtiming: print 'Get pm,pn .....................', tm.time()-tstart
+    if subtiming: print(('Get pm,pn .....................', tm.time()-tstart))
     if subtiming: tstart = tm.time()
     
     ###################################################################################
@@ -76,14 +76,14 @@ if np.isnan(pm_s[0,0]):
         [u[:,:,itim[0]],v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
                                                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
 
-    if subtiming: print 'Computing velocity at t1.......', tm.time()-tstart
+    if subtiming: print(('Computing velocity at t1.......', tm.time()-tstart))
     if subtiming: tstart = tm.time()
 
     if adv3d:
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=subcoord)
         dz[:,:,:,itim[0]] = z_w[:,:,1:] - z_w[:,:,:-1]
     
-    if subtiming: print 'Computing dz at t1.............', tm.time()-tstart
+    if subtiming: print(('Computing dz at t1.............', tm.time()-tstart))
     if subtiming: tstart = tm.time()
 
 
@@ -94,7 +94,7 @@ if np.isnan(pm_s[0,0]):
 if not meanflow: simul.update(np.int(np.floor(time)+simul.dtime));
 tim1 = simul.oceantime
 
-if subtiming: print 'Update simulation..............', tm.time()-tstart
+if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
@@ -109,14 +109,14 @@ else:
     [u[:,:,itim[1]],v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
                                                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
 
-if subtiming: print 'Computing velocity at t2.......', tm.time()-tstart
+if subtiming: print(('Computing velocity at t2.......', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
     z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=subcoord)
     dz[:,:,:,itim[1]] = z_w[:,:,1:] - z_w[:,:,:-1]; del z_w
 
-if subtiming: print 'Computing dz at t2.............', tm.time()-tstart
+if subtiming: print(('Computing dz at t2.............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 
@@ -126,12 +126,12 @@ if subtiming: tstart = tm.time()
 maxvel[0] = np.nanmax(np.abs(u))*1.5
 maxvel[1] = np.nanmax(np.abs(v))*1.5
 
-print 'maxvel is', maxvel
+print(('maxvel is', maxvel))
 
 ###################################################################################
 
-if timing: print '    '
-if timing: print 'Computing velocity.............', tm.time()-tstart
+if timing: print('    ')
+if timing: print(('Computing velocity.............', tm.time()-tstart))
 if timing: tstart = tm.time()
 
 ########################
@@ -141,7 +141,7 @@ if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
 dt = delt[0]/subtstep
 dfct = 1. /subtstep * np.abs(dfile)
 
-print 'dt is ',dt
+print(('dt is ',dt))
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
@@ -220,7 +220,7 @@ def advance_3d(subrange,out,step):
 
             # If not use a RK4 scheme for the first 2 or 4 time steps
             else:
-                if subrange[0]==0: print 'istep is', istep_F, ' using RK4 for initialization'
+                if subrange[0]==0: print(('istep is', istep_F, ' using RK4 for initialization'))
                 (dpx_F[:,iab_F[-1]],dpy_F[:,iab_F[-1]],dpz_F[:,iab_F[-1]]) = \
                                       partF.timestep_rk4(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,\
                                                          pm_s,pn_s,mask_s,dz,dt,ng,nq,i0,j0,k0)         
@@ -310,7 +310,7 @@ for i in range(nproc):
     if len(subranges[-1])>0: nprocs.append(i)
 
 
-print 'nprocs',nprocs
+print(('nprocs',nprocs))
 
 ###################################################################################
 # Run nproc simultaneous processes
@@ -335,7 +335,7 @@ if len(nprocs)>0:
 
 
     ###################################################################################
-    if timing: print 'Integration between 2 frames...', tm.time()-tstart
+    if timing: print(('Integration between 2 frames...', tm.time()-tstart))
     if timing: tstart = tm.time()
 
     ###################################################################################

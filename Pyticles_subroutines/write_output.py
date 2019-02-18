@@ -66,7 +66,7 @@ else:
 try:
     nc.variables['ocean_time'][itime]= simul.oceantime + (time - np.floor(time)) * simul.dt
 except:
-    print 'no simul.oceantime'
+    print('no simul.oceantime')
     nc.variables['ocean_time'][itime]= time * delt
 
 nc.variables['time'][itime]=time

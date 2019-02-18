@@ -69,7 +69,7 @@ else:
 
 
 nslice = nq/nproc+1; subranges=[]
-for i in range(nproc): subranges.append(range(i*nslice,np.nanmin([(i+1)*nslice,nq])))
+for i in range(nproc): subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
 
 if adv3d:
     procs = [mp.Process(target=interp_3d_ts, args=([subranges[i]])) for i in range(nproc)]

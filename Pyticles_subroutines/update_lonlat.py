@@ -30,7 +30,7 @@ def interp_2d(subrange):
 ###############################################################################
 
 nslice = nq/nproc+1; subranges=[]
-for i in range(nproc): subranges.append(range(i*nslice,np.nanmin([(i+1)*nslice,nq])))
+for i in range(nproc): subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
 
 procs = [mp.Process(target=interp_2d, args=([subranges[i]])) for i in range(nproc)]
 
