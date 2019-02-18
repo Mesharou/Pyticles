@@ -1,0 +1,15 @@
+#!/bin/bash
+# Bash script to convert python from 2 to 3
+
+FILE_DIR=/home/jeremy/Bureau/Project/Pyticles/Pyticles_subroutines  
+cd $FILE_DIR
+
+for file in $(ls *.py)
+do
+    2to3 ${file} > ${file}.patch
+    patch < ${file}.patch
+    rm *.patch
+done
+
+
+
