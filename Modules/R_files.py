@@ -2293,6 +2293,17 @@ class files(object):
         ################## 
         # JC simulations
 
+        elif simul=='case1':
+            self.model = 'croco'
+            folder=ROMSSIMSK
+            self.his=folder + '/CHABA/HIS_frc_1h/chaba_his.'
+            self.grd=folder + '/CHABA/chaba_grd.nc'
+            self.frc=folder + '/CHABA/chaba_frc_1h.nc'
+            self.wind=folder + '/CHABA/chaba_frc_1h.nc'
+            self.tfile=5
+            self.tstart=0
+            self.tend=1555
+
         elif simul=='aacc':
             self.model = 'agrif_jc'
             folder= libra + '/gula/ROMS/Simulations/AACC'

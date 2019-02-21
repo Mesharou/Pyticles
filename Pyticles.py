@@ -73,7 +73,7 @@ import resource
 import Queue
 
 #add the Modules folder in your python PATH
-sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
+#sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
 sys.path.append("./Modules/") 
 
 #Specific modules needed for pyticles
@@ -213,8 +213,8 @@ if adv3d: write_uv=False #not implemented yet for 3d
 
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1000
-end_file = 1365
+start_file = 1555
+end_file = 1556
 
 #############
 
@@ -230,7 +230,7 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'polgyr [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+parameters = 'chaba [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
