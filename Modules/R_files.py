@@ -2278,7 +2278,7 @@ class files(object):
             self.tstart=0
             self.tend=1000 
             
-            
+           d
         elif simul=='ideal':
             folder=shirma + '/gula/ROMS/Simulations'
             self.his=folder + '/IDEAL/his.'
@@ -2295,11 +2295,11 @@ class files(object):
 
         elif simul=='case1':
             self.model = 'croco'
-            folder=ROMSSIMSK
-            self.his=folder + '/CHABA/HIS_frc_1h/chaba_his.'
-            self.grd=folder + '/CHABA/chaba_grd.nc'
-            self.frc=folder + '/CHABA/chaba_frc_1h.nc'
-            self.wind=folder + '/CHABA/chaba_frc_1h.nc'
+            folder='/home/jeremy/Bureau/Data/Pyticles'
+            self.his=folder + '/Case_1/chaba_his.'
+            self.grd=folder + '/Case_1/chaba_grd.nc'
+            self.frc=folder + '/Case_1/chaba_frc_1h.nc'
+            self.wind=folder + '/Case_1/chaba_frc_1h.nc'
             self.tfile=5
             self.tstart=0
             self.tend=1555
