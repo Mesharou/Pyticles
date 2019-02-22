@@ -139,9 +139,9 @@ print '-----------------------------------'
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='case1'
+config='Case_1'
 
-folderout= './' + config + '/'
+folderout= '/home/jeremy/Bureau/Data/Pyticles/Case_1/' + config + '/'
 
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -213,14 +213,14 @@ if adv3d: write_uv=False #not implemented yet for 3d
 
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1555
-end_file = 1556
+start_file = 1550
+end_file = 1560
 
 #############
 
 restart = False
 restart_time = 3 #nb of time steps in the restart_file
-restart_file = '/net/libra/local/tmp/1/gula/particles/ATLBIG/atlbigsig_ATLBIG_dx__RK4_8_0024.nc'
+restart_file = '/home/jeremy/Bureau/Data/Pyticles/Case_1/'
 
 if not restart: 
     restart_time = 0
@@ -230,7 +230,9 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'chaba [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+#parameters = 'chaba [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
@@ -289,8 +291,8 @@ if True:
     ##########################
     # Particles initial location in the horizontal
 
-    if config=='case1':
-        [ic,jc] = [1550,600] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+    if config=='Case_1':
+        [ic,jc] = [50,60] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
     # distance between 2 particles [in m]
     dx_m = 1000.

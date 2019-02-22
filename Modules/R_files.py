@@ -2278,7 +2278,7 @@ class files(object):
             self.tstart=0
             self.tend=1000 
             
-           d
+           
         elif simul=='ideal':
             folder=shirma + '/gula/ROMS/Simulations'
             self.his=folder + '/IDEAL/his.'
@@ -2293,7 +2293,7 @@ class files(object):
         ################## 
         # JC simulations
 
-        elif simul=='case1':
+        elif simul=='Case_1':
             self.model = 'croco'
             folder='/home/jeremy/Bureau/Data/Pyticles'
             self.his=folder + '/Case_1/chaba_his.'

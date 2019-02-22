@@ -9,7 +9,7 @@ pip install virtualenv
 
 # 1. create a virtual environment
 ##################################
-
+my_folder=/home/jeremy/Bureau/Project/Pyticles
 cd $my_folder
 virtualenv my_env
 
@@ -54,8 +54,8 @@ pip install https://downloads.sourceforge.net/project/matplotlib/matplotlib-tool
 #NB: for macos you may need to add:
 ##################################
 
-brew install geos
-brew install gdal
+#brew install geos
+#brew install gdal
 
 
 
