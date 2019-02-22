@@ -73,7 +73,7 @@ import resource
 import queue
 
 #add the Modules folder in your python PATH
-sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
+#sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
 sys.path.append("./Modules/") 
 
 #Specific modules needed for pyticles
@@ -139,9 +139,9 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='case1'
+config='TEST_Py3'
 
-folderout= './' + config + '/'
+folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -159,7 +159,7 @@ timestep='RK4' # Choices are FE (forward-Euler)
 
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
-debug = False
+debug = True
 
 #############
 x_periodic = False
@@ -213,8 +213,8 @@ if adv3d: write_uv=False #not implemented yet for 3d
 
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1000
-end_file = 1365
+start_file = 1550
+end_file = 1555
 
 #############
 
@@ -230,7 +230,7 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'polgyr [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
@@ -289,8 +289,8 @@ if True:
     ##########################
     # Particles initial location in the horizontal
 
-    if config=='case1':
-        [ic,jc] = [1550,600] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+    if config=='TEST_Py3':
+        [ic,jc] = [60,40] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
     # distance between 2 particles [in m]
     dx_m = 1000.
