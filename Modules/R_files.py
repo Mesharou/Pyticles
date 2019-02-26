@@ -2300,7 +2300,7 @@ class files(object):
             self.grd=folder + '/chaba_grd.nc'
             self.frc=folder + '/chaba_frc.nc'
             self.wind=folder + '/NATL/natl6_frc.nc'
-            self.tfile=1550
+            self.tfile=5
             self.tstart=1550
             self.tend=1555
 
