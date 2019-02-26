@@ -302,8 +302,14 @@ def advance_2d(subrange,out,step):
 ###################################################################################
 # ADVANCE_3D
 ###################################################################################
+# JC added a int casting...
+nslice = int(len(subsubrange)/nproc+1); subranges=[]; nprocs=[]
+# JC debug
 
-nslice = len(subsubrange)/nproc+1; subranges=[]; nprocs=[]
+print('___________________')
+print(nslice)
+print('nproc = ', nproc)
+
 
 for i in range(nproc): 
     subranges.append(subsubrange[i*nslice:np.nanmin([(i+1)*nslice,nq])])
@@ -315,14 +321,15 @@ print(('nprocs',nprocs))
 ###################################################################################
 # Run nproc simultaneous processes
 
+procs = []
 if len(nprocs)>0:
     
     out = mp.Queue(); step = mp.Queue()
-    
-    if adv3d:
-        procs = [mp.Process(target=advance_3d, args=(subranges[i],out,step)) for i in nprocs]
-    else:
-        procs = [mp.Process(target=advance_2d, args=(subranges[i],out,step)) for i in nprocs]
+    for i in range(nproc):
+        if adv3d:
+            procs.append(mp.Process(target=advance_3d, args=(subranges[i],out,step,)))
+        else:
+            procs.appen(mp.Process(target=advance_2d, args=(subranges[i],out,step,)))
 
     for p in procs: p.start()
     for p in procs: p.join()   

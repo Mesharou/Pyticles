@@ -2295,6 +2295,7 @@ class files(object):
 
         elif simul=='Case_1':  
             folder= '/home/jeremy/Bureau/Data/Pyticles'
+            self.model = 'croco'
             self.his=folder + '/chaba_his.'
             self.grd=folder + '/chaba_grd.nc'
             self.frc=folder + '/chaba_frc.nc'
