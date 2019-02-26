@@ -68,9 +68,9 @@ import sys, os
 import numpy as np
 import time as tm
 from netCDF4 import Dataset
-import multiprocessing as mp; import ctypes   
-import resource
+import multiprocessing as mp; import ctypes 
 import queue
+import resource
 
 #add the Modules folder in your python PATH
 #sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
@@ -558,7 +558,6 @@ def run_process(my_func):
     results = mp.Queue(); i=0
     proc=mp.Process(target=my_func, args=())
     proc.start(); proc.join()
-
     
     return results
 
@@ -574,11 +573,11 @@ def update_xyz():
 ###################################################################################
 # Compte T,S at each pyticles positions -> ptemp,psalt
 ###################################################################################
-
+#JC
 def update_ts():   
     exec(compile(open('Pyticles_subroutines/update_ts.py').read(),\
             'Pyticles_subroutines/update_ts.py', 'exec'))
-
+    
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
 ###################################################################################
@@ -707,7 +706,7 @@ def plot_selection(alldomain=True):
     '''
 
     color = 'w'; box = 'round,pad=0.1'; props = dict(boxstyle=box, fc=color, ec='k', lw=1, alpha=1.)
-    ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
+  #JC  ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
 
     plt.title(format(np.sum(px>0)) + ' pyticles ' )
     plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
@@ -896,9 +895,14 @@ for time in timerange:
     # Devide domain into subdomains to diminish use of ram
     ###################################################################################
     #Automatic division:
+    
 
-    nsub_x = 1+(coord[3]-coord[2])/1000
-    nsub_y = 1+(coord[1]-coord[0])/1000
+    # Issue for now 
+    # JC 
+    nsub_x = 1
+    nsub_y = 1
+    #nsub_x = 1+(coord[3]-coord[2])/1000
+    #nsub_y = 1+(coord[1]-coord[0])/1000
     print('nsub_x,nsub_y',nsub_x,nsub_y)
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!

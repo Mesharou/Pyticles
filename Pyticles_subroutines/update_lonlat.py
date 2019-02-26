@@ -29,10 +29,12 @@ def interp_2d(subrange):
 # Get T,S at particles positions
 ###############################################################################
 
-nslice = nq/nproc+1; subranges=[]
-for i in range(nproc): subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
-
-procs = [mp.Process(target=interp_2d, args=([subranges[i]])) for i in range(nproc)]
+nslice = int(nq/nproc+1)
+subranges=[]
+procs = []
+for i in range(nproc):
+    subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
+    procs.append(mp.Process(target=interp_2d, args=(subranges[i],)))
 
 for p in procs: p.start()
 for p in procs: p.join()   

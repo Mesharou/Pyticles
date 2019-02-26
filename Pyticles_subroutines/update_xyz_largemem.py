@@ -318,6 +318,7 @@ print(('nprocs',nprocs))
 if len(nprocs)>0:
     
     out = mp.Queue(); step = mp.Queue()
+    
     if adv3d:
         procs = [mp.Process(target=advance_3d, args=(subranges[i],out,step)) for i in nprocs]
     else:

@@ -13,11 +13,10 @@ Outputs:
 
 
 ###################################################################################
-#@profile
+#
 def interp_3d_ts(subrange):
     
     global px,py,pz,temp,salt,nq,i0,j0,k0,ptemp,psalt
-
     ptemp[subrange],psalt[subrange]=partF.interp_3d_ts(px[subrange],py[subrange],pz[subrange],temp,salt,ng,nq,i0,j0,k0)
 
 ###################################################################################
@@ -67,18 +66,19 @@ else:
 # Get T,S at particles positions
 ###############################################################################
 
+nslice = int(nq/nproc+1)
+subranges=[]
+procs = []
 
-nslice = nq/nproc+1; subranges=[]
-for i in range(nproc): subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
-
-if adv3d:
-    procs = [mp.Process(target=interp_3d_ts, args=([subranges[i]])) for i in range(nproc)]
-else:
-    procs = [mp.Process(target=interp_2d_ts, args=([subranges[i]])) for i in range(nproc)]
+for i in range(nproc):
+    subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
+    if adv3d:
+        procs.append(mp.Process(target=interp_3d_ts, args=(subranges[i],)))
+    else:
+        procs.append(Process(target=interp_2d_ts, args=(subranges[i],)))
 
 for p in procs: p.start()
 for p in procs: p.join()   
-
 
 
 ###################################################################################
