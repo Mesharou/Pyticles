@@ -68,7 +68,8 @@ import sys, os
 import numpy as np
 import time as tm
 from netCDF4 import Dataset
-import multiprocessing as mp; import ctypes 
+import multiprocessing as mp
+import ctypes 
 import queue
 import resource
 
@@ -139,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='TEST_Py3'
+config='Mean_flow'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -182,7 +183,7 @@ else:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 #############
-meanflow=False # if True the velocity field is not updated in time
+meanflow=True # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 
 
