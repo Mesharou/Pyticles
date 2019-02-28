@@ -2295,13 +2295,13 @@ class files(object):
 
         elif simul=='Case_1':
             self.model = 'croco'
-            folder='/home/jeremy/Bureau/Data/Pyticles'
-            self.his=folder + '/Case_1/chaba_his.'
-            self.grd=folder + '/Case_1/chaba_grd.nc'
-            self.frc=folder + '/Case_1/chaba_frc_1h.nc'
-            self.wind=folder + '/Case_1/chaba_frc_1h.nc'
+            folder ='/home/jeremy/Bureau/Data/Pyticles'
+            self.his=folder + '/chaba_his.'
+            self.grd=folder + '/chaba_grd.nc'
+            self.frc=folder + '/chaba_frc_1h.nc'
+            self.wind=folder + '/chaba_frc_1h.nc'
             self.tfile=5
-            self.tstart=0
+            self.tstart=1550
             self.tend=1555
 
         elif simul=='aacc':

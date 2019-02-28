@@ -139,9 +139,9 @@ print '-----------------------------------'
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Case_1'
+config='Port_Test_P2'
 
-folderout= '/home/jeremy/Bureau/Data/Pyticles/Case_1/' + config + '/'
+folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -285,14 +285,15 @@ if True:
 
     #Initial Particle release
     subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 1000000   # maximum number of particles
+    nqmx = 100   # maximum number of particles
+
     maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
     ##########################
     # Particles initial location in the horizontal
 
-    if config=='Case_1':
-        [ic,jc] = [50,60] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+    #if config=='Case_1':
+    [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
     # distance between 2 particles [in m]
     dx_m = 1000.
@@ -304,7 +305,7 @@ if True:
 
     #########
     # density of pyticles (1 particle every n grid points)
-    nnx=dx0
+    nnx=dx0 * 5
     nny=dx0
     nnlev=1.
 
@@ -315,7 +316,8 @@ if True:
     #########
     # define initial vertical position using depth
     initial_depth = False
-    depths0 = [-50,-100,-200,-300,-400,-500]
+    #depths0 = [-50,-100,-200,-300,-400,-500]
+    depths = [-500]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
@@ -903,6 +905,10 @@ for time in timerange:
     nsub_x = 1+(coord[3]-coord[2])/1000
     nsub_y = 1+(coord[1]-coord[0])/1000
     print 'nsub_x,nsub_y',nsub_x,nsub_y
+    
+    #JC Just to ne in accordance with python_3 branch
+    nsub_x = 1
+    nsub_y = 1
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
