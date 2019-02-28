@@ -591,18 +591,18 @@ example: for an interactive session:
 
         if not self.ncname.realyear:
         
-            self.year = np.floor(self.oceantime/(360*24*3600))
+            self.year = np.floor(self.oceantime//(360*24*3600))
             
             self.oceantime = self.oceantime%(360*24*3600)
 
-            self.month = self.oceantime/(24*3600)/30+1
+            self.month = self.oceantime//(24*3600)//30+1
             month_name = ["None","Jan","Feb","Mar","Apr", "May", "Jun", "Jul","Aug","Sep","Oct","Nov","Dec"] 
 
-            self.day = self.oceantime/(24*3600) - (self.month-1) * 30 + 1
+            self.day = self.oceantime//(24*3600) - (self.month-1) * 30 + 1
 
-            self.hour = self.oceantime%(24*3600)/3600
+            self.hour = self.oceantime%(24*3600)//3600
 
-            self.min = self.oceantime%(3600)/60
+            self.min = self.oceantime%(3600)//60
 
             self.date = month_name[self.month] + ' ' + '{0:02}'.format(self.day) + ' - ' +'{0:02}'.format(self.hour) + ':' + '{0:02}'.format(self.min) 
 
