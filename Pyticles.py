@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Cont_inj'
+config='Port_Test_P3'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -285,7 +285,7 @@ if True:
 
     #Initial Particle release
     subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 1000000   # maximum number of particles
+    nqmx = 100   # maximum number of particles
     maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
     ##########################
@@ -304,7 +304,7 @@ if True:
 
     #########
     # density of pyticles (1 particle every n grid points)
-    nnx=dx0
+    nnx=dx0*5
     nny=dx0
     nnlev=1.
 
@@ -315,7 +315,7 @@ if True:
     #########
     # define initial vertical position using depth
     initial_depth = False
-    depths0 = [-50,-100,-200,-300,-400,-500]
+    depths0 = [-500] # [-50, -100, -200]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
@@ -323,7 +323,7 @@ if True:
 
 ###########
 
-continuous_injection = True # if True release particles continuously, if False only one release at initial time-step
+continuous_injection = False # if True release particles continuously, if False only one release at initial time-step
 
 ###########
 
