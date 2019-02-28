@@ -140,7 +140,10 @@ if timing: tstart = tm.time()
 if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
 dt = delt[0]/subtstep
 dfct = 1. /subtstep * np.abs(dfile)
-
+print(f'tim1 = {tim1}')
+print(f'detlt[0] is {delt[0]}')
+print(f'substep is {subtstep}')
+print(f'dfile = {np.abs(dfile)}')
 print(('dt is ',dt))
 
 ###################################################################################
