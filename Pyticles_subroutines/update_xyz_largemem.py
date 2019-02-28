@@ -302,21 +302,14 @@ def advance_2d(subrange,out,step):
 ###################################################################################
 # ADVANCE_3D
 ###################################################################################
-# JC added a int casting...
-nslice = int(len(subsubrange)/nproc+1); subranges=[]; nprocs=[]
-# JC debug
 
-print('___________________')
-print(nslice)
-print('nproc = ', nproc)
+nslice = len(subsubrange)//nproc+1; subranges=[]; nprocs=[]
 
 
 for i in range(nproc): 
     subranges.append(subsubrange[i*nslice:np.nanmin([(i+1)*nslice,nq])])
     if len(subranges[-1])>0: nprocs.append(i)
 
-
-print(('nprocs',nprocs))
 
 ###################################################################################
 # Run nproc simultaneous processes

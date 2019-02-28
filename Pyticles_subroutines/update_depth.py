@@ -39,7 +39,6 @@ if not meanflow and alpha_time != 0:
 # Get depth at particles positions
 ###############################################################################
 
-#JC tmp for debug
 nslice = int(nq/nproc+1)
 subranges = []
 procs = []

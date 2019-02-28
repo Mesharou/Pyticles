@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Mean_flow'
+config='Cont_inj'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -183,7 +183,7 @@ else:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 #############
-meanflow=True # if True the velocity field is not updated in time
+meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 
 
@@ -252,6 +252,7 @@ dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
 
 # Total size of the domain (nx,ny,nz)
 (nx,ny) = simul.pm.shape
+
 nx += 2*ng; ny += 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
@@ -290,8 +291,8 @@ if True:
     ##########################
     # Particles initial location in the horizontal
 
-    if config=='TEST_Py3':
-        [ic,jc] = [60,40] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+    #if config=='TEST_Py3':
+    [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
     # distance between 2 particles [in m]
     dx_m = 1000.
@@ -322,7 +323,7 @@ if True:
 
 ###########
 
-continuous_injection = False # if True release particles continuously, if False only one release at initial time-step
+continuous_injection = True # if True release particles continuously, if False only one release at initial time-step
 
 ###########
 
@@ -343,11 +344,15 @@ if continuous_injection:
 def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
     '''
     Function used to create shared variables compatible with numpy and fortran ordered
-    '''      
+    '''
+    # JC option prec='double' seems obsolete since python 3 
     if prec=='float':
         shared_array_base = mp.Array(ctypes.c_float, nx*ny*nz*nt )
     elif prec=='double':
-        shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt )
+        #print(f'nx = {nx}, ny = {ny}, nz = {nz}, nt = {nt}')
+        new_len = nx*ny*nz*nt
+        #shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt )
+        shared_array_base = mp.Array(ctypes.c_double, int(nx*ny*nz*nt), lock=True)
     elif prec=='int':
         shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
     var = np.ctypeslib.as_array(shared_array_base.get_obj())
@@ -447,9 +452,6 @@ if not restart:
 
     if continuous_injection:
         px[:nq_1]=px0; py[:nq_1]=py0; pz[:nq_1]=pz0
-        print('px0', px0)
-        print('py0', py0)
-        print('pz0', pz0)
 
     else: 
         px[:]=px0; py[:]=py0; pz[:]=pz0
@@ -505,7 +507,8 @@ else:
         pz0 = nc.variables['pz'][0,:nq_injection]
         nc.close()
         
-        nq_1=np.nanmin([nq_injection*((restart_time)/dt_injection+1),nqmx])
+        # JC debug int cast...
+        nq_1=np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
         
         '''
         if (nq_1<nqmx) and (restart_time%dt_injection)==0:
@@ -575,7 +578,7 @@ def update_xyz():
 ###################################################################################
 # Compte T,S at each pyticles positions -> ptemp,psalt
 ###################################################################################
-#JC
+
 def update_ts():   
     exec(compile(open('Pyticles_subroutines/update_ts.py').read(),\
             'Pyticles_subroutines/update_ts.py', 'exec'))
@@ -905,7 +908,6 @@ for time in timerange:
     nsub_y = 1
     #nsub_x = 1+(coord[3]-coord[2])/1000
     #nsub_y = 1+(coord[1]-coord[0])/1000
-    print('nsub_x,nsub_y',nsub_x,nsub_y)
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
@@ -970,9 +972,8 @@ for time in timerange:
     ###################################################################################
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
-
         nq_0 = nq_1
-        nq_1 = np.nanmin([nq_injection*((itime+1)/dt_injection+1),nqmx])
+        nq_1 = np.nanmin([nq_injection*((itime+1)//dt_injection+1),nqmx])
         px[nq_0:nq_1]=px0[:nq_1-nq_0]; py[nq_0:nq_1]=py0[:nq_1-nq_0]; 
         if adv3d: pz[nq_0:nq_1]=pz0[:nq_1-nq_0]
 
