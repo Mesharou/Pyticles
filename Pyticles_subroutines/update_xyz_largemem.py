@@ -3,7 +3,8 @@
 ###################################################################################
 
 ##LM
-w_sed0= -25
+ 
+#w_sed0= -25 not supposed to be defined here but in pyticles
 w_sed = w_sed0/(3600.*24.)
 print(' ')
 print(' ===========> Vitesse de sedimentation :')
@@ -326,7 +327,7 @@ if len(nprocs)>0:
         if adv3d:
             procs.append(mp.Process(target=advance_3d, args=(subranges[i],out,step,)))
         else:
-            procs.appen(mp.Process(target=advance_2d, args=(subranges[i],out,step,)))
+            procs.append(mp.Process(target=advance_2d, args=(subranges[i],out,step,)))
 
     for p in procs: p.start()
     for p in procs: p.join()   

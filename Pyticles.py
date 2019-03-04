@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Port_Test_P3'
+config='ADV_2D_NO_UV'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -168,7 +168,7 @@ y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
 #3D advection
-adv3d = True
+adv3d = False 
 # if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
 if len(sys.argv)>=3:
     advdepth = np.int(sys.argv[2]) 
@@ -185,11 +185,17 @@ else:
 #############
 meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
-
+# JC modif
+sedimentation=True
+w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
-if not adv3d: simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
+if not adv3d:
+    simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
+    sedimentaion=False
+    w_sed0 = 0. # JC no sedimentation for 2D advection
+
 
 #Write T,S at each particle position directly in output file
 write_ts=True
@@ -200,11 +206,11 @@ if write_t: write_ts = False
 
 #Write lon,lat,topo,depth
 write_lonlat=True
-write_depth=True
+write_depth=False
 write_topo=True
 
 #Write u,v at each particle position directly in output file
-write_uv=True
+write_uv=False
 if adv3d: write_uv=False #not implemented yet for 3d
 
 
@@ -220,8 +226,8 @@ end_file = 1560
 #############
 
 restart = False
-restart_time = 3 #nb of time steps in the restart_file
-restart_file = '/net/libra/local/tmp/1/gula/particles/ATLBIG/atlbigsig_ATLBIG_dx__RK4_8_0024.nc'
+restart_time = 4 #nb of time steps in the restart_file
+restart_file = '/home/jeremy/Bureau/Data/Pyticles/home/jeremy/Bureau/Data/Pyticles/Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
 
 if not restart: 
     restart_time = 0
@@ -314,7 +320,7 @@ if True:
     if not adv3d: lev0 = -1; lev1 = lev0
     #########
     # define initial vertical position using depth
-    initial_depth = False
+    initial_depth = True
     depths0 = [-500] # [-50, -100, -200]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1

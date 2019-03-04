@@ -75,7 +75,7 @@ for i in range(nproc):
     if adv3d:
         procs.append(mp.Process(target=interp_3d_ts, args=(subranges[i],)))
     else:
-        procs.append(Process(target=interp_2d_ts, args=(subranges[i],)))
+        procs.append(mp.Process(target=interp_2d_ts, args=(subranges[i],)))
 
 for p in procs: p.start()
 for p in procs: p.join()   
