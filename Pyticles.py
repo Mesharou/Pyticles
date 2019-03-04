@@ -906,8 +906,8 @@ for time in timerange:
     # JC 
     nsub_x = 1
     nsub_y = 1
-    #nsub_x = 1+(coord[3]-coord[2])/1000
-    #nsub_y = 1+(coord[1]-coord[0])/1000
+    nsub_x = 1+(coord[3]-coord[2])//1000
+    nsub_y = 1+(coord[1]-coord[0])//1000
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
