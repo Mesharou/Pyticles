@@ -1,60 +1,132 @@
+# Takes all output from 2 simulation and compare them
+# Results are plotted in folder_save  
+
+
 from netCDF4 import Dataset
 import numpy as np
 import matplotlib.pyplot as plt
 
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
+folder_save = folder_root + 'Port_Test_P3/'
 
 nc_file_p2 = folder_root + 'Port_Test_P2/Case_1_Port_Test_P2_12_1550.nc'
 nc_file_p3 = folder_root + 'Port_Test_P3/Case_1_Port_Test_P2_12_1550.nc'
 
 nc = Dataset(nc_file_p2, 'r')
+var_list = nc.variables
 px0 = nc.variables['px'][:]
 py0 = nc.variables['py'][:]
 pz0 = nc.variables['pz'][:]
+ocean_time0 = nc.variables['ocean_time'][:]
+time0 = nc.variables['time'][:]
+pt0 = nc.variables['pt'][:]
+ps0 = nc.variables['ps'][:]
+plon0 = nc.variables['plon'][:]
+plat0 = nc.variables['plat'][:]
+pdepth0 = nc.variables['pdepth'][:]
+ptopo0 = nc.variables['ptopo'][:]
 nc.close()
 
 
 nc = Dataset(nc_file_p2, 'r')
-px0_3 = nc.variables['px'][:]
-py0_3 = nc.variables['py'][:]
-pz0_3 = nc.variables['pz'][:]
+px3 = nc.variables['px'][:]
+py3 = nc.variables['py'][:]
+pz3 = nc.variables['pz'][:]
+ocean_time3 = nc.variables['ocean_time'][:]
+time3 = nc.variables['time'][:]
+pt3 = nc.variables['pt'][:]
+ps3 = nc.variables['ps'][:]
+plon3 = nc.variables['plon'][:]
+plat3 = nc.variables['plat'][:]
+pdepth3 = nc.variables['pdepth'][:]
+ptopo3 = nc.variables['ptopo'][:]
 nc.close()
 
-print(px0.shape)
-
-plt.plot(px0[:,0] - px0_3[:,0])
-#plt.show()
+# ========================================================
 
 
-diff_px0 = px0_3 - px0 
-diff_py0 = py0_3 - py0 
-diff_pz0 = pz0_3 - pz0
+# =========================================================
+# PLOTS
+# PT
 
-Diff_PX = []
-Diff_PY = []
-Diff_PZ = []
+def diag_error(var3, var0, save_plot=False, save_name='', npart=10):
+    '''compute max difference between var1 and var2
+       plot some time series of both var1 and var2
+       plotting npart first partciles
 
-for i in range(100):
-    Diff_PX.append(max(diff_px0[:,i]))
-    Diff_PY.append(max(diff_py0[:,i]))
-    Diff_PZ.append(max(diff_pz0[:,i]))
+       var 3 : output from python 3
+       var 0 : output from python 2
+       npart : number of particles to plot
+       save_plot : to save the figure
+       save_name : name a the figure for saving
+    '''
+    err_max = (abs(var3 - var0)).max()
+    if err_max != 0:
+        print(f'Error {var1} is not equal to {var2}')
+        print(f'Error is {arr_max}')
+    else:
+        pass
 
-plt.plot(Diff_PX)
-plt.plot(Diff_PY)
-plt.plot(Diff_PZ)
-plt.show()
-
-
-for ip in range(100):
-    plt.plot(pz0_3[:,ip])
+    plt.figure
+    plt.subplot(211)
+    plt.plot(time3, var3[:,:npart])
+    plt.title(f'ptemp      Error Max = {err_max}')
+    plt.ylabel('python 3.6')
+    plt.subplot(212)
+    plt.plot(time0, var0[:,:npart])
+    plt.ylabel('python 2.7')
+    plt.xlabel('time')
+    if save_plot:
+        plt.savefig(save_name)
+    else:
+        pass
     plt.show()
+    return
 
 
+#TIME
+#save_name = folder_root + 'err_time.png'
+#diag_error(time3, time0, save_plot=True, save_name=save_name, npart=10)
 
-print(f'Max Error PX = {max(diff_px0))} ') 
+#OCEAN_TIME
+#save_name = folder_root + 'err_ocean_time.png'
+#diag_error(ocean_time3, ocean_time0, save_plot=True, save_name=save_name, npart=10)
 
+# PT 
+save_name = folder_root + 'err_pt.png' 
+diag_error(pt3, pt0, save_plot=True, save_name=save_name, npart=10)
 
+# PS 
+save_name = folder_root + 'err_ps.png'
+diag_error(ps3, ps0, save_plot=True, save_name=save_name, npart=10)
 
+# PX 
+save_name = folder_root + 'err_px.png'
+diag_error(px3, px0, save_plot=True, save_name=save_name, npart=10)
+
+# PY 
+save_name = folder_root + 'err_py.png'
+diag_error(py3, py0, save_plot=True, save_name=save_name, npart=10)
+
+# PZ 
+save_name = folder_root + 'err_pz.png'
+diag_error(pz3, pz0, save_plot=True, save_name=save_name, npart=10)
+
+# PLON 
+save_name = folder_root + 'err_plon.png'
+diag_error(plon3, plon0, save_plot=True, save_name=save_name, npart=10)
+
+# PLAT
+save_name = folder_root + 'err_plat.png'
+diag_error(plat3, plat0, save_plot=True, save_name=save_name, npart=10)
+
+# PDEPTH 
+save_name = folder_root + 'err_pdepth.png'
+diag_error(pdepth3, pdepth0, save_plot=True, save_name=save_name, npart=10)
+
+# PTOPO
+save_name = folder_root + 'err_ptopo.png'
+diag_error(ptopo3, ptopo0, save_plot=True, save_name=save_name, npart=10)
 
 
 
