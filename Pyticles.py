@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='ADV_2D_NO_UV'
+config='ADV_2D_UV'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -210,7 +210,7 @@ write_depth=False
 write_topo=True
 
 #Write u,v at each particle position directly in output file
-write_uv=False
+write_uv=True
 if adv3d: write_uv=False #not implemented yet for 3d
 
 
