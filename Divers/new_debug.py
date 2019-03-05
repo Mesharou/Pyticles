@@ -9,13 +9,14 @@ import matplotlib.pyplot as plt
 # USER PARAMETERS 
 
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
-folder_save = folder_root + 'ADV_2D_UV/'
+folder_save = folder_root + 'Mean_Flow/'
+generic = 'err_' # name for all figs
 
-adv3d = False
-save_plot = True
+adv3d = True
+save_plot = False
 
-ncfile_p2 = folder_root + '/ADV_2D_UV/Case_1_ADV_2D_UV_adv0000m_12_1550.nc'
-ncfile_p3 = folder_root + '/ADV_2D_NO_UV/Case_1_ADV_2D_NO_UV_adv0000m_12_1550.nc' 
+ncfile_p2 = folder_root + 'Mean_Flow/Case_1_Mean_Flow_12_1550.nc'
+ncfile_p3 = folder_root + 'Mean_Flow/Case_1_Mean_Flow_12_1550.nc' 
 #nc_file_p3 = folder_root + 'Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
 
 # =========== Fonctions to be in a module ================
@@ -85,7 +86,7 @@ px3 = get_var('px', ncfile_p3)
 px2 = get_var('px', ncfile_p2)
 time0 = get_var('time', ncfile_p3)
 
-save_name = folder_save + 'err_px.png'
+save_name = folder_save + generic + 'err_px.png'
 plot_diff(px3, px2, time0=time0, save_plot=save_plot, save_name='',
         npart=10, title='px')
 

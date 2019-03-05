@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='ADV_2D_UV'
+config='Mean_Flow'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -168,7 +168,7 @@ y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
 #3D advection
-adv3d = False 
+adv3d = True 
 # if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
 if len(sys.argv)>=3:
     advdepth = np.int(sys.argv[2]) 
@@ -183,7 +183,7 @@ else:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 #############
-meanflow=False # if True the velocity field is not updated in time
+meanflow=True # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
@@ -191,7 +191,9 @@ w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
-if not adv3d:
+if (not adv3d) and (advdepth > 0):
+    simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
+elif (not adv3d) and (advdepth <= 0):     
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
     sedimentaion=False
     w_sed0 = 0. # JC no sedimentation for 2D advection
@@ -206,7 +208,7 @@ if write_t: write_ts = False
 
 #Write lon,lat,topo,depth
 write_lonlat=True
-write_depth=False
+write_depth=True
 write_topo=True
 
 #Write u,v at each particle position directly in output file
