@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Port_Test_P3'
+config='Write_Test'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
