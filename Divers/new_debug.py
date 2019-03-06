@@ -8,15 +8,18 @@ import matplotlib.pyplot as plt
 # ========================================================
 # USER PARAMETERS 
 
+config_3 = 'Port_Test_P3'
+config_2 = 'Port_Test_P2'
+
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
-folder_save = folder_root + 'Mean_Flow/'
+folder_save = folder_root + config_3
 generic = 'err_' # name for all figs
 
 adv3d = True
 save_plot = False
 
-ncfile_p2 = folder_root + 'Mean_Flow/Case_1_Mean_Flow_12_1550.nc'
-ncfile_p3 = folder_root + 'Mean_Flow/Case_1_Mean_Flow_12_1550.nc' 
+ncfile_p2 = folder_root + config_2 + '/Case_1_' + config_2 +'_12_1550.nc'
+ncfile_p3 = folder_root + config_3 + '/Case_1_' + config_3 + '_12_1550.nc' 
 #nc_file_p3 = folder_root + 'Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
 
 # =========== Fonctions to be in a module ================

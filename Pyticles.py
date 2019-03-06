@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Mean_Flow'
+config='Port_Test_P3'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -183,7 +183,7 @@ else:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 #############
-meanflow=True # if True the velocity field is not updated in time
+meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
