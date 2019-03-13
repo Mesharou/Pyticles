@@ -8,18 +8,29 @@ import matplotlib.pyplot as plt
 # ========================================================
 # USER PARAMETERS 
 
-config_3 = 'Port_Test_P3'
-config_2 = 'Port_Test_P2'
+config_3 = 'ADV_2D_UV'
+config_2 = 'ADV_2D_UV'
 
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
 folder_save = folder_root + config_3
-generic = 'err_' # name for all figs
+generic = '/sig_vs_500m_' # name for all figs
+save_name = folder_save + generic + 'err_px.png'
 
-adv3d = True
-save_plot = False
 
-ncfile_p2 = folder_root + config_2 + '/Case_1_' + config_2 +'_12_1550.nc'
-ncfile_p3 = folder_root + config_3 + '/Case_1_' + config_3 + '_12_1550.nc' 
+write_uv = True
+adv3d = False
+save_plot = True
+
+if not adv3d:
+    adv_title3 = '_adv0500m' 
+    adv_title2 = '_adv0049sig'
+else:
+    adv_title3 = ''
+    adv_title2 = ''
+
+
+ncfile_p2 = folder_root + config_2 + '/Case_1_' + config_2 + adv_title3 + '_12_1550.nc'
+ncfile_p3 = folder_root + config_3 + '/Case_1_' + config_3 + adv_title2 + '_12_1550.nc' 
 #nc_file_p3 = folder_root + 'Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
 
 # =========== Fonctions to be in a module ================
@@ -89,14 +100,20 @@ px3 = get_var('px', ncfile_p3)
 px2 = get_var('px', ncfile_p2)
 time0 = get_var('time', ncfile_p3)
 
-save_name = folder_save + generic + 'err_px.png'
 plot_diff(px3, px2, time0=time0, save_plot=save_plot, save_name='',
         npart=10, title='px')
 
-#pu2 = get_var('pu', ncfile_p2)
-#pv2 = get_var('pv', ncfile_p2)
-#plot_diff(pu2, pv2, time0=time0, save_plot=False, save_name='err_pu', npart=10, title='pu')
+# PU / PV 
+if write_uv:
+    pu2 = get_var('pu', ncfile_p2)
+    pu3 = get_var('pu', ncfile_p3)
+    pv2 = get_var('pv', ncfile_p2)
+    pv3 = get_var('pv', ncfile_p3)
 
+    plot_diff(pv3, pv2, time0=time0, save_plot=False, save_name='err_pv', npart=10, title='pv')
+    plot_diff(pu3, pu2, time0=time0, save_plot=False, save_name='err_pu', npart=10, title='pu')
+
+#TIME
 time3 = get_var('time', ncfile_p3)
 time2 = get_var('time', ncfile_p2)
 

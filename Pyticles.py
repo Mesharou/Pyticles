@@ -88,10 +88,6 @@ import matplotlib.pyplot as plt
 
 import numpy.ma as ma
 
-#Specific modules needed for pyticles
-import pyticles_sig_sa as part
-import pyticles_3d_sig_sa as partF
-
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from R_files import load
@@ -140,7 +136,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Write_Test'
+config='Initial_test'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -193,6 +189,7 @@ w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
 simulname = '_' + config
 if (not adv3d) and (advdepth > 0):
     simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
+    w_sed0 = 0. # JC no sedimentation for 2D advection
 elif (not adv3d) and (advdepth <= 0):     
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
     sedimentaion=False
@@ -239,7 +236,7 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+parameters = 'Case_1 [0,10000,0,10000] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
@@ -293,7 +290,7 @@ if True:
 
     #Initial Particle release
     subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 100   # maximum number of particles
+    nqmx = 1000   # maximum number of particles
     maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
     ##########################
@@ -307,8 +304,8 @@ if True:
     
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 
-    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
+    iwd  = 10.* dx0 # half width of seeding patch [in grid points]
+    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
 
     #########
     # density of pyticles (1 particle every n grid points)
@@ -327,7 +324,9 @@ if True:
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
-
+# JC DEBUG
+print(f'depths = {depths}')
+print(f'advdepth = {advdepth}')
 
 ###########
 
