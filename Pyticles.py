@@ -236,7 +236,7 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'Case_1 [0,10000,0,10000] '+ format(start_file)
+parameters = 'Case_1 [0,10000,0,10000 [1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
