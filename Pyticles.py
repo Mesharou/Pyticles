@@ -318,6 +318,8 @@ if True:
 
     ##########################
     # first and last vertical level to fill with pyticles
+    # JC dev : to be checked lev0 = 0 no ?
+
     lev0= len(depths); lev1= len(depths)
     if not adv3d: lev0 = -1; lev1 = lev0
     #########
@@ -405,7 +407,17 @@ if not restart:
                         z[k,j,i] = f(depths0[k])
                     else:
                         z[k,j,i] = 0.
-    
+   #####
+   # Same Code than above but using module seeding_part ()
+        import seeding_part
+        z_mod = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
+        if (z_mod == z).all():
+            print('z_mod works')
+        else:
+            print('some issue ti be fixes')
+
+
+
     nq = np.min([len(x.reshape(-1)),nqmx])
 
     ###################################################################################
