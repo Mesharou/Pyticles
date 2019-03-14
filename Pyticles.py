@@ -471,7 +471,7 @@ if not restart:
 else:
 
     if not continuous_injection:
-
+        # JC DEV To double check it looks like we have exactly the same piece of code HERE
         # just load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]
@@ -489,7 +489,7 @@ else:
         del px0,py0,pz0
         
     else:
-
+        # JC DEV and HERE...
         # load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]
