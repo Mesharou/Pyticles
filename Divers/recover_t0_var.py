@@ -19,7 +19,7 @@ from copy import *
 # from pyticles output file
 
 #=========== USER PARAM =================
-config = 'Port_Test_P3'
+config = 'Seed_Test'
 
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
 folder_save = folder_root + config
@@ -173,6 +173,7 @@ if not restart:
 px_file = get_var('px', ncfile_p3)
 py_file = get_var('py', ncfile_p3)
 pz_file = get_var('pz', ncfile_p3)
+pdepth_file = get_var('pdepth', ncfile_p3)
 
 px_file.shape
 err = np.empty(px_file.shape[1])
@@ -185,6 +186,26 @@ print(f'max error py = {max_err}')
 
 max_err = max(abs(pz_file[0,:] - pz0[:] ))
 print(f'max error pz = {max_err}')
+
+plt.plot(pdepth_file[:])
+plt.show()
+
+mean_depth = np.mean(pdepth_file, axis=1)
+tendance = (mean_depth[-1] - mean_depth[0])/len(mean_depth)
+rebuild_depth = np.array(range(len(mean_depth)))
+rebuild_depth[0] = mean_depth[0] - tendance
+rebuild_depth[1:-1] = mean_depth[:]
+print(tendance)
+plt.plot(mean_depth)
+#plt.plot(rebuild_depth)
+
+plt.show()
+
+
+
+#pdepth_pyti = partF.interp_3d_w(px[subrange],py[subrange],
+#        pz[subrange],z_w,ng,nq,i0,j0,k0)
+
 
 
 

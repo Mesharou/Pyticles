@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Write_Test'
+config='Seed_Test'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -187,7 +187,7 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
-w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -250 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -398,23 +398,23 @@ if not restart:
     if initial_depth: #initial vertical position = depths0
         from scipy.interpolate import interp1d
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-        for k in range(len(depths0)):
-            for i in range(x.shape[2]):
-                for j in range(x.shape[1]):
-                    ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
-                    if maskrho[ix,iy]==1:
-                        f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
-                        z[k,j,i] = f(depths0[k])
-                    else:
-                        z[k,j,i] = 0.
+  #      for k in range(len(depths0)):
+  #          for i in range(x.shape[2]):
+  #              for j in range(x.shape[1]):
+  #                  ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
+  #                  if maskrho[ix,iy]==1:
+  #                      f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
+  #                      z[k,j,i] = f(depths0[k])
+  #                  else:
+  #                      z[k,j,i] = 0.
    #####
    # Same Code than above but using module seeding_part ()
         import seeding_part
-        z_mod = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
-        if (z_mod == z).all():
-            print('z_mod works')
-        else:
-            print('some issue ti be fixes')
+        z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
+  #      if (z_mod == z).all():
+  #          print('z_mod works')
+  #      else:
+  #          print('some issue ti be fixes')
 
 
 
