@@ -47,7 +47,6 @@ def get_var(var, ncfile):
     return py_var
 # 
 
-nz = 1
 ng = 1 
 adv3d = True
 x_periodic = False
