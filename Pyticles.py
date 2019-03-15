@@ -88,10 +88,12 @@ import matplotlib.pyplot as plt
 
 import numpy.ma as ma
 
+#from scipy.interpolate import interp1d
+
 #Specific modules needed for pyticles
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
-
+#import seeding_part
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from R_files import load
@@ -99,6 +101,9 @@ from R_files import load
 #For nested loop
 from itertools import product
 from copy import *
+
+from scipy.interpolate import interp1d
+import seeding_part
 
 
 ##################################################################################
@@ -187,7 +192,7 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
-w_sed0 = -250 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -397,9 +402,9 @@ if not restart:
             np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
 
     if initial_depth: #initial vertical position = depths0
-        from scipy.interpolate import interp1d
+    #    from scipy.interpolate import interp1d
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-        import seeding_part
+    #    import seeding_part
         z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
 
     nq = np.min([len(x.reshape(-1)),nqmx])
@@ -407,17 +412,19 @@ if not restart:
     ###################################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
-
+    # ipmx : count seeding partciles
+    # px0, py0, pz0 : initial position for seeding
+    # topolim : used in ADV_2D to prevent particles from being seeded below seafloor
+    
     ipmx = 0; px0,py0,pz0 = [],[],[]
-  #  px_mod,py_mod,pz_mod = [],[],[]
     topolim=0
 
     if not adv3d: topolim = np.nanmax([topolim,-advdepth])
 
     #del temp,salt
-    nq = ipmx
+    #nq = ipmx
+    # initializing px0, py0, pz0
     ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq)
-    
     del x,y,z
     ###################################################################################
 
@@ -450,10 +457,9 @@ if not restart:
 
     ###################################################################################
 
-else:
+else: 
 
     if not continuous_injection:
-        # JC DEV To double check it looks like we have exactly the same piece of code HERE
         # just load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]
@@ -471,7 +477,6 @@ else:
         del px0,py0,pz0
         
     else:
-        # JC DEV and HERE...
         # load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]

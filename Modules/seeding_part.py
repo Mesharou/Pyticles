@@ -2,27 +2,25 @@
 # module 
 # J.Collin 14-03-2019
 #=================================================================
-# parameters :
-# particles location:
-# [ic, jc] seeding center location 
-# iwd, jwd : half width of seeding patch [in grid points] (x, y) direction
-# depths0 : depths vector for seeding patch
-# nx, ny, nz partciles shape 
-# nnx, nny seeding horrizontal density
-# ex: nnx, nny = 1, 2 => every x grid point, every 2 y grid-point:  
-# lev0, lev1 !!! To see might be an issue here ?
-# nnlev : vertical density
-# mashrho : 
-# simul 
-# ng : number of ghost points 
 
 import numpy as np
 from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
 from copy import *
 
-def ini_depth(maskrho, simul, depths0, x, y, z, z_w):
+def ini_depth(maskrho,simul,depths0,x,y,z,z_w):
+    '''
+Cubic interpolation of z on sigma levels corresponding at depths0 (m)
+z : sigma level for particles released at depths0
 
+return z list
+
+parameters: simul
+            maskrho : land mask
+            depths0 : vector with seeding depths
+            x,y,z : 3 dimensionnal grid point for seeded particles
+            z_w : depths in meters of sigma levels 
+    '''
     for k in range(len(depths0)):
         for i in range(x.shape[2]):
             for j in range(x.shape[1]):
@@ -36,21 +34,27 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w):
     return z
 ##############################################################################
 def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq):
-    
+   '''
+   To Comment
+   '''
     # Recomputing some data to help readablility (less argument to remove_mask)
     # Carefull of Side Effects
     mask = simul.mask
-   # print(f'mask = {mask}')
     maskrho = copy(mask)
-  #  print(f'maskrho = {maskrho}')
     maskrho[np.isnan(maskrho)] = 0.
     ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
-  #  print(f'ptopo = {ptopo}')
     pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1))
-  #  print(f'pmask = {pmask}')
-  #  print(f"topolim = {topolim} ")
-  #  print(f'nq = {nq}')
     
+    debug_seed = False
+    if debug_seed:
+        print(f'mask = {mask}')
+        print(f'maskrho = {maskrho}')
+        print(f'ptopo = {ptopo}')
+        print(f'pmask = {pmask}')
+        print(f"topolim = {topolim} ")
+        print(f'nq = {nq}')
+
+  
     ipcount = 0
     for ip in range(len(x.reshape(-1))):
         if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipcount<nq):
