@@ -393,7 +393,8 @@ if not restart:
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
     ###################################################################################
 
-    z,y,x = np.mgrid[lev0:lev1+1:nnlev,np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny, np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+    z,y,x = np.mgrid[lev0:lev1+1:nnlev,np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
+            np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
 
     if initial_depth: #initial vertical position = depths0
         from scipy.interpolate import interp1d
@@ -408,48 +409,14 @@ if not restart:
     ''' but we have to remove pyticles which are in a masked area'''
 
     ipmx = 0; px0,py0,pz0 = [],[],[]
-    px_mod,py_mod,pz_mod = [],[],[]
+  #  px_mod,py_mod,pz_mod = [],[],[]
     topolim=0
 
     if not adv3d: topolim = np.nanmax([topolim,-advdepth])
-    
-    # if you want to add a condition based on temp and/or salt:
-    #[temp,salt] = part.get_ts_io(simul)
-
-    ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
-    pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1))
-    #ptemp = part.map_var(simul,temp,x.reshape(-1),y.reshape(-1),z.reshape(-1))
-    #psalt = part.map_var(simul,salt,x.reshape(-1),y.reshape(-1),z.reshape(-1))
-
-    for ip in range(len(x.reshape(-1))):
-        if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipmx<nq):    
-            px0.append(x.reshape(-1)[ip])
-            py0.append(y.reshape(-1)[ip])   
-            pz0.append(z.reshape(-1)[ip])  
-            ipmx +=1
 
     #del temp,salt
     nq = ipmx
-    ipmx_mod = seeding_part.remove_mask(simul,topolim,x,y,z,px_mod,py_mod,pz_mod,nq)
-    
-    if px_mod == px0:
-        print('px_mod works')
-    else:
-        print('some issue t0 be fixes')
-    if py_mod == py0:
-        print('py_mod works')
-    else:
-        print('some issue t0 be fixes')
-    if pz_mod == pz0:
-        print('pz_mod works')
-    else:
-        print('some issue t0 be fixes')
-    if ipmx_mod == ipmx:
-        print('px_mod works')
-    else:
-        print('some issue t0 be fixes')
-
-    toto
+    ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq)
     
     del x,y,z
     ###################################################################################
