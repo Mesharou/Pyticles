@@ -425,7 +425,7 @@ if not restart:
     ''' but we have to remove pyticles which are in a masked area'''
 
     ipmx = 0; px0,py0,pz0 = [],[],[]
-
+    px_mod,py_mod,pz_mod = [],[],[]
     topolim=0
 
     if not adv3d: topolim = np.nanmax([topolim,-advdepth])
@@ -447,7 +447,27 @@ if not restart:
 
     #del temp,salt
     nq = ipmx
+    ipmx_mod = seeding_part.remove_mask(topolim,ptopo,pmask,x,y,z,px_mod,py_mod,pz_mod,nq)
+    
+    if px_mod == px0:
+        print('px_mod works')
+    else:
+        print('some issue t0 be fixes')
+    if py_mod == py0:
+        print('py_mod works')
+    else:
+        print('some issue t0 be fixes')
+    if pz_mod == pz0:
+        print('pz_mod works')
+    else:
+        print('some issue t0 be fixes')
+    if ipmx_mod == ipmx:
+        print('px_mod works')
+    else:
+        print('some issue t0 be fixes')
 
+    toto
+    
     del x,y,z
     ###################################################################################
 
