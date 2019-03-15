@@ -1,3 +1,19 @@
+# file seeding_check.py
+# J.Collin 05-03-2019
+# 
+# Script to ensure the seeding particles is made correctly
+#
+# Check whether initial position px, py, pz of seeding particules is written
+# In netCDF file using seeding_part module routine 
+# 
+# Also check wether pdeth0 is the real pdeth0
+# Numerical error of interpolation scheme may look like particles were advected
+# 2 silation with different w_sed (25 m/s and 250 m/s) are compared
+# They have the exact same pdeth0 proving depth0 is a numerical error
+# For instance when seeding depth = -500 m  interpolation on sigma level and
+# back to z(m) raise a +/- 20 m numerical error using linear interpolation 
+
+#=================== LOADING MODULES #########################################
 from netCDF4 import Dataset
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,24 +25,20 @@ sys.path.append("../Modules/")
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
 
+import seeding_part
+
 from R_files import load
 
 from copy import *
-
-
-# J.COLLIN 12-03-2019
-# This script ensures the capability to recover initial particles position
-# from pyticles output file
 
 #=========== USER PARAM =================
 config = 'Seed_Test'
 
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
 folder_save = folder_root + config
-#generic = '/sig_vs_500m_' # name for all figs
-#save_name = folder_save + generic + 'err_px.png'
 
 ncfile_p3 = folder_root + config + '/Case_1_' + config  + '_12_1550.nc'
+ncfile_bis =  folder_root + config + '/Case_1_Seed_Test_WSed_25m_12_1550.nc'
 
 # ========== Func =======================
 def get_var(var, ncfile):
@@ -125,15 +137,7 @@ if not restart:
     if initial_depth: #initial vertical position = depths0
         from scipy.interpolate import interp1d
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-        for k in range(len(depths0)):
-            for i in range(x.shape[2]):
-                for j in range(x.shape[1]):
-                    ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
-                    if maskrho[ix,iy]==1:
-                        f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
-                        z[k,j,i] = f(depths0[k])
-                    else:
-                        z[k,j,i] = 0.
+        z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
 
     nq = np.min([len(x.reshape(-1)),nqmx])
 
@@ -187,24 +191,34 @@ print(f'max error py = {max_err}')
 max_err = max(abs(pz_file[0,:] - pz0[:] ))
 print(f'max error pz = {max_err}')
 
-plt.plot(pdepth_file[:])
+
+########### ONLY TO CHECK WETHER PDEPTH 0 is ok ##########
+pdepth_test = get_var('pdepth', ncfile_bis)
+diff_pdepth = pdepth_test - pdepth_file
+np.max(abs(diff_pdepth[0,:]))
+ptopo = get_var('ptopo', ncfile_bis)
+
+xpart = np.arange(0, 100, 1)
+
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('particles')
+ax1.set_ylabel('pdepth(t=0)', color=color)
+ax1.plot(xpart, pdepth_test[0,:], color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+ax1.set_title('Numerical Error at seeding time for depths0 = -500 m')
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('ptopo', color=color)  # we already handled the x-label with ax1
+ax2.plot(xpart, ptopo[0,:], color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.show()
 
-mean_depth = np.mean(pdepth_file, axis=1)
-tendance = (mean_depth[-1] - mean_depth[0])/len(mean_depth)
-rebuild_depth = np.array(range(len(mean_depth)))
-rebuild_depth[0] = mean_depth[0] - tendance
-rebuild_depth[1:-1] = mean_depth[:]
-print(tendance)
-plt.plot(mean_depth)
-#plt.plot(rebuild_depth)
-
-plt.show()
-
-
-
-#pdepth_pyti = partF.interp_3d_w(px[subrange],py[subrange],
-#        pz[subrange],z_w,ng,nq,i0,j0,k0)
 
 
 
