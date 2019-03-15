@@ -398,25 +398,8 @@ if not restart:
     if initial_depth: #initial vertical position = depths0
         from scipy.interpolate import interp1d
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-  #      for k in range(len(depths0)):
-  #          for i in range(x.shape[2]):
-  #              for j in range(x.shape[1]):
-  #                  ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
-  #                  if maskrho[ix,iy]==1:
-  #                      f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
-  #                      z[k,j,i] = f(depths0[k])
-  #                  else:
-  #                      z[k,j,i] = 0.
-   #####
-   # Same Code than above but using module seeding_part ()
         import seeding_part
         z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
-  #      if (z_mod == z).all():
-  #          print('z_mod works')
-  #      else:
-  #          print('some issue ti be fixes')
-
-
 
     nq = np.min([len(x.reshape(-1)),nqmx])
 
@@ -447,7 +430,7 @@ if not restart:
 
     #del temp,salt
     nq = ipmx
-    ipmx_mod = seeding_part.remove_mask(topolim,ptopo,pmask,x,y,z,px_mod,py_mod,pz_mod,nq)
+    ipmx_mod = seeding_part.remove_mask(simul,topolim,x,y,z,px_mod,py_mod,pz_mod,nq)
     
     if px_mod == px0:
         print('px_mod works')
