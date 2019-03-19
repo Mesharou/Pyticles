@@ -10,7 +10,7 @@ from copy import *
 
 def ini_depth(maskrho,simul,depths0,x,y,z,z_w):
     '''
-Cubic interpolation of z on sigma levels corresponding at depths0 (m)
+Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
 z : sigma level for particles released at depths0
 
 return z list
@@ -35,7 +35,9 @@ parameters: simul
 ##############################################################################
 def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq):
    '''
-   To Comment
+   Remove particles found in land mask and particles below sea-floor if ADV2D
+   Modify in place px0, py0, pz0 with particles coordinates
+   Returns ipcount to keep count of seeded particles 
    '''
     # Recomputing some data to help readablility (less argument to remove_mask)
     # Carefull of Side Effects
@@ -62,5 +64,4 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq):
             py0.append(y.reshape(-1)[ip])
             pz0.append(z.reshape(-1)[ip])
             ipcount +=1
-  #          print(ipcount)
     return ipcount
