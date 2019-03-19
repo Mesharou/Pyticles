@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Dfile'
+config='Write_uvw'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -168,7 +168,8 @@ y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
 #3D advection
-adv3d = True 
+adv3d = True
+write_uvw = True
 # if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
 if len(sys.argv)>=3:
     advdepth = np.int(sys.argv[2]) 
@@ -634,6 +635,14 @@ def update_uv_2d():
             'Pyticles_subroutines/update_uv_2d.py', 'exec'))
 
 ###################################################################################
+# Compte u,v at each pyticles positions -> pu,pv
+###################################################################################
+
+def update_uvw_3d():
+    exec(compile(open('Pyticles_subroutines/update_uvw_3d.py').read(), \
+            'Pyticles_subroutines/update_uvw_3d.py', 'exec'))
+
+###################################################################################
 # Create output file and write time, px,py,pz ( and ptemp,psalt)
 ###################################################################################
 
@@ -804,7 +813,7 @@ for time in timerange:
     coord= part.subsection(px,py,dx,dy,maxvel,delt[0],nx,ny,ng, nadv= nadv)
 
     nx_s,ny_s = coord[3]-coord[2], coord[1]-coord[0]
-    i0=coord[2]; j0=coord[0]
+    i0=coord[2]; j0=coord[0]; 
 
     print('coord is ', coord)
     
@@ -844,6 +853,15 @@ for time in timerange:
 
         print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
+   
+   
+    if write_uvw:
+        pu = shared_array(nq,prec='double'); pv = shared_array(nq,prec='double')
+        pw = shared_array(nq,prec='double')
+        r = run_process(update_uvw_3d)
+
+        print('get u,v,w..................................', tm.time()-tstart)
+        tstart = tm.time()
 
 
     if write_lonlat:
@@ -886,7 +904,7 @@ for time in timerange:
     if write_depth: del pdepth
     if write_topo: del ptopo
 
-    if write_uv: del pu,pv
+    if write_uv: del pu,pv,pw
 
     print('Write in file............................', tm.time()-tstart)
     tstart = tm.time()

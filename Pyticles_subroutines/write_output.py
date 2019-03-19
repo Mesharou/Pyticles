@@ -13,6 +13,8 @@ if not os.path.isfile(newfile):
     else: nc.meanflow = 0
     if initial_depth: nc.initial_depth = 1
     else: nc.initial_depth = 0
+    
+    nc.dfile = dfile
 
     # particles seeding 
     nc.nqmx = nqmx
@@ -70,6 +72,11 @@ if not os.path.isfile(newfile):
         nc.createVariable('pu','d',('time','nq',))
         nc.createVariable('pv','d',('time','nq',))
 
+    if write_uvw:
+        nc.createVariable('pu','d',('time','nq'))
+        nc.createVariable('pv','d',('time','nq',))
+        nc.createVariable('pw','d',('time','nq',))
+
     #nc.createVariable('ptemp','d',('time','nq',))
     #nc.createVariable('psalt','d',('time','nq',))
     #nc.createVariable('prho1','d',('time','nq',))
@@ -109,11 +116,14 @@ if write_depth:
 if write_topo:    
     nc.variables['ptopo'][itime,:]=ptopo
 
-
 if write_uv:
     nc.variables['pu'][itime,:]=pu
     nc.variables['pv'][itime,:]=pv
 
+if write_uvw:
+    nc.variables['pu'][itime,:]=pu
+    nc.variables['pv'][itime,:]=pv
+    nc.variables['pw'][itime,:]=pw
 
 
 # Close netcdf file
