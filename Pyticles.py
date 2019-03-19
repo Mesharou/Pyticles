@@ -140,7 +140,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Write_Test'
+config='Dfile'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -221,7 +221,7 @@ if adv3d: write_uv=False #not implemented yet for 3d
 ###################################################################################
 
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
-dfile = 1
+dfile = 2
 start_file = 1550
 end_file = 1560
 
