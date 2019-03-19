@@ -55,7 +55,7 @@ meanflow = False
 
 ###################################################################################
 
-print 'Loading file'
+print('Loading file')
 nc = Dataset(ncfile, 'r')
 parameters = nc.simulation
 base = nc.base
@@ -77,7 +77,7 @@ nc.close()
 # load simulation parameters
 ###################################################################################
 
-print 'Loading simul'
+print('Loading simul')
 simul = load(simul = parameters)
 depths = simul.coord[4]
 
@@ -101,10 +101,10 @@ nqmx  = nq
 # Create new variable in pyticle file
 ###################################################################################
 
-print 'Creating variable'
+print('Creating variable')
 nc = Dataset(ncfile, 'a')
 
-if 'pdepth' not in nc.variables.keys(): 
+if 'pdepth' not in list(nc.variables.keys()): 
         nc.createVariable('pdepth','d',('time','nq',))
 
 nc.close()
@@ -121,7 +121,7 @@ for filetime in time[:]:
 ###################################################################################
 
     itime = np.int(np.abs(time[0] - filetime) / np.abs(dtime))
-    print itime, time[itime]
+    print(itime, time[itime])
     if not meanflow: simul.update(np.floor(filetime));
     
     alpha_time = filetime - np.floor(filetime)
@@ -137,7 +137,7 @@ for filetime in time[:]:
     pz = ionetcdf.get(ncfile,'pz',simul,time=itime)
 
     #nc.close()
-    print 'load px,py,pz.................', tm.time()-tstart
+    print('load px,py,pz.................', tm.time()-tstart)
     tstart = tm.time()
     
     coord = part.subsection(px,py,ny=simul.coordmax[1],nx=simul.coordmax[3],offset=10)
@@ -159,7 +159,7 @@ for filetime in time[:]:
         del z_w2
     
     
-    print 'get var.......................', tm.time()-tstart
+    print('get var.......................', tm.time()-tstart)
     tstart = tm.time() 
 
     ###################################################################################
@@ -167,7 +167,7 @@ for filetime in time[:]:
     ###################################################################################
     pz_w = part.map_var(simul,z_w,px,py,pz,ng,coord=coord)
     
-    print 'interpolate to pyticles.....', tm.time()-tstart
+    print('interpolate to pyticles.....', tm.time()-tstart)
     tstart = tm.time()
     
     ###################################################################################
@@ -177,7 +177,7 @@ for filetime in time[:]:
     nc.variables['pdepth'][itime,:]=pz_w
     nc.close()
 
-    print 'write in file...............', tm.time()-tstart
+    print('write in file...............', tm.time()-tstart)
     tstart = tm.time()
 
 

@@ -5,6 +5,25 @@ if not os.path.isfile(newfile):
     nc = Dataset(newfile, 'w', format = 'NETCDF4')
 
     #Some parameters
+    
+    #JC write_out
+    nc.w_sed0 = w_sed0
+
+    if meanflow: nc.meanflow = 1
+    else: nc.meanflow = 0
+    if initial_depth: nc.initial_depth = 1
+    else: nc.initial_depth = 0
+
+    # particles seeding 
+    nc.nqmx = nqmx
+    nc.dx_m = dx_m
+    nc.iwd = iwd
+    nc.jwd = jwd
+    nc.nnx = nnx
+    nc.nny = nny
+    nc.nnlev = nnlev
+    nc.depth0 = depths0
+
     nc.description = 'particles tracking'
     nc.simulation = parameters
     nc.sub =  subtstep
@@ -66,7 +85,7 @@ else:
 try:
     nc.variables['ocean_time'][itime]= simul.oceantime + (time - np.floor(time)) * simul.dt
 except:
-    print 'no simul.oceantime'
+    print('no simul.oceantime')
     nc.variables['ocean_time'][itime]= time * delt
 
 nc.variables['time'][itime]=time

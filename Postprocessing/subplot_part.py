@@ -50,7 +50,7 @@ elif varname=='w':
 
 
 
-print ' ##########################################################'
+print(' ##########################################################')
 
 
 i0=0
@@ -61,37 +61,37 @@ k0=0
 if np.int(z0)>=60:
     depths=[59,60]
 else:
-    depths=range(np.int(z0),np.int(z0)+2)
+    depths=list(range(np.int(z0),np.int(z0)+2))
 
-print depths
+print(depths)
 
 salt = var('temp',simul,coord=coord, depths=depths).data
 u = var('u',simul,coord=coord, depths=depths).data
 v = var('v',simul,coord=coord, depths=depths).data
 
-print '__________________'
+print('__________________')
 #temp = var(varname,simul).data
 #print 'interp t', partF.interp_3d(px[ipart,itime],py[ipart,itime],pz[ipart,itime],temp,0.,px.shape[0],i0,j0,k0)
-print 'pt',pt[ipart,itime]
+print('pt',pt[ipart,itime])
 #print 'pt',np.nansum(salt[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0],:]*partF.linear_3d(x0-np.int(x0),y0-np.int(y0),z0-depths[0]))
-print '__________________'
+print('__________________')
 #utot = var('u',simul).data
 #print 'interp_u', partF.interp_3d_u(px[ipart,itime],py[ipart,itime],pz[ipart,itime],utot,0.,px.shape[0],i0,j0,k0)
 #print np.int(x0-0.5)-coord[2],np.int(y0)-coord[0],np.int(z0)-1
 #print np.int(x0-0.5)+1,np.int(y0)+1,depths[0]
 #print 'u de ca',u[np.int(x0-0.5)-coord[2],np.int(y0)-coord[0],0]
-print 'pu',pu[ipart,itime]
+print('pu',pu[ipart,itime])
 #print 'pu',np.nansum(u[np.int(x0-0.5)-coord[2]:np.int(x0-0.5)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0],:]*partF.linear_3d(x0-0.5-np.int(x0-0.5),y0-np.int(y0),z0-depths[0]))
-print '__________________'
+print('__________________')
 #vtot = var('v',simul).data
 #print 'interp_v', partF.interp_3d_v(px[ipart,itime],py[ipart,itime],pz[ipart,itime],vtot,0.,px.shape[0],i0,j0,k0)
-print 'pv',pv[ipart,itime]
+print('pv',pv[ipart,itime])
 #print 'pv',np.nansum(v[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0-0.5)-coord[0]:np.int(y0-0.5)+2-coord[0],:]*partF.linear_3d(x0-np.int(x0),y0-0.5-np.int(y0-0.5),z0-depths[0]))
-print ' ##########################################################'
+print(' ##########################################################')
 
 dpx,dpy = 1.,1.
 partF.check_mask(mymask,px[ipart,itime],py[ipart,itime],dpx,dpy,0.,10.,i0,j0)
-print 'dpx,dpy',dpx,dpy
+print('dpx,dpy',dpx,dpy)
 
 ###########################################################################################################
 #Plot horizontal section at the particule position
@@ -99,7 +99,7 @@ print 'dpx,dpy',dpx,dpy
 ax1 = plt.subplot(2,2,1)
 ##################
 
-print "compute var", simul.simul, depth, coord, varname
+print("compute var", simul.simul, depth, coord, varname)
 salt = var(varname,simul,coord=coord, depths=[depth]).data * simul.mask[coord[2]:coord[3],coord[0]:coord[1]]
 
 #buoy = var('rho1',simul,coord=coord, depths=[depth]).data
@@ -108,11 +108,11 @@ v = var('v',simul,coord=coord, depths=[depth]).data
 #w = var('w',simul,coord=coord, depths=[depth]).data
 
 
-print 'u', u[np.int(x0-0.5)-coord[2]:np.int(x0-0.5)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0]]
-print 'v', v[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0-0.5)-coord[0]:np.int(y0-0.5)+2-coord[0]]
+print('u', u[np.int(x0-0.5)-coord[2]:np.int(x0-0.5)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0]])
+print('v', v[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0-0.5)-coord[0]:np.int(y0-0.5)+2-coord[0]])
 maskzoom = simul.mask[coord[2]:coord[3],coord[0]:coord[1]]
-print 'mask', maskzoom[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0]]
-print 'salt', salt[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0]]
+print('mask', maskzoom[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0]])
+print('salt', salt[np.int(x0)-coord[2]:np.int(x0)+2-coord[2],np.int(y0)-coord[0]:np.int(y0)+2-coord[0]])
 
 ##########################################################
 

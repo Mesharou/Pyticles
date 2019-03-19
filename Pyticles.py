@@ -68,9 +68,10 @@ import sys, os
 import numpy as np
 import time as tm
 from netCDF4 import Dataset
-import multiprocessing as mp; import ctypes   
+import multiprocessing as mp
+import ctypes 
+import queue
 import resource
-import Queue
 
 #add the Modules folder in your python PATH
 #sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
@@ -86,10 +87,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import numpy.ma as ma
-
-#Specific modules needed for pyticles
-import pyticles_sig_sa as part
-import pyticles_3d_sig_sa as partF
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
@@ -111,21 +108,21 @@ else:
     #define nproc as specified
     nproc = int(sys.argv[1])
 
-print '-----------------------------------'  
+print('-----------------------------------')
 
 
 
 #Use multiprocess version of the code   
-print 'Parallel version'
+print('Parallel version')
 
 #If nproc<0: use all available processors
 if nproc<=0: 
     nproc=mp.cpu_count();
 else:
     nproc = np.min([mp.cpu_count(),nproc])
-print nproc, ' processors will be used'
-    
-print '-----------------------------------'     
+print(nproc, ' processors will be used')
+
+print('-----------------------------------')
 
 ###################################################################################
 ###################################################################################
@@ -139,7 +136,7 @@ print '-----------------------------------'
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Port_Test_P2'
+config='Initial_test'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -159,7 +156,7 @@ timestep='RK4' # Choices are FE (forward-Euler)
 
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
-debug = False
+debug = True
 
 #############
 x_periodic = False
@@ -167,7 +164,7 @@ y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
 #3D advection
-adv3d = True
+adv3d = True 
 # if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
 if len(sys.argv)>=3:
     advdepth = np.int(sys.argv[2]) 
@@ -184,11 +181,20 @@ else:
 #############
 meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
-
+# JC modif
+sedimentation=True
+w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
-if not adv3d: simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
+if (not adv3d) and (advdepth > 0):
+    simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
+    w_sed0 = 0. # JC no sedimentation for 2D advection
+elif (not adv3d) and (advdepth <= 0):     
+    simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
+    sedimentaion=False
+    w_sed0 = 0. # JC no sedimentation for 2D advection
+
 
 #Write T,S at each particle position directly in output file
 write_ts=True
@@ -219,8 +225,8 @@ end_file = 1560
 #############
 
 restart = False
-restart_time = 3 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/Case_1/'
+restart_time = 4 #nb of time steps in the restart_file
+restart_file = '/home/jeremy/Bureau/Data/Pyticles/Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
 
 if not restart: 
     restart_time = 0
@@ -230,9 +236,7 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-#parameters = 'chaba [0,10000,0,10000,[1,100,1]] '+ format(start_file)
-parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
-
+parameters = 'Case_1 [0,10000,0,10000 [1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
@@ -253,6 +257,7 @@ dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
 
 # Total size of the domain (nx,ny,nz)
 (nx,ny) = simul.pm.shape
+
 nx += 2*ng; ny += 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
@@ -286,13 +291,11 @@ if True:
     #Initial Particle release
     subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
     nqmx = 100   # maximum number of particles
-
     maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
     ##########################
     # Particles initial location in the horizontal
 
-    #if config=='Case_1':
     [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
     # distance between 2 particles [in m]
@@ -300,12 +303,12 @@ if True:
     
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 
-    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
+    iwd  = 10.* dx0 # half width of seeding patch [in grid points]
+    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
 
     #########
     # density of pyticles (1 particle every n grid points)
-    nnx=dx0 * 5
+    nnx=dx0*5
     nny=dx0
     nnlev=1.
 
@@ -315,13 +318,14 @@ if True:
     if not adv3d: lev0 = -1; lev1 = lev0
     #########
     # define initial vertical position using depth
-    initial_depth = False
-    #depths0 = [-50,-100,-200,-300,-400,-500]
-    depths = [-500]
+    initial_depth = True
+    depths0 = [-500] # [-50, -100, -200]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
-
+# JC DEBUG
+print(f'depths = {depths}')
+print(f'advdepth = {advdepth}')
 
 ###########
 
@@ -346,11 +350,15 @@ if continuous_injection:
 def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
     '''
     Function used to create shared variables compatible with numpy and fortran ordered
-    '''      
+    '''
+    # JC option prec='double' seems obsolete since python 3 
     if prec=='float':
         shared_array_base = mp.Array(ctypes.c_float, nx*ny*nz*nt )
     elif prec=='double':
-        shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt )
+        #print(f'nx = {nx}, ny = {ny}, nz = {nz}, nt = {nt}')
+        new_len = nx*ny*nz*nt
+        #shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt )
+        shared_array_base = mp.Array(ctypes.c_double, int(nx*ny*nz*nt), lock=True)
     elif prec=='int':
         shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
     var = np.ctypeslib.as_array(shared_array_base.get_obj())
@@ -391,7 +399,7 @@ if not restart:
                 for j in range(x.shape[1]):
                     ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
                     if maskrho[ix,iy]==1:
-                        f = interp1d(z_w[ix,iy], range(nz+1), kind='cubic')
+                        f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
                         z[k,j,i] = f(depths0[k])
                     else:
                         z[k,j,i] = 0.
@@ -436,8 +444,8 @@ if not restart:
         '''
         nq_injection = nq
         nq = np.nanmin([nq_injection*(N_injection+1),nqmx])
-        print 'it would take', nq_injection*N_injection - nqmx, ' more pyticles'
-        print 'to be able to release through all the simulation'
+        print('it would take', nq_injection*N_injection - nqmx, ' more pyticles')
+        print('to be able to release through all the simulation')
         nq_1=nq_injection
     else:
         nq_1=-1  
@@ -450,10 +458,6 @@ if not restart:
 
     if continuous_injection:
         px[:nq_1]=px0; py[:nq_1]=py0; pz[:nq_1]=pz0
-
-        print 'px0', px0
-        print 'py0', py0
-        print 'pz0', pz0
 
     else: 
         px[:]=px0; py[:]=py0; pz[:]=pz0
@@ -509,7 +513,8 @@ else:
         pz0 = nc.variables['pz'][0,:nq_injection]
         nc.close()
         
-        nq_1=np.nanmin([nq_injection*((restart_time)/dt_injection+1),nqmx])
+        # JC debug int cast...
+        nq_1=np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
         
         '''
         if (nq_1<nqmx) and (restart_time%dt_injection)==0:
@@ -563,7 +568,7 @@ def run_process(my_func):
     results = mp.Queue(); i=0
     proc=mp.Process(target=my_func, args=())
     proc.start(); proc.join()
-
+    
     
     return results
 
@@ -573,26 +578,25 @@ def run_process(my_func):
 ###################################################################################
 
 def update_xyz():
-    
-    execfile('Pyticles_subroutines/update_xyz_largemem.py')  
+     exec(compile(open('Pyticles_subroutines/update_xyz_largemem.py').read(),\
+             'Pyticles_subroutines/update_xyz_largemem.py', 'exec'))
 
-
-    
 ###################################################################################
 # Compte T,S at each pyticles positions -> ptemp,psalt
 ###################################################################################
 
 def update_ts():   
-
-    execfile('Pyticles_subroutines/update_ts.py')
-
+    exec(compile(open('Pyticles_subroutines/update_ts.py').read(),\
+            'Pyticles_subroutines/update_ts.py', 'exec'))
+    
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
 ###################################################################################
 
 def update_t():   
 
-    execfile('Pyticles_subroutines/update_t.py')
+    exec(compile(open('Pyticles_subroutines/update_t.py').read(), \
+            'Pyticles_subroutines/update_t.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
@@ -600,41 +604,40 @@ def update_t():
 
 def update_depth():   
 
-    execfile('Pyticles_subroutines/update_depth.py')
+    exec(compile(open('Pyticles_subroutines/update_depth.py').read(), \
+            'Pyticles_subroutines/update_depth.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
 ###################################################################################
 
 def update_lonlat():   
-
-    execfile('Pyticles_subroutines/update_lonlat.py')
+    exec(compile(open('Pyticles_subroutines/update_lonlat.py').read(), \
+            'Pyticles_subroutines/update_lonlat.py', 'exec'))
 
 ###################################################################################
 # Compte T at each pyticles positions -> ptemp
 ###################################################################################
 
 def update_topo():   
-
-    execfile('Pyticles_subroutines/update_topo.py')
-
+    exec(compile(open('Pyticles_subroutines/update_topo.py').read(), \
+            'Pyticles_subroutines/update_topo.py', 'exec'))
 
 ###################################################################################
 # Compte u,v at each pyticles positions -> pu,pv
 ###################################################################################
 
 def update_uv_2d():   
-
-    execfile('Pyticles_subroutines/update_uv_2d.py')
+    exec(compile(open('Pyticles_subroutines/update_uv_2d.py').read(), \
+            'Pyticles_subroutines/update_uv_2d.py', 'exec'))
 
 ###################################################################################
 # Create output file and write time, px,py,pz ( and ptemp,psalt)
 ###################################################################################
 
 def write_output():   
-
-    execfile('Pyticles_subroutines/write_output.py')
-    
+    exec(compile(open('Pyticles_subroutines/write_output.py').read(), \
+            'Pyticles_subroutines/write_output.py', 'exec'))
     
 ###################################################################################
 
@@ -714,7 +717,7 @@ def plot_selection(alldomain=True):
     '''
 
     color = 'w'; box = 'round,pad=0.1'; props = dict(boxstyle=box, fc=color, ec='k', lw=1, alpha=1.)
-    ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
+  #JC  ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
 
     plt.title(format(np.sum(px>0)) + ' pyticles ' )
     plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
@@ -759,14 +762,14 @@ if not restart:
 else:
     newfile = restart_file
 
-print 'newfile', newfile
+print('newfile', newfile)
 
 ###################################################################################
 #START OF THE TIME LOOP
 ###################################################################################
 
-print ' '
-print ' '
+print (' ')
+print (' ')
 tstart = tm.time()
 
 ###############################
@@ -785,7 +788,7 @@ itime=restart_time
 
 for time in timerange:
 
-    print 'time is ', time
+    print('time is ', time)
 
     alpha_time = time - np.floor(time)
 
@@ -793,7 +796,7 @@ for time in timerange:
     # Define domainstimerange
     # (Find index range (zero based) in which the particles are expected to stay until the next frame)
     ###################################################################################
-    if debug: print 'max. vel. is ',  maxvel
+    if debug: print('max. vel. is ',  maxvel)
 
     tightcoord= part.subsection(px,py,dx,dy,maxvel*0.,delt[0],nx,ny,ng)
     coord= part.subsection(px,py,dx,dy,maxvel,delt[0],nx,ny,ng, nadv= nadv)
@@ -801,9 +804,9 @@ for time in timerange:
     nx_s,ny_s = coord[3]-coord[2], coord[1]-coord[0]
     i0=coord[2]; j0=coord[0]
 
-    print 'coord is ', coord
+    print('coord is ', coord)
     
-    print 'Compute coord............................', tm.time()-tstart
+    print('Compute coord............................', tm.time()-tstart)
     tstart = tm.time()   
 
 
@@ -820,7 +823,7 @@ for time in timerange:
         ptemp = shared_array(nq,prec='double'); psalt = shared_array(nq,prec='double')
         r = run_process(update_ts)
 
-        print 'get T,S..................................', tm.time()-tstart
+        print('get T,S..................................', tm.time()-tstart)
         tstart = tm.time()   
 
     elif write_t:
@@ -828,7 +831,7 @@ for time in timerange:
         ptemp = shared_array(nq,prec='double')
         r = run_process(update_t)
 
-        print 'get T....................................', tm.time()-tstart
+        print('get T....................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -837,7 +840,7 @@ for time in timerange:
         pu = shared_array(nq,prec='double'); pv = shared_array(nq,prec='double')
         r = run_process(update_uv_2d)
 
-        print 'get u,v..................................', tm.time()-tstart
+        print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -846,7 +849,7 @@ for time in timerange:
         plon = shared_array(nq,prec='double'); plat = shared_array(nq,prec='double')
         r = run_process(update_lonlat)
 
-        print 'get lon,lat..............................', tm.time()-tstart
+        print('get lon,lat..............................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -855,7 +858,7 @@ for time in timerange:
         pdepth = shared_array(nq,prec='double'); 
         r = run_process(update_depth)
 
-        print 'get depth................................', tm.time()-tstart
+        print('get depth................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -864,7 +867,7 @@ for time in timerange:
         ptopo = shared_array(nq,prec='double');
         r = run_process(update_topo)
 
-        print 'get topo................................', tm.time()-tstart
+        print('get topo................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
@@ -883,10 +886,11 @@ for time in timerange:
 
     if write_uv: del pu,pv
 
-    print 'Write in file............................', tm.time()-tstart
+    print('Write in file............................', tm.time()-tstart)
     tstart = tm.time()
 
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+    if debug: print('memory usage', \
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
     
 
 
@@ -895,20 +899,21 @@ for time in timerange:
     # (we are calling it as a subprocess in order to keep a clean memory after computation)
     ###################################################################################
 
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+    if debug: print('memory usage',\
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
     
     ###################################################################################
     # Devide domain into subdomains to diminish use of ram
     ###################################################################################
     #Automatic division:
-
-    nsub_x = 1+(coord[3]-coord[2])/1000
-    nsub_y = 1+(coord[1]-coord[0])/1000
-    print 'nsub_x,nsub_y',nsub_x,nsub_y
     
-    #JC Just to ne in accordance with python_3 branch
+
+    # Issue for now 
+    # JC 
     nsub_x = 1
     nsub_y = 1
+    nsub_x = 1+(coord[3]-coord[2])//1000
+    nsub_y = 1+(coord[1]-coord[0])//1000
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
@@ -921,12 +926,12 @@ for time in timerange:
 
     if nsub_x*nsub_y==1:
         subcoord = coord
-        subsubrange = range(nq)
+        subsubrange = list(range(nq))
         r = run_process(update_xyz);
         
     else:
         subtightcoord = [0,0,0,0]; subcoord = [0,0,0,0]; 
-        for isub,jsub in product(range(nsub_x),range(nsub_y)):
+        for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
             
             #subtightcoord will be used for test if particle should be advected or not
             subtightcoord[0] = max(0, tightcoord[0] + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
@@ -952,7 +957,7 @@ for time in timerange:
             subsubrange_saves.append(copy(subsubrange))
                     
         # run process for each subcoord and corresponding subsubrange of points
-        for isub,jsub in product(range(nsub_x),range(nsub_y)):
+        for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
             subtightcoord = subtightcoord_saves[jsub+isub*nsub_y]
             subcoord = subcoord_saves[jsub+isub*nsub_y]
             subsubrange = subsubrange_saves[jsub+isub*nsub_y]
@@ -963,19 +968,18 @@ for time in timerange:
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
     if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2) : simul.update(np.int(np.floor(time)+simul.dtime));
 
-    print 'Total computation of px,py,pz............', tm.time()-tstart
+    print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
         
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+    if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
 
     ###################################################################################
     # Realease new pyticles (if continuous injection)
     ###################################################################################
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
-
         nq_0 = nq_1
-        nq_1 = np.nanmin([nq_injection*((itime+1)/dt_injection+1),nqmx])
+        nq_1 = np.nanmin([nq_injection*((itime+1)//dt_injection+1),nqmx])
         px[nq_0:nq_1]=px0[:nq_1-nq_0]; py[nq_0:nq_1]=py0[:nq_1-nq_0]; 
         if adv3d: pz[nq_0:nq_1]=pz0[:nq_1-nq_0]
 
@@ -990,14 +994,14 @@ for time in timerange:
 
     #wait = raw_input("PRESS ENTER TO CONTINUE.")
 
-    print 'Plot selection...........................', tm.time()-tstart
+    print('Plot selection...........................', tm.time()-tstart)
     tstart = tm.time()    
         
-    print ' '
-    print ' '
+    print(' ')
+    print(' ')
         
-    if debug: print 'memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-    if debug: print 'error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2)
+    if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
+    if debug: print('error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2))
 
         
         

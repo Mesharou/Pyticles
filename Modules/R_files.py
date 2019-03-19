@@ -99,7 +99,7 @@ class load(object):
         self.time = np.int(time)
 
         if self.ncname.model in ['ucla','croco']:
-            print 'time of simulation is:', self.time
+            print('time of simulation is:', self.time)
             self.infiletime=self.time%self.ncname.tfile
             self.filetime=self.time-self.infiletime
             if self.ncname.digits==4:
@@ -116,27 +116,27 @@ class load(object):
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month) + self.ncname.fileformat
-            print 'file is ',self.ncfile
+            print('file is ',self.ncfile)
 
 
         try: 
             self.oceandate() #define self.date and self.oceantime
         except:
-            print "no time in file"
+            print("no time in file")
 
         try:
-            print 'coord'
+            print('coord')
             self.coord=self.get_domain(self.ncfile,self.ncname.grd,self.domain,time)
-            print 'coordmax'
+            print('coordmax')
             self.coordmax=self.get_domain(self.ncfile,self.ncname.grd,'[0,1e9,0,1e9,[1,1e9,1]]',time)
-            print 'cst'
+            print('cst')
             self.cst();
-            print 'dt'
+            print('dt')
             self.dt()
         except:
             self.coord=[0,-1,0,-1,[0]]
-            print self.ncfile
-            print "no _his file, loading _grd anyway"     
+            print(self.ncfile)
+            print("no _his file, loading _grd anyway")     
             
         self.getin() #load some data from .in file
      
@@ -166,7 +166,7 @@ class load(object):
 
 
         if self.ncname.model in ['ucla','croco']:
-            print 'time of simulation is:', self.time
+            print('time of simulation is:', self.time)
             self.infiletime=self.time%self.ncname.tfile
             self.filetime=self.time-self.infiletime
             if self.ncname.digits==4:
@@ -183,18 +183,18 @@ class load(object):
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
-            print 'file is ',self.ncfile
+            print('file is ',self.ncfile)
 
 
 
         self.cst();
 
-        print self.ncfile
+        print(self.ncfile)
         
         try:
             self.oceandate()
         except: 
-            print "no oceantime in file"
+            print("no oceantime in file")
             
 
 ###################################################################################
@@ -204,13 +204,13 @@ class load(object):
 
     def load_file(self,*args):
 
-        print 'args',args
-        print 'args[0]',args[0]
-        print 'len(args[0])',len(args[0])
+        print('args',args)
+        print('args[0]',args[0])
+        print('len(args[0])',len(args[0]))
         ########################
         if len(args[0])==0:
 
-            print """
+            print("""
 Try again with:
             1. Simulation name 
             2. domain location
@@ -222,7 +222,7 @@ Try again with:
 example: for an interactive session:
          load(simul = 'filam [0,1000,0,1600,[-100,0,10]] 190')
 
-                   """
+                   """)
             #sys.exit()
             raise Exception("No args provided")
 
@@ -254,18 +254,18 @@ example: for an interactive session:
     @staticmethod
     def get_domain(ncname,ncname0,domainname,time,*args):
 
-        print 'loading', ncname0
+        print('loading', ncname0)
         ncfile0 = Dataset(ncname0, 'r')
-        print 'loading', ncname
+        print('loading', ncname)
         ncfile = Dataset(ncname, 'r')
         
-        print 'get domain', domainname, domainname[:5]
+        print('get domain', domainname, domainname[:5])
         
         if domainname[:5] in ['filam','shing','slope']:
             
             import simulations_old as oldsim
 
-            print 'loading custom domain using old scripts'
+            print('loading custom domain using old scripts')
             [ny1,ny2,nx1,nx2,depths]=oldsim.domain(ncfile0,domainname,time)
 
         else:
@@ -299,14 +299,14 @@ example: for an interactive session:
 
     def variables_grd(self):
 
-        print self.coord
+        print(self.coord)
 
         [ny1,ny2,nx1,nx2] = self.coord[0:4]
         #ncfile0 = NetCDFFile(ncname,'r')
         ncfile0 = Dataset(self.ncname.grd, 'r')
     
-        print 'ncname0,ny1,ny2,nx1,nx2'
-        print self.ncname.grd,ny1,ny2,nx1,nx2
+        print('ncname0,ny1,ny2,nx1,nx2')
+        print(self.ncname.grd,ny1,ny2,nx1,nx2)
 
 
         if ny2==-1 and nx2==-1:
@@ -332,7 +332,7 @@ example: for an interactive session:
         except:
             angle = f*0.
             
-        if 'lon_rho' in ncfile0.variables.keys():
+        if 'lon_rho' in list(ncfile0.variables.keys()):
             lon = self.Forder(ncfile0.variables['lon_rho'][ny1:ny2,nx1:nx2])
             lat = self.Forder(ncfile0.variables['lat_rho'][ny1:ny2,nx1:nx2])
         else:
@@ -341,12 +341,12 @@ example: for an interactive session:
        
         ncfile0.close()
 
-        print '[topo,pm,pn,f,lat,lon] have just been loaded'
-        print '----------------------------------------------------------'
-        print 'All arrays are now Fortran ordered and indices are [i,j,k]'
-        print '----------------------------------------------------------'
+        print('[topo,pm,pn,f,lat,lon] have just been loaded')
+        print('----------------------------------------------------------')
+        print('All arrays are now Fortran ordered and indices are [i,j,k]')
+        print('----------------------------------------------------------')
 
-        print topo.shape
+        print(topo.shape)
 
         return [topo,mask,pm,pn,f,lat,lon,angle]
 
@@ -375,7 +375,7 @@ example: for an interactive session:
         try:
             ncfile = Dataset(self.ncfile, 'r')
         except:
-            print 'cannot find: ', self.ncfile
+            print('cannot find: ', self.ncfile)
 
         try:
             self.rho0 = ncfile.rho0 
@@ -409,7 +409,7 @@ example: for an interactive session:
             self.sc_r = self.Forder(ncfile.sc_r)
             self.sc_w = self.Forder(ncfile.sc_w)
         except:
-            print 'no sc_r,sc_w'
+            print('no sc_r,sc_w')
 
         try:
             self.cpp = ncfile.CPPS
@@ -435,7 +435,7 @@ example: for an interactive session:
         try:
             self.Zob = ncfile.Zob
         except:
-            print 'no Zob in job ... using Zob = 0.01'
+            print('no Zob in job ... using Zob = 0.01')
             self.Zob = 0.01
         
         try:
@@ -591,18 +591,18 @@ example: for an interactive session:
 
         if not self.ncname.realyear:
         
-            self.year = np.floor(self.oceantime/(360*24*3600))
+            self.year = np.floor(self.oceantime//(360*24*3600))
             
             self.oceantime = self.oceantime%(360*24*3600)
 
-            self.month = self.oceantime/(24*3600)/30+1
+            self.month = self.oceantime//(24*3600)//30+1
             month_name = ["None","Jan","Feb","Mar","Apr", "May", "Jun", "Jul","Aug","Sep","Oct","Nov","Dec"] 
 
-            self.day = self.oceantime/(24*3600) - (self.month-1) * 30 + 1
+            self.day = self.oceantime//(24*3600) - (self.month-1) * 30 + 1
 
-            self.hour = self.oceantime%(24*3600)/3600
+            self.hour = self.oceantime%(24*3600)//3600
 
-            self.min = self.oceantime%(3600)/60
+            self.min = self.oceantime%(3600)//60
 
             self.date = month_name[self.month] + ' ' + '{0:02}'.format(self.day) + ' - ' +'{0:02}'.format(self.hour) + ':' + '{0:02}'.format(self.min) 
 
@@ -633,7 +633,7 @@ example: for an interactive session:
     def dt(self):
 
         ncfile = Dataset(self.ncfile, 'r')
-        print 'dt is read in ',self.ncfile
+        print('dt is read in ',self.ncfile)
         try:
             if self.ncname.model == 'ucla':
                 self.dt = np.array(ncfile.variables['ocean_time'][1]) \
@@ -795,7 +795,7 @@ class files(object):
             self.his='/mnt/avatar/nmolem/HATT2/HIS/hatt2_his.'            
             self.grd=ROMSSIMS+'/HATT2/hatt2_grd.nc'  
             self.grd_corrected=ROMSSIMS+'/HATT2/hatt2_grd.nc'
-            print ROMSSIMS+'/HATT2/hatt2_grd.nc'              
+            print(ROMSSIMS+'/HATT2/hatt2_grd.nc')              
             self.Z0=ROMSSIMS+'/HATT2/Z/hatt2_his_z0.'
             self.frc=ROMSSIMS+'/HATT2/hatt2_frc.nc'
             self.wind=ROMSSIMS+'/HATT2/hatt2_frc.nc'
@@ -2112,7 +2112,7 @@ class files(object):
             self.tfile=1
             self.tstart=0
             self.tend=0
-            print self.grd
+            print(self.grd)
         elif simul=='cuc':
             folder=avatar + '/nmolem'
             #folder = libra + '/gula/ROMS/Simulations/'
@@ -2293,13 +2293,13 @@ class files(object):
         ################## 
         # JC simulations
 
-        elif simul=='Case_1':
+        elif simul=='Case_1':  
+            folder= '/home/jeremy/Bureau/Data/Pyticles'
             self.model = 'croco'
-            folder ='/home/jeremy/Bureau/Data/Pyticles'
             self.his=folder + '/chaba_his.'
             self.grd=folder + '/chaba_grd.nc'
-            self.frc=folder + '/chaba_frc_1h.nc'
-            self.wind=folder + '/chaba_frc_1h.nc'
+            self.frc=folder + '/chaba_frc.nc'
+            self.wind=folder + '/NATL/natl6_frc.nc'
             self.tfile=5
             self.tstart=1550
             self.tend=1555
@@ -2315,7 +2315,7 @@ class files(object):
             self.tstart=0
             self.tend=1000
 
-            print 'AACC ', self.grd
+            print('AACC ', self.grd)
 
 
         elif simul=='aacc_8k':
@@ -3874,7 +3874,7 @@ class files(object):
 
         else:
 
-            print """
+            print("""
 
 I never heard about your simulation name, please try again...
 
@@ -3896,7 +3896,7 @@ Choices are:
 
 'seamount': idealized seamount test-case
 'roms': used to visualize grid just created with the EGRID tools (on inca)
-                   """
+                   """)
             #sys.exit()
 
 ###################################################################################

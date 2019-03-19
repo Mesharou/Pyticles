@@ -31,10 +31,13 @@ def interp_2d(subrange):
 # Get topo at particles positions
 ###############################################################################
 
-nslice = nq/nproc+1; subranges=[]
-for i in range(nproc): subranges.append(range(i*nslice,np.nanmin([(i+1)*nslice,nq])))
+nslice = int(nq/nproc+1)
+subranges = []
+procs = []
 
-procs = [mp.Process(target=interp_2d, args=([subranges[i]])) for i in range(nproc)]
+for i in range(nproc):
+    subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
+    procs.append(mp.Process(target=interp_2d, args=(subranges[i],)))
 
 for p in procs: p.start()
 for p in procs: p.join()   

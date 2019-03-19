@@ -224,7 +224,7 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
 
     ################################
 
-    if timing: print 'get u,v from file....', tm.time()-tstart2
+    if timing: print('get u,v from file....', tm.time()-tstart2)
     if timing: tstart2 = tm.time()    
 
     ################################
@@ -232,7 +232,7 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
     try:
         w = periodize3d_fromnc(simul,'omega',coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
     except:
-        print 'no omega in file, computing'
+        print('no omega in file, computing')
         [z_r,z_w] = get_depths(simul,coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
         w = partF.get_omega(u,v,z_r,z_w,pm,pn)
         w[np.isnan(w)] = 0.
@@ -245,7 +245,7 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
 
     nc.close()
     
-    if timing: print 'get w from file....', tm.time()-tstart2
+    if timing: print('get w from file....', tm.time()-tstart2)
     if timing: tstart2 = tm.time()    
 
     return u,v,w
@@ -444,7 +444,7 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
 
     ################################
 
-    if timing: print 'get u,v from file....', tm.time()-tstart2
+    if timing: print('get u,v from file....', tm.time()-tstart2)
     if timing: tstart2 = tm.time()    
 
     ################################
@@ -535,7 +535,7 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
 
     ################################
 
-    if timing: print 'get u,v from file....', tm.time()-tstart2
+    if timing: print('get u,v from file....', tm.time()-tstart2)
     if timing: tstart2 = tm.time()    
 
     ################################
@@ -916,8 +916,8 @@ def map_var(simul,var0,px,py,pz,ng=0,**kwargs):
         
     [j0,j1,i0,i1]=coord; k0=0; nqmx=px.shape[0]
    
-    print var0.shape
-    print [i1-i0,j1-j0,len(simul.coordmax[4])]
+    print(var0.shape)
+    print([i1-i0,j1-j0,len(simul.coordmax[4])])
    
     if var0.shape==(i1-i0,j1-j0,len(simul.coordmax[4])):
         pvar0 = partF.interp_3d(px,py,pz,var0,ng,nqmx,i0,j0,k0)
@@ -1163,7 +1163,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
         
     #######################################################
 
-    if timing: print 'create  u,v analytically....', tm.time()-tstart2
+    if timing: print('create  u,v analytically....', tm.time()-tstart2)
     if timing: tstart2 = tm.time()    
 
     return u,v,w,dz
@@ -1289,10 +1289,10 @@ def get_depths(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
         (z_r,z_w) = partF.zlevs(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w)
     else:
         if simul.VertCoordType == 'NEW':
-            print 'using NEW_S_COORD'
+            print('using NEW_S_COORD')
             (z_r,z_w) = partF.zlevs_croco_new(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w, simul.sc_r, simul.sc_w)
         else:
-            print 'using OLD_S_COORD'
+            print('using OLD_S_COORD')
             (z_r,z_w) = partF.zlevs_croco_old(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w, simul.sc_r, simul.sc_w)
 
 
@@ -1325,10 +1325,10 @@ def get_depths_w(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
         (z_w) = partF.zlevs_w(topo, zeta, simul.hc,  simul.Cs_w)
     else:
         if simul.VertCoordType == 'NEW':
-            print 'using NEW_S_COORD'
+            print('using NEW_S_COORD')
             (z_w) = partF.zlevs_croco_new_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
         else:
-            print 'using OLD_S_COORD'
+            print('using OLD_S_COORD')
             (z_w) = partF.zlevs_croco_old_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
 
     return z_w
@@ -1345,7 +1345,7 @@ def vinterp(var, depths, z_r, z_w=None, mask=None,imin=0,jmin=0,kmin=1, floattyp
     if mask is None:  mask = np.ones((z_r.shape[0],z_r.shape[1]), order='F', dtype=floattype); mask[z_r[:,:,-1]==0] = 0
 
     if z_w is None: 
-        print 'no z_w specified'
+        print('no z_w specified')
         z_w=np.zeros((z_r.shape[0],z_r.shape[1],z_r.shape[2]+1), order='F')
 
     if np.ndim(depths)==1: newz = np.asfortranarray(np.zeros((z_r.shape[0],z_r.shape[1],len(depths))) + depths, dtype=floattype)
@@ -1390,7 +1390,7 @@ def find_points(x,y,lon,lat):
 
     i,j = results/x.shape[1], results%x.shape[1]
 
-    print i,j
+    print(i,j)
 
     return i[0],j[0]
 
