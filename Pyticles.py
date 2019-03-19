@@ -222,7 +222,7 @@ if adv3d: write_uv=False #not implemented yet for 3d
 ###################################################################################
 
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
-dfile = 2
+dfile = 1
 start_file = 1550
 end_file = 1560
 
@@ -904,7 +904,8 @@ for time in timerange:
     if write_depth: del pdepth
     if write_topo: del ptopo
 
-    if write_uv: del pu,pv,pw
+    if write_uv: del pu,pv
+    if write_uvw: del pu,pv,pw
 
     print('Write in file............................', tm.time()-tstart)
     tstart = tm.time()

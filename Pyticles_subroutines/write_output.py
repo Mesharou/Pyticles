@@ -73,7 +73,7 @@ if not os.path.isfile(newfile):
         nc.createVariable('pv','d',('time','nq',))
 
     if write_uvw:
-        nc.createVariable('pu','d',('time','nq'))
+        nc.createVariable('pu','d',('time','nq',))
         nc.createVariable('pv','d',('time','nq',))
         nc.createVariable('pw','d',('time','nq',))
 
