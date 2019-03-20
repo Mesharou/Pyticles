@@ -12,6 +12,10 @@ import sys
 
 sys.path.append('../Modules/')
 
+import pyticles_3d_sig_sa as partF
+import pyticles_sig_sa as part
+from R_files import load
+
 
 config = 'Write_uvw'
 
@@ -93,37 +97,48 @@ for ip in range(1,20,2):
     show_pw_pdeth(ip)
 # -----------------------------------------------
 # Recomputin w using pyticles
+del pw 
 
-import pyticles_3d_sig_sa as partF
-import pyticles_sig_sa as part
-from R_files import load
+pdepth = get_var('pdepth', ncfile)
+pw = get_var('pw', ncfile)
 
 start_file = 1550
 parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 
 simul = load(simul = parameters, floattype=np.float64)
 coord = simul.coord
-[z_r,z_w] = part.get_depths(simul,coord=coord)
-z_w2 = part.get_depths_w(simul,coord=coord)
-np.shape(z_w2)
+x_periodic =  get_attr('x_periodic', ncfile)
+y_periodic =  get_attr('y_periodic', ncfile)
+
+ng = get_attr('ng', ncfile)
+px = get_var('px', ncfile)
+py = get_var('py', ncfile)
+pz = get_var('pz', ncfile)
 
 pm, pn = simul.pm, simul.pn
+[z_r,z_w] = part.get_depths(simul,coord=coord)
+
+# ----- computing omega from ROMS Velocity U,V -----------
+# We use coord_tight to get a subdomain in order to compute faster
 
 romsfile = folder_root + 'chaba_his.1550.nc' 
 
 u = get_var('u', romsfile)
 v = get_var('v', romsfile)
 
-x_periodic , y_periodic = 0,0 
-ng = get_attr('ng', ncfile)
 
-nxp = 510; nxm = 500; nyp = 700; nym = 710
-tight_coord = [nxp, nxm, nyp, nym]
+nxp = 510; nxm = 500; nyp = 710; nym = 700
+tight_coord = [nxm, nxp, nym, nyp]
 
-[upart,vpart,wpart] = part.get_vel_io(simul,x_periodic=x_periodic,
+[uroms,vroms,wroms] = part.get_vel_io(simul,x_periodic=x_periodic,
         y_periodic=y_periodic,ng=ng,coord=tight_coord)
 
-w = partF.get_omega(u,v,z_r,z_w,pm,pn)
+ip = 0
+px[0,ip]
+py[0,ip]
+pz[0,ip]
+
+#w = partF.get_omega(u,v,z_r,z_w,pm,pn)
 
 
 
