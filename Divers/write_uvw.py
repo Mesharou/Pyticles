@@ -1,8 +1,9 @@
 """
 19-03-2019 JCollin
-Script to ensure that vertical velocities written are good
-To compute Omega we need to take a slice at given time and reshape it Python
-!!! With W_sed !=0 you can't relate pdepth = int(pw.dt) ...
+Script to ensure that vertical velocities written are correct
+For now it recomputes wroms offline using u,v from roms file
+Then interpolate wroms on particles
+
 """
 
 from netCDF4 import Dataset
@@ -126,18 +127,6 @@ romsfile = folder_root + 'chaba_his.1550.nc'
 u = get_var('u', romsfile)
 v = get_var('v', romsfile)
 
-
-nxp = 510; nxm = 500; nyp = 710; nym = 700
-tight_coord = [nxm, nxp, nym, nyp]
-
-#[uroms,vroms,wroms] = part.get_vel_io(simul,x_periodic=x_periodic,
-#        y_periodic=y_periodic,ng=ng,coord=coord)
-
-ip = 0
-px[0,ip]
-py[0,ip]
-pz[0,ip]
-
 i0 = coord[2]
 j0 = coord[0]
 k0 = 0
@@ -153,7 +142,6 @@ pz_time = pz[itime,:]
         y_periodic=y_periodic,ng=ng,coord=coord)
 
 pwroms=partF.interp_3d_w(px_time,py_time,pz_time,wroms,ng,nq,i0,j0,k0)
-
 
 plt.plot(pwroms)
 plt.plot(pw[itime,:])
