@@ -147,7 +147,7 @@ def kick(pz,nz):
 #@profile   
 def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0,**kwargs):  
 
-
+    print(f' infile_time = {simul.infiletime}')
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
     else: 
