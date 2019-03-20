@@ -130,13 +130,34 @@ v = get_var('v', romsfile)
 nxp = 510; nxm = 500; nyp = 710; nym = 700
 tight_coord = [nxm, nxp, nym, nyp]
 
-[uroms,vroms,wroms] = part.get_vel_io(simul,x_periodic=x_periodic,
-        y_periodic=y_periodic,ng=ng,coord=tight_coord)
+#[uroms,vroms,wroms] = part.get_vel_io(simul,x_periodic=x_periodic,
+#        y_periodic=y_periodic,ng=ng,coord=coord)
 
 ip = 0
 px[0,ip]
 py[0,ip]
 pz[0,ip]
+
+i0 = coord[2]
+j0 = coord[0]
+k0 = 0
+nq = 100
+
+itime = 1 
+simul.infiletime = itime
+px_time = px[itime,:]
+py_time = py[itime,:]
+pz_time = pz[itime,:]
+
+[uroms,vroms,wroms] = part.get_vel_io(simul,x_periodic=x_periodic,
+        y_periodic=y_periodic,ng=ng,coord=coord)
+
+pwroms=partF.interp_3d_w(px_time,py_time,pz_time,wroms,ng,nq,i0,j0,k0)
+
+
+plt.plot(pwroms)
+plt.plot(pw[itime,:])
+plt.show()
 
 #w = partF.get_omega(u,v,z_r,z_w,pm,pn)
 
