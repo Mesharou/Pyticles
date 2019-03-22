@@ -219,7 +219,12 @@ ax2.tick_params(axis='y', labelcolor=color)
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.show()
 
+## only to debug error pdepth
+err_file = '/home/jeremy/Bureau/Data/Pyticles/W_sed_250/Case_1_W_sed_250_12_1550.nc'
 
+err_pdepth = get_var('pdepth',err_file)
+plt.plot(err_pdepth)
+plt.show()
 
 
 

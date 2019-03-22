@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Seed_Test'
+config='W_sed_250'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -192,7 +192,7 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
-w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -250 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config

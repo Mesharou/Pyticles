@@ -32,15 +32,17 @@ parameters: simul
                     z[k,j,i] = 0.
 
     return z
+
 ##############################################################################
 def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq):
-   '''
-   Remove particles found in land mask and particles below sea-floor if ADV2D
-   Modify in place px0, py0, pz0 with particles coordinates
-   Returns ipcount to keep count of seeded particles 
-   '''
+    '''
+    Remove particles found in land mask and particles below sea-floor if ADV2D
+    Modify in place px0, py0, pz0 with particles coordinates
+    Returns ipcount to keep count of seeded particles 
+    '''
     # Recomputing some data to help readablility (less argument to remove_mask)
     # Carefull of Side Effects
+    
     mask = simul.mask
     maskrho = copy(mask)
     maskrho[np.isnan(maskrho)] = 0.
