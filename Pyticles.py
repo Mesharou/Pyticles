@@ -360,14 +360,10 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
     '''
     Function used to create shared variables compatible with numpy and fortran ordered
     '''
-    # JC option prec='double' seems obsolete since python 3 
     if prec=='float':
         shared_array_base = mp.Array(ctypes.c_float, nx*ny*nz*nt )
     elif prec=='double':
-        #print(f'nx = {nx}, ny = {ny}, nz = {nz}, nt = {nt}')
-        new_len = nx*ny*nz*nt
-        #shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt )
-        shared_array_base = mp.Array(ctypes.c_double, int(nx*ny*nz*nt), lock=True)
+        shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt, lock=True)
     elif prec=='int':
         shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
     var = np.ctypeslib.as_array(shared_array_base.get_obj())
@@ -402,9 +398,7 @@ if not restart:
             np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
 
     if initial_depth: #initial vertical position = depths0
-    #    from scipy.interpolate import interp1d
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-    #    import seeding_part
         z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
 
     nq = np.min([len(x.reshape(-1)),nqmx])
