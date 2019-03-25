@@ -136,7 +136,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Initial_test'
+config='Write_uvw_bis'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -164,7 +164,8 @@ y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
 #3D advection
-adv3d = True 
+adv3d = True
+write_uvw = True
 # if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
 if len(sys.argv)>=3:
     advdepth = np.int(sys.argv[2]) 
@@ -183,7 +184,7 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
-w_sed0 = -25 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = 0 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -236,7 +237,7 @@ else:
 #############
 
 # Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'Case_1 [0,10000,0,10000 [1,100,1]] '+ format(start_file)
+parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
 '''
@@ -303,8 +304,8 @@ if True:
     
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 
-    iwd  = 10.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
+    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
+    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
 
     #########
     # density of pyticles (1 particle every n grid points)
@@ -632,6 +633,14 @@ def update_uv_2d():
             'Pyticles_subroutines/update_uv_2d.py', 'exec'))
 
 ###################################################################################
+# Compte u,v at each pyticles positions -> pu,pv
+###################################################################################
+
+def update_uvw_3d():
+    exec(compile(open('Pyticles_subroutines/update_uvw_3d.py').read(), \
+            'Pyticles_subroutines/update_uvw_3d.py', 'exec'))
+
+###################################################################################
 # Create output file and write time, px,py,pz ( and ptemp,psalt)
 ###################################################################################
 
@@ -802,7 +811,7 @@ for time in timerange:
     coord= part.subsection(px,py,dx,dy,maxvel,delt[0],nx,ny,ng, nadv= nadv)
 
     nx_s,ny_s = coord[3]-coord[2], coord[1]-coord[0]
-    i0=coord[2]; j0=coord[0]
+    i0=coord[2]; j0=coord[0]; 
 
     print('coord is ', coord)
     
@@ -842,6 +851,15 @@ for time in timerange:
 
         print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
+   
+   
+    if write_uvw:
+        pu = shared_array(nq,prec='double'); pv = shared_array(nq,prec='double')
+        pw = shared_array(nq,prec='double')
+        r = run_process(update_uvw_3d)
+
+        print('get u,v,w..................................', tm.time()-tstart)
+        tstart = tm.time()
 
 
     if write_lonlat:
@@ -885,6 +903,7 @@ for time in timerange:
     if write_topo: del ptopo
 
     if write_uv: del pu,pv
+    if write_uvw: del pu,pv,pw
 
     print('Write in file............................', tm.time()-tstart)
     tstart = tm.time()

@@ -147,7 +147,6 @@ def kick(pz,nz):
 #@profile   
 def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0,**kwargs):  
 
-
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
     else: 
@@ -168,6 +167,7 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
 
     u = np.zeros((nx2-nx1-1,ny2-ny1,nz))*np.nan
     v = np.zeros((nx2-nx1,ny2-ny1-1,nz))*np.nan
+    w = np.zeros((nx2-nx1-1,ny2-ny1-1,nz))*np.nan
 
     ################################
 
@@ -188,6 +188,7 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
 
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn,:] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn,:].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
+    
 
     ################################
     # Filling Ghost points
@@ -234,6 +235,16 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
     except:
         print('no omega in file, computing')
         [z_r,z_w] = get_depths(simul,coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        print(f'u = {np.shape(u)}')
+        print(f'v = {np.shape(v)}')
+        print(f'z_r = {np.shape(z_r)}')
+        print(f'z_w = {np.shape(z_w)}')
+        print(f'pm = {np.shape(pm)}')
+        print(f'pn = {np.shape(pn)}')
+        print(f'coord = {coord}')
+        pm = simul.pm[nx1:nx2, ny1:ny2]
+        pn = simul.pn[nx1:nx2, ny1:ny2]
+
         w = partF.get_omega(u,v,z_r,z_w,pm,pn)
         w[np.isnan(w)] = 0.
         if x_periodic and nx1<ng and nx2>nx2tot-nx1tot+ng: 
@@ -242,7 +253,7 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
         if y_periodic and ny1<ng and ny2>ny2tot-ny1tot+ng: 
             w[:,0,:] = w[:,ny2tot,:]
             w[:,-1,:] = w[:,ny1tot+2*ng-1,:]
-
+        print(f'w shape = {np.shape(w)}')
     nc.close()
     
     if timing: print('get w from file....', tm.time()-tstart2)
@@ -562,6 +573,7 @@ def periodize3d_fromnc(simul,variable,coord,x_periodic=False,y_periodic=False,ng
     ns = min(ng,ny1); nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
     
     if variable=='omega':
+        print('We are here')
         myvar = np.zeros((nx2-nx1,ny2-ny1,nz+1))*np.nan
     else:
         myvar = np.zeros((nx2-nx1,ny2-ny1,nz))*np.nan
