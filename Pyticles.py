@@ -221,7 +221,7 @@ if adv3d: write_uv=False #not implemented yet for 3d
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
 dfile = 1
 start_file = 1550
-end_file = 1560
+end_file = 1559
 
 #############
 
@@ -297,7 +297,7 @@ if True:
     ##########################
     # Particles initial location in the horizontal
 
-    [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+    [ic,jc] = [400,600] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
     # distance between 2 particles [in m]
     dx_m = 1000.
@@ -434,6 +434,42 @@ if not restart:
 
     #del temp,salt
     nq = ipmx
+    
+    debug_depth0 = False
+    #!!! NEED to comment line in order to use debug_pdeth part 
+    # matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess)
+
+    if debug_depth0:
+    #JC check numerical error
+        coord = simul.coord
+        #[ny1,ny2,nx1,nx2] = np.array(coord)
+        i0=coord[2]; j0=coord[0];
+
+        pdepth_test = partF.interp_3d_w(px0,py0,pz0,z_w,ng,nq,i0,j0,k0)
+        ptopo_test = partF.interp_2d(px0,py0,simul.topo,0,nq,i0,j0)
+
+        print(f'JC DEBUG ============')
+        print(f' pdepth_test = {pdepth_test}')
+
+        plt.figure
+
+        plt.subplot(121)
+        n, bins, patches = plt.hist(pdepth_test,20)
+        plt.xlabel('Smarts')
+        plt.ylabel('Probability')
+        plt.title('Histogram of pdepth à t=0')
+        #plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+        # plt.axis([.03])
+        plt.grid(True)
+
+        plt.subplot(122)
+        n, bins, patches = plt.hist(ptopo_test,20)
+        plt.xlabel('Smarts')
+        plt.title('Histogram of ptopo at t = 0')
+        plt.grid(True)
+
+        plt.show()
+
 
     del x,y,z
     ###################################################################################
