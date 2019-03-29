@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
 from copy import *
 
-def ini_depth(maskrho,simul,depths0,x,y,z,z_w):
+def ini_depth(maskrho,simul,depths0,x,y,z,z_wpsi):
     '''
 Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
 z : sigma level for particles released at depths0
@@ -26,7 +26,8 @@ parameters: simul
             for j in range(x.shape[1]):
                 ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
                 if maskrho[ix,iy]==1:
-                    f = interp1d(z_w[ix,iy], list(range(z_w.shape[2])), kind='cubic')
+                    f = interp1d(z_wpsi[ix,iy], list(range(z_wpsi.shape[2])), kind='cubic')
+                    #f = interp1d(z_wpsi[5,5], list(range(z_wpsi.shape[2])), kind='cubic')
                     z[k,j,i] = f(depths0[k])
                 else:
                     z[k,j,i] = 0.
