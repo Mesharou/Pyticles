@@ -156,13 +156,16 @@ from scipy.interpolate import RegularGridInterpolator
 z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
 z_tmpX = (z_w[:-1,:] + z_w[1:,:]) / 2
 z_wpsi = (z_tmpX[:,:-1] + z_tmpX[:,1:]) / 2    
- 
+
+#new_z = (z_w[:-1,:] + z_w[1:,:] + z_w[:,:-1] + zw[:,1:]) / 4
+
 #xx = np.arange(simul.coord[2], simul.coord[3] - 1)
 #yy = np.arange(simul.coord[0], simul.coord[1] - 1)
 #zz = np.arange(0,nz+1)
 #my_interpolating_function = RegularGridInterpolator((xx, yy, zz), z_wpsi)
 #z_part = my_interpolating_function(x, y, z)
-z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_wpsi=z_wpsi)
+#z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_wpsi=z_wpsi)
+z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
 
 nq = np.min([len(x.reshape(-1)),nqmx])
 
@@ -216,8 +219,8 @@ coord = simul.coord
 i0=coord[2]; j0=coord[0];
 k0 = 0
 #z_wpsi[:,:,:] = z_wpsi[5,5]
-ng = 0
-pdepth_test = partF.interp_3d_psiw(px0,py0,pz0,z_wpsi,ng,nq,i0,j0,k0)
+#ng = 0
+pdepth_test = partF.interp_3d_w(px0,py0,pz0,z_w,ng,nq,i0,j0,k0)
 ptopo_test = partF.interp_2d(px0,py0,simul.topo,0,nq,i0,j0)
 
 print(f'JC DEBUG ============')
