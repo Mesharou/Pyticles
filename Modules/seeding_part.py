@@ -25,10 +25,28 @@ parameters: simul
         for i in range(x.shape[2]):
             for j in range(x.shape[1]):
                 ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
+                cfx = x[k,j,i] - ix
+                cfy = y[k,j,i] - iy
+                print('---------- SEEDING----------')
+                print(f'cfx = {cfx}')
+                print(f'cfy = {cfy}')
+
                 if maskrho[ix,iy]==1:
                     f = interp1d(z_wpsi[ix,iy], list(range(z_wpsi.shape[2])), kind='cubic')
+                    fxp = interp1d(z_wpsi[ix+1,iy], list(range(z_wpsi.shape[2])), kind='cubic')
+                    fyp = interp1d(z_wpsi[ix,iy+1], list(range(z_wpsi.shape[2])), kind='cubic')
+                    fxyp = interp1d(z_wpsi[ix+1,iy+1], list(range(z_wpsi.shape[2])), kind='cubic')
                     #f = interp1d(z_wpsi[5,5], list(range(z_wpsi.shape[2])), kind='cubic')
-                    z[k,j,i] = f(depths0[k])
+                    zpsi = f(depths0[k])
+                    zxp = fxp(depths0[k])
+                    zyp = fyp(depths0[k])
+                    zxyp = fxyp(depths0[k])
+
+                    print('-----------------')
+                    print(f'zpsi = {zpsi};    zxp = {zxp};   zyp = {zyp};  zxyp = {zxyp}')
+                    z[k,j,i] = (1-cfx)*(1-cfy)*zpsi + (1-cfx)*cfy*zxp + cfx*(1-cfy)*zyp + cfx*cfy*zxyp
+
+                    print(f'z[{k}{j}{i}] = {z[k,j,i]}' )
                 else:
                     z[k,j,i] = 0.
 

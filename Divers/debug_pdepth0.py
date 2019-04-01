@@ -84,7 +84,7 @@ y_periodic = False
 # Particles initial location in the horizontal
 # Need: to load pm form roms
 
-nqmx = 100
+nqmx = 10000
 start_file = 1550
 parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
@@ -104,13 +104,13 @@ ng = 1
 [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
 # distance between 2 particles [in m]
-#dx_m = 1000.
+dx_m = 1000.
 
-#dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-dx0 = 1
+dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
+#dx0 = 1
 
-iwd  = 40 # half width of seeding patch [in grid points]
-jwd  = 50  # half width of seeding patch [in grid points]
+iwd  = 2 # half width of seeding patch [in grid points]
+jwd  = 2  # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (1 particle every n grid points)
@@ -142,64 +142,70 @@ if initial_depth:
 # px,py,pz directly correspond to the indices of a python array (var[px,py,pz])
 ###################################################################################
 restart = False
-if not restart:
     ###################################################################################
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
     ###################################################################################
 
-    z,y,x = np.mgrid[lev0:lev1+1:nnlev,
-            np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
-            np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+z,y,x = np.mgrid[lev0:lev1+1:nnlev,
+        np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
+        np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
 
-    from scipy.interpolate import interp1d
-    z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-    z_tmpX = (z_w[:-1,:] + z_w[1:,:]) / 2
-    z_wpsi = (z_tmpX[:,:-1] + z_tmpX[:,1:]) / 2    
-        
-    z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_wpsi=z_wpsi)
+from scipy.interpolate import interp1d
+from scipy.interpolate import RegularGridInterpolator
 
-    nq = np.min([len(x.reshape(-1)),nqmx])
+z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+z_tmpX = (z_w[:-1,:] + z_w[1:,:]) / 2
+z_wpsi = (z_tmpX[:,:-1] + z_tmpX[:,1:]) / 2    
+    
+#xx = np.arange(simul.coord[2], simul.coord[3] - 1)
+#yy = np.arange(simul.coord[0], simul.coord[1] - 1)
+#zz = np.arange(0,nz+1)
+#my_interpolating_function = RegularGridInterpolator((xx, yy, zz), z_wpsi)
+#z_part = my_interpolating_function(x, y, z)
+z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_wpsi=z_wpsi)
+
+nq = np.min([len(x.reshape(-1)),nqmx])
 
 
         ###################################################################################
-    ''' no need for topocheck anymore as we are using sigma levels'''
-    ''' but we have to remove pyticles which are in a masked area'''
+''' no need for topocheck anymore as we are using sigma levels'''
+''' but we have to remove pyticles which are in a masked area'''
 
-    ipmx = 0; px0,py0,pz0,ptopo0 = [],[],[],[]
+ipmx = 0; px0,py0,pz0,ptopo0 = [],[],[],[]
 
-    topolim=0
+topolim=0
 
-    if not adv3d: topolim = np.nanmax([topolim,-advdepth])
+if not adv3d: topolim = np.nanmax([topolim,-advdepth])
 
     # if you want to add a condition based on temp and/or salt:
     #[temp,salt] = part.get_ts_io(simul)
 
-    ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
-    pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1))
+ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
+pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1))
     #ptemp = part.map_var(simul,temp,x.reshape(-1),y.reshape(-1),z.reshape(-1))
     #psalt = part.map_var(simul,salt,x.reshape(-1),y.reshape(-1),z.reshape(-1))
 
-    for ip in range(len(x.reshape(-1))):
-        if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipmx<nq):
-            px0.append(x.reshape(-1)[ip])
-            py0.append(y.reshape(-1)[ip])
-            pz0.append(z.reshape(-1)[ip])
-            ptopo0.append(ptopo[ip])
-            ipmx +=1
+for ip in range(len(x.reshape(-1))):
+   if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipmx<nq):
+       px0.append(x.reshape(-1)[ip])
+       py0.append(y.reshape(-1)[ip])
+       pz0.append(z.reshape(-1)[ip])
+       ptopo0.append(ptopo[ip])
+       ipmx +=1
     
     #del temp,salt
-    nq = ipmx
-    def plot_some():
-        plt.figure
-        plt.subplot(221)
-        plt.plot(px0)
-        plt.subplot(222)
-        plt.plot(py0)
-        plt.subplot(223)
-        plt.plot(pz0)
-        plt.subplot(224)
-        plt.plot(ptopo0)
-        plt.show()
+nq = ipmx
+def plot_some():
+    plt.figure
+    plt.subplot(221)
+    plt.plot(px0)
+    plt.subplot(222)
+    plt.plot(py0)
+    plt.subplot(223)
+    plt.plot(pz0)
+    plt.subplot(224)
+    plt.plot(ptopo0)
+    plt.show()
 #    del x,y,z
 
 #---------- Interpolating z_rho on p
