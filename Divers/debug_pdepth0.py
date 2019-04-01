@@ -109,8 +109,8 @@ dx_m = 1000.
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 #dx0 = 1
 
-iwd  = 2 # half width of seeding patch [in grid points]
-jwd  = 2  # half width of seeding patch [in grid points]
+iwd  = 20 # half width of seeding patch [in grid points]
+jwd  = 20  # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (1 particle every n grid points)
@@ -156,7 +156,7 @@ from scipy.interpolate import RegularGridInterpolator
 z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
 z_tmpX = (z_w[:-1,:] + z_w[1:,:]) / 2
 z_wpsi = (z_tmpX[:,:-1] + z_tmpX[:,1:]) / 2    
-    
+ 
 #xx = np.arange(simul.coord[2], simul.coord[3] - 1)
 #yy = np.arange(simul.coord[0], simul.coord[1] - 1)
 #zz = np.arange(0,nz+1)
