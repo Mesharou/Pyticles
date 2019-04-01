@@ -35,15 +35,19 @@ z_part vector of size nz+1: is z_w interpolated at particles horizontal location
                 cfx = x[k,j,i] - ix + 0.5 + ng
                 cfy = y[k,j,i] - iy + 0.5 + ng
                 
-                zxp = z_wpsi[ix+1,iy]
-                zyp = z_wpsi[ix,iy+1]
-                zxyp = z_wpsi[ix+1,iy+1]
+                zxp = z_w[ix+1,iy]
+                zyp = z_w[ix,iy+1]
+                zxyp = z_w[ix+1,iy+1]
+
+               # zxp = z_wpsi[ix+1,iy]
+               # zyp = z_wpsi[ix,iy+1]
+               # zxyp = z_wpsi[ix+1,iy+1]
                 
-                z_part[:] = (1-cfx)*(1-cfy)*z_wpsi[ix,iy] + (1-cfx)*cfy*zyp \
+                z_part[:] = (1-cfx)*(1-cfy)*z_w[ix,iy] + (1-cfx)*cfy*zyp \
                         + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
                 
                 if maskrho[ix,iy]==1:
-                    f = interp1d(z_part, list(range(z_wpsi.shape[2])), kind='cubic')
+                    f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
                     z[k,j,i] = f(depths0[k])
 
                 else:

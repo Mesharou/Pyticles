@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='W_sed_250'
+config='INI_depth'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -192,7 +192,7 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
-w_sed0 = -250 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -20 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -298,7 +298,7 @@ if True:
 
     #Initial Particle release
     subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 100   # maximum number of particles
+    nqmx = 250   # maximum number of particles
     maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
     ##########################
@@ -312,12 +312,12 @@ if True:
     
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 
-    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
+    iwd  = 5.* dx0 # half width of seeding patch [in grid points]
+    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
 
     #########
     # density of pyticles (1 particle every n grid points)
-    nnx=dx0*5
+    nnx=dx0
     nny=dx0
     nnlev=1.
 
@@ -363,7 +363,7 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
     if prec=='float':
         shared_array_base = mp.Array(ctypes.c_float, nx*ny*nz*nt )
     elif prec=='double':
-        shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt, lock=True)
+        shared_array_base = mp.Array(ctypes.c_double, int(nx*ny*nz*nt), lock=True)
     elif prec=='int':
         shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
     var = np.ctypeslib.as_array(shared_array_base.get_obj())
@@ -399,7 +399,7 @@ if not restart:
 
     if initial_depth: #initial vertical position = depths0
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-        z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w)
+        z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
 
     nq = np.min([len(x.reshape(-1)),nqmx])
 
@@ -436,7 +436,8 @@ if not restart:
         nq_1=-1  
 
     ###################################################################################
-
+    
+    nq = len(px0)
     px = shared_array(nq,prec='double')
     py = shared_array(nq,prec='double')
     pz = shared_array(nq,prec='double')
@@ -461,7 +462,7 @@ else:
         pz0 = nc.variables['pz'][restart_time,:]
         nc.close()
 
-        nq = px0.shape[0]
+        nq = len(px0)
         
         px = shared_array(nq,prec='double')
         py = shared_array(nq,prec='double')
@@ -477,7 +478,7 @@ else:
         py0 = nc.variables['py'][restart_time,:]
         pz0 = nc.variables['pz'][restart_time,:]
 
-        nq = px0.shape[0]
+        nq = len(px0)
         
         px = shared_array(nq,prec='double')
         py = shared_array(nq,prec='double')
