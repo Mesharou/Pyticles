@@ -311,7 +311,7 @@ if True:
 
     #Initial Particle release
     subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 250   # maximum number of particles
+    nqmx = 25000   # maximum number of particles
     maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
     ##########################
@@ -358,8 +358,9 @@ if True:
         nnlev = 1
         [temp, salt] = part.get_ts_io(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng)
-        ini_cond = temp > 20
-        
+        ini_cond = (temp > 20.) & (temp < 21.)
+        print('------------------------')
+        print(f'ini_cond.shape {ini_cond.shape}')
 ###########
 
 continuous_injection = False # if True release particles continuously, if False only one release at initial time-step
