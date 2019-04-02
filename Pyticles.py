@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='INI_depth'
+config='Initial_Cond'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -191,6 +191,19 @@ else:
 meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
+
+# Initialize seeding particles using a boolean condition pcond
+# Ex : temp < 5°C AND a horizontal location as usual
+# Does not support vertical condition
+# i.e can't state pcond = True and depth = z0
+# Therefore if ini_cond = True: initial_depth = False
+
+initial_cond = True
+initial_depth = True
+
+if initial_cond:
+    initial_depth = False
+
 sedimentation=True
 w_sed0 = -20 # vertical velocity for particles sedimentation (m/s)
 
@@ -319,23 +332,34 @@ if True:
     # density of pyticles (1 particle every n grid points)
     nnx=dx0
     nny=dx0
-    nnlev=1.
+    nnlev=1
 
     ##########################
     # first and last vertical level to fill with pyticles
     # JC dev : to be checked lev0 = 0 no ?
 
-    lev0= len(depths); lev1= len(depths)
+    #lev0= len(depths); lev1= len(depths)
+    lev0= 0
+    lev1= len(depths)
+    
     if not adv3d: lev0 = -1; lev1 = lev0
     #########
     # define initial vertical position using depth
-    initial_depth = True
-    depths0 = [-500] # [-50, -100, -200]
+    depths0 = [-50, -500] # [-50, -100, -200]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
-
-
+    ########
+    # define sigma vertical position using a condition on roms output
+    # condition pcond is defined later
+    # possibility to pass to coord as an argument to go faster !!!
+    if initial_cond:
+        lev1 = len(depths)
+        nnlev = 1
+        [temp, salt] = part.get_ts_io(simul, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng)
+        ini_cond = temp > 20
+        
 ###########
 
 continuous_injection = False # if True release particles continuously, if False only one release at initial time-step
@@ -394,13 +418,14 @@ if not restart:
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
     ###################################################################################
 
-    z,y,x = np.mgrid[lev0:lev1+1:nnlev,np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
+    z,y,x = np.mgrid[lev0:lev1+1:nnlev, np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
             np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+
 
     if initial_depth: #initial vertical position = depths0
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
         z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
-
+    
     nq = np.min([len(x.reshape(-1)),nqmx])
 
     ###################################################################################
@@ -415,10 +440,22 @@ if not restart:
 
     if not adv3d: topolim = np.nanmax([topolim,-advdepth])
 
-    #del temp,salt
-    #nq = ipmx
     # initializing px0, py0, pz0
-    ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq)
+    if initial_cond:
+        # only true for rho variables
+        # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
+        # the subdomain for cond (see above)
+        i0, j0, k0 = 0, 0, 0
+        pcond = partF.interp_3d(x.reshape(-1),y.reshape(-1),z.reshape(-1),
+                ini_cond,ng,nq,i0,j0,k0)
+        print(f'-----------------------')
+        print(f'ini_cond = {ini_cond}')
+        print(f'pcond = {pcond}')
+        ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,
+                ng=ng,pcond=pcond)
+    else: 
+        ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq)
+    
     del x,y,z
     ###################################################################################
 
