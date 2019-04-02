@@ -356,7 +356,8 @@ if True:
     if initial_cond:
         lev1 = len(depths)
         nnlev = 1
-        [temp, salt] = part.get_ts_io(simul, x_periodic=x_periodic,
+
+        temp = part.get_t_io(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng)
         ini_cond = (temp > 20.) & (temp < 21.)
         print('------------------------')
@@ -447,6 +448,15 @@ if not restart:
         # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
         # the subdomain for cond (see above)
         i0, j0, k0 = 0, 0, 0
+        
+        coord = part.subsection(x.reshape(-1),y.reshape(-1),ng=ng)
+        temp = part.get_t_io(simul, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, *coord)
+
+        ini_cond = (temp > 20.) & (temp < 21.)
+        i0 = coord[2]
+        j0 = coord[0]
+         
         pcond = partF.interp_3d(x.reshape(-1),y.reshape(-1),z.reshape(-1),
                 ini_cond,ng,nq,i0,j0,k0)
         print(f'-----------------------')
