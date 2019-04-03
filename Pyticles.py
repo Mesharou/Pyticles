@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Initial_Cond'
+config='Cont_inj_new'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -201,7 +201,7 @@ meanflow=False # if True the velocity field is not updated in time
 # i.e can't state pcond = True and depth = z0
 # Therefore if ini_cond = True: initial_depth = False
 
-initial_cond = True
+initial_cond = False
 initial_depth = True
 
 if initial_cond:
@@ -343,12 +343,14 @@ if True:
     lev1= len(depths)
     
     if not adv3d: lev0 = -1; lev1 = lev0
+
     #########
     # define initial vertical position using depth
     depths0 = [-50, -500] # [-50, -100, -200]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
+
     ########
     # define sigma vertical position using a condition on roms output
     # condition pcond is defined later
@@ -363,7 +365,7 @@ if True:
         print(f'ini_cond.shape {ini_cond.shape}')
 ###########
 
-continuous_injection = False # if True release particles continuously, if False only one release at initial time-step
+continuous_injection = True # if True release particles continuously, if False only one release at initial time-step
 
 ###########
 
@@ -418,9 +420,9 @@ if not restart:
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
     ###################################################################################
 
-    z,y,x = np.mgrid[lev0:lev1+1:nnlev, np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
+    z,y,x = np.mgrid[lev0:lev1+1:nnlev,
+            np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
             np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
-
 
     if initial_depth: #initial vertical position = depths0
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
@@ -453,10 +455,16 @@ if not restart:
         print(f'pcond = {pcond}')
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
                 ng=ng, pcond=pcond)
-    else: 
-        ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq)
-    
-    del x,y,z
+    else:
+        print('-----------------')
+        print('entering the rabbit"s hole ')
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
+                nq, ng=ng)
+
+    if (not initial_cond) and (not continuous_injection): del x,y,z
+    # Else we need the grid box to compute px0, py0, pz0 at each injection time
+
+    nq = ipmx
     ###################################################################################
 
     if continuous_injection:
@@ -469,16 +477,23 @@ if not restart:
         print('it would take', nq_injection*N_injection - nqmx, ' more pyticles')
         print('to be able to release through all the simulation')
         nq_1=nq_injection
+        if debug:
+            print('---------------------------------------')
+            print(f'nq_injection = {nq_injection}')
+            print(f'nq = {nq}')
+
+
     else:
         nq_1=-1  
 
     ###################################################################################
+    # nq: total number of particles
     
-    nq = len(px0)
     px = shared_array(nq,prec='double')
     py = shared_array(nq,prec='double')
     pz = shared_array(nq,prec='double')
 
+    print('px.shape = {px.shape}')
     if continuous_injection:
         px[:nq_1]=px0; py[:nq_1]=py0; pz[:nq_1]=pz0
 

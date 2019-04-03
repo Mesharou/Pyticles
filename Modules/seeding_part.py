@@ -65,7 +65,7 @@ z_part vector of size nz+1: is z_w interpolated at particles horizontal location
     return z
 
 ##############################################################################
-def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=[]):
+def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
     '''
     Remove particles found in land mask and particles below sea-floor if ADV2D
     Modify in place px0, py0, pz0 with particles coordinates
@@ -90,7 +90,7 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=[]):
         print(f"topolim = {topolim} ")
         print(f'nq = {nq}')
 
-  
+    print(f'pcond = {pcond}') 
     ipcount = 0
     if pcond.any():
 
