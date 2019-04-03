@@ -192,8 +192,11 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 
-# Initialize seeding particles using a boolean condition pcond
-# Ex : temp < 5°C AND a horizontal location as usual
+# Initialize seeding particles using a boolean condition ini_cond
+# Inside a box_grid as usual
+# Box grid supports: an horizontal (ic, jc), denisty nnx, nny
+#                    minimum maximum sigma levels 
+# Ex : temp < 5°C  
 # Does not support vertical condition
 # i.e can't state pcond = True and depth = z0
 # Therefore if ini_cond = True: initial_depth = False
@@ -336,9 +339,6 @@ if True:
 
     ##########################
     # first and last vertical level to fill with pyticles
-    # JC dev : to be checked lev0 = 0 no ?
-
-    #lev0= len(depths); lev1= len(depths)
     lev0= 0
     lev1= len(depths)
     
@@ -352,11 +352,10 @@ if True:
     ########
     # define sigma vertical position using a condition on roms output
     # condition pcond is defined later
-    # possibility to pass to coord as an argument to go faster !!!
+    # possibility to pass to coord as an argument to go faster
     if initial_cond:
         lev1 = len(depths)
         nnlev = 1
-
         temp = part.get_t_io(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng)
         ini_cond = (temp > 20.) & (temp < 21.)
@@ -370,7 +369,6 @@ continuous_injection = False # if True release particles continuously, if False 
 
 if continuous_injection:
     
-    #pyticles injection at all time steps?
     dt_injection = 1 #(1 = injection every time step, 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0]/dt_injection)
 
@@ -448,22 +446,13 @@ if not restart:
         # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
         # the subdomain for cond (see above)
         i0, j0, k0 = 0, 0, 0
-        
-        coord = part.subsection(x.reshape(-1),y.reshape(-1),ng=ng)
-        temp = part.get_t_io(simul, x_periodic=x_periodic,
-                y_periodic=y_periodic, ng=ng, *coord)
-
-        ini_cond = (temp > 20.) & (temp < 21.)
-        i0 = coord[2]
-        j0 = coord[0]
-         
-        pcond = partF.interp_3d(x.reshape(-1),y.reshape(-1),z.reshape(-1),
-                ini_cond,ng,nq,i0,j0,k0)
+        pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                ini_cond, ng, nq, i0, j0, k0)
         print(f'-----------------------')
         print(f'ini_cond = {ini_cond}')
         print(f'pcond = {pcond}')
-        ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,
-                ng=ng,pcond=pcond)
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
+                ng=ng, pcond=pcond)
     else: 
         ipmx = seeding_part.remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq)
     
@@ -499,7 +488,7 @@ if not restart:
 
 
     ###################################################################################
-
+# restart = True
 else: 
 
     if not continuous_injection:
@@ -537,7 +526,8 @@ else:
 
         ##################################
         # determine px0,py0,pz0,nq_injection
-        
+        # JC not True in case of initital_cond and continuous injection
+        # because px0, py0, pz0 may vary upon time
         nq_injection = np.argmax(np.isnan(nc.variables['px'][0,:]))
 
         px0 = nc.variables['px'][0,:nq_injection]
@@ -545,7 +535,6 @@ else:
         pz0 = nc.variables['pz'][0,:nq_injection]
         nc.close()
         
-        # JC debug int cast...
         nq_1=np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
         
         '''
@@ -939,13 +928,10 @@ for time in timerange:
     ###################################################################################
     #Automatic division:
     
-
-    # Issue for now 
-    # JC 
     nsub_x = 1
     nsub_y = 1
-    nsub_x = 1+(coord[3]-coord[2])//1000
-    nsub_y = 1+(coord[1]-coord[0])//1000
+    nsub_x = 1 + (coord[3] - coord[2]) // 1000
+    nsub_y = 1 + (coord[1] - coord[0]) // 1000
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
@@ -1011,9 +997,12 @@ for time in timerange:
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
         nq_0 = nq_1
-        nq_1 = np.nanmin([nq_injection*((itime+1)//dt_injection+1),nqmx])
-        px[nq_0:nq_1]=px0[:nq_1-nq_0]; py[nq_0:nq_1]=py0[:nq_1-nq_0]; 
-        if adv3d: pz[nq_0:nq_1]=pz0[:nq_1-nq_0]
+        nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
+        px[nq_0:nq_1] = px0[:nq_1-nq_0]
+        py[nq_0:nq_1] = py0[:nq_1-nq_0] 
+        if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
+        
+
 
     ###################################################################################
     # Plot particles position (+ SST)
