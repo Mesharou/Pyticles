@@ -201,14 +201,18 @@ meanflow=False # if True the velocity field is not updated in time
 # i.e can't state pcond = True and depth = z0
 # Therefore if ini_cond = True: initial_depth = False
 
-initial_cond = False
+continuous_injection = False 
+# if True release particles continuously, if False only one release at initial time-step
+
+initial_cond = True
 initial_depth = True
 
 if initial_cond:
     initial_depth = False
+    continuous_injection = False
 
 sedimentation=True
-w_sed0 = -20 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -328,8 +332,8 @@ if True:
     
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 
-    iwd  = 5.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
+    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
+    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
 
     #########
     # density of pyticles (1 particle every n grid points)
@@ -351,7 +355,6 @@ if True:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
 
-    ########
     # define sigma vertical position using a condition on roms output
     # condition pcond is defined later
     # possibility to pass to coord as an argument to go faster
@@ -360,17 +363,13 @@ if True:
         nnlev = 1
         temp = part.get_t_io(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng)
-        ini_cond = (temp > 20.) & (temp < 21.)
+        ini_cond = (temp > 15.) & (temp < 16.)
         print('------------------------')
         print(f'ini_cond.shape {ini_cond.shape}')
-###########
-
-continuous_injection = True # if True release particles continuously, if False only one release at initial time-step
 
 ###########
 
 if continuous_injection:
-    
     dt_injection = 1 #(1 = injection every time step, 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0]/dt_injection)
 
@@ -451,8 +450,8 @@ if not restart:
         pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                 ini_cond, ng, nq, i0, j0, k0)
         print(f'-----------------------')
-        print(f'ini_cond = {ini_cond}')
-        print(f'pcond = {pcond}')
+    #    print(f'ini_cond = {ini_cond}')
+    #    print(f'pcond = {pcond}')
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
                 ng=ng, pcond=pcond)
     else:

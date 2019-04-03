@@ -45,19 +45,23 @@ if adv3d:
         salt[:] = linear(salt[:],salt2,alpha_time)
 
 elif simul.simul[-4:]=='surf':
-    [temp[:],salt[:]] = part.get_ts_io_surf(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+    [temp[:],salt[:]] = part.get_ts_io_surf(simul, x_periodic=x_periodic,
+            y_periodic=y_periodic, ng=ng, coord=coord)
     if not meanflow and alpha_time != 0:
         simul.update(np.ceil(time))
-        [temp2,salt2] = part.get_ts_io_surf(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+        [temp2,salt2] = part.get_ts_io_surf(simul, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, coord=coord)
         simul.update(np.floor(time))
         temp[:] = linear(temp[:],temp2,alpha_time)
         salt[:] = linear(salt[:],salt2,alpha_time)
 
 else:
-    [temp[:],salt[:]] = part.get_ts_io_2d(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng, advdepth = advdepth,coord=coord)
+    [temp[:],salt[:]] = part.get_ts_io_2d(simul, x_periodic=x_periodic, 
+            y_periodic=y_periodic, ng=ng, advdepth=advdepth, coord=coord)
     if not meanflow and alpha_time != 0:
         simul.update(np.ceil(time))
-        [temp2,salt2] = part.get_ts_io_2d(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng, advdepth = advdepth,coord=coord)
+        [temp2,salt2] = part.get_ts_io_2d(simul, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, advdepth = advdepth,coord=coord)
         simul.update(np.floor(time))
         temp[:] = linear(temp[:],temp2,alpha_time)
         salt[:] = linear(salt[:],salt2,alpha_time)

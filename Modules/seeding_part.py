@@ -90,7 +90,7 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
         print(f"topolim = {topolim} ")
         print(f'nq = {nq}')
 
-    print(f'pcond = {pcond}') 
+   # print(f'pcond = {pcond}') 
     ipcount = 0
     if pcond.any():
 
