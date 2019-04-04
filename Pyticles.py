@@ -449,7 +449,7 @@ if not restart:
         i0, j0, k0 = 0, 0, 0
         pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                 ini_cond, ng, nq, i0, j0, k0)
-        print(f'-----------------------')
+    #    print(f'-----------------------')
     #    print(f'ini_cond = {ini_cond}')
     #    print(f'pcond = {pcond}')
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
