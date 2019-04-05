@@ -59,9 +59,12 @@ tim0 = simul.oceantime
 
 if np.isnan(pm_s[0,0]):
     
-    pm_s[:]= part.periodize2d_fromvar(simul,simul.pm,coord=subcoord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-    pn_s[:]= part.periodize2d_fromvar(simul,simul.pn,coord=subcoord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-    mask_s[:]= part.periodize2d_fromvar(simul,maskrho,coord=subcoord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+    pm_s[:] = part.periodize2d_fromvar(simul, simul.pm, coord=subcoord,
+            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
+    pn_s[:] = part.periodize2d_fromvar(simul, simul.pn, coord=subcoord,
+            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
+    mask_s[:] = part.periodize2d_fromvar(simul, maskrho, coord=subcoord,
+            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
 
     if subtiming: print(('Get pm,pn .....................', tm.time()-tstart))
     if subtiming: tstart = tm.time()
@@ -69,19 +72,26 @@ if np.isnan(pm_s[0,0]):
     ###################################################################################
     # Load (u,v,w) on sigmal-levels at time-step t
     if adv3d:
-        [u[:,:,:,itim[0]],v[:,:,:,itim[0]],w[:,:,:,itim[0]]] = part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+        [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
+        part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
+                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+    
     elif simul.simul[-4:]=='surf':
-        [u[:,:,itim[0]],v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
-                                                               x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+        [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
+                pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, coord=subcoord)
     else:
-        [u[:,:,itim[0]],v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
-                                                               x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
+        [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s,
+                pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
 
     if subtiming: print(('Computing velocity at t1.......', tm.time()-tstart))
     if subtiming: tstart = tm.time()
 
     if adv3d:
-        z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=subcoord)
+        z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, coord=subcoord)
+
         dz[:,:,:,itim[0]] = z_w[:,:,1:] - z_w[:,:,:-1]
     
     if subtiming: print(('Computing dz at t1.............', tm.time()-tstart))
@@ -99,16 +109,20 @@ if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
-    [u[:,:,:,itim[1]],v[:,:,:,itim[1]],w[:,:,:,itim[1]]] = part.get_vel_io(simul, pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+    [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
+            pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
+            coord=subcoord)
 ##LM
     w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
 ##LM
 elif simul.simul[-4:]=='surf':
-    [u[:,:,itim[1]],v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
-                                                           x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s,
+            pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+            y_periodic=y_periodic, ng=ng, coord=subcoord)
 else:
-    [u[:,:,itim[1]],v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
-                                                               x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
+    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
+            pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+            y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
 
 if subtiming: print(('Computing velocity at t2.......', tm.time()-tstart))
 if subtiming: tstart = tm.time()
@@ -141,12 +155,6 @@ if timing: tstart = tm.time()
 if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
 dt = delt[0]/subtstep
 dfct = 1. /subtstep * np.abs(dfile)
-print(f'tim0 = {tim0}')
-print(f'tim1 = {tim1}')
-print(f'detlt[0] is {delt[0]}')
-print(f'substep is {subtstep}')
-print(f'dfile = {np.abs(dfile)}')
-print(('dt is ',dt))
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
@@ -155,7 +163,8 @@ print(('dt is ',dt))
 
 def advance_3d(subrange,out,step):
     
-    global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim
+    global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0,
+    j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim
     
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,dpz,iab
