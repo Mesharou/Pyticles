@@ -1,12 +1,37 @@
 # seeding_part.py
 # module 
 # J.Collin 14-03-2019
-#=================================================================
+#=============================================================================
+# Need to check whether it crashes or not when grid_box goes out of the domain
+# 
+
 
 import numpy as np
 from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
 from copy import *
+
+def seed_box(ic=0, jc=0, lev0=0, lev1=0, iwd=0, jwd=0, nx=1, ny=1, nnx=1,
+             nny=1, nnlev=1):
+    '''
+    Spatial box for seeding partciles in sigma coordinates located at
+    psi_w points
+    If initial_depth : z will be redefined at depths0
+    
+    returns z, y, x
+
+    parameters:
+        ic, jc : center location 
+        lev0, lev1 : first and final vertical levels
+        iwd, jwd : box's horizontal half width
+        nx, ny : domain's width
+        nnx, nny, nnlev : seeding density; ex nnx = 2 (particles every 2 x_grid points)
+    '''
+    z, y, x = np.mgrid[lev0:lev1+1:nnlev,
+              np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
+              np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+
+    return z, y, x
 
 def ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=0):
     '''

@@ -419,9 +419,21 @@ if not restart:
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
     ###################################################################################
 
-    z,y,x = np.mgrid[lev0:lev1+1:nnlev,
-            np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
-            np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+    #z,y,x = np.mgrid[lev0:lev1+1:nnlev,
+    #        np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
+    #        np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+
+    z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+            nnlev=nnlev)
+
+   # if (z == z_mod).all():
+   #     print(f'Z is ok')
+   # if (y == y_mod).all():
+   #     print(f'Y is ok')
+   # if (x == x_mod).all():
+   #     print(f'X is ok')
+
 
     if initial_depth: #initial vertical position = depths0
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
@@ -449,14 +461,9 @@ if not restart:
         i0, j0, k0 = 0, 0, 0
         pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                 ini_cond, ng, nq, i0, j0, k0)
-    #    print(f'-----------------------')
-    #    print(f'ini_cond = {ini_cond}')
-    #    print(f'pcond = {pcond}')
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
                 ng=ng, pcond=pcond)
     else:
-        print('-----------------')
-        print('entering the rabbit"s hole ')
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
 
