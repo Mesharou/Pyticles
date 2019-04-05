@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Cont_inj_new'
+config='Cont_inj_Cond'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -201,7 +201,7 @@ meanflow=False # if True the velocity field is not updated in time
 # i.e can't state pcond = True and depth = z0
 # Therefore if ini_cond = True: initial_depth = False
 
-continuous_injection = False 
+continuous_injection = True 
 # if True release particles continuously, if False only one release at initial time-step
 
 initial_cond = True
@@ -209,7 +209,7 @@ initial_depth = True
 
 if initial_cond:
     initial_depth = False
-    continuous_injection = False
+   # continuous_injection = False
 
 sedimentation=True
 w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
@@ -332,8 +332,8 @@ if True:
     
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
 
-    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
+    iwd  = 5.* dx0 # half width of seeding patch [in grid points
+    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
 
     #########
     # density of pyticles (1 particle every n grid points)
@@ -363,7 +363,7 @@ if True:
         nnlev = 1
         temp = part.get_t_io(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng)
-        ini_cond = (temp > 15.) & (temp < 16.)
+        ini_cond = (temp > 14.) & (temp < 16.)
         print('------------------------')
         print(f'ini_cond.shape {ini_cond.shape}')
 
@@ -440,7 +440,13 @@ if not restart:
         z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
     
     nq = np.min([len(x.reshape(-1)),nqmx])
-
+    if (nq / nproc) < 10:
+        print('----------------------------------------------------')
+        print(f'WARNING : Multithreading Issue')
+        print('number of particles too small relatively to nprocs')
+        print(f'in subranges')
+        print('use less procs')
+        print('----------------------------------------------------')
     ###################################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
@@ -471,6 +477,7 @@ if not restart:
     # Else we need the grid box to compute px0, py0, pz0 at each injection time
 
     nq = ipmx
+    print('nq = {nq}')
     ###################################################################################
 
     if continuous_injection:
@@ -973,10 +980,14 @@ for time in timerange:
         for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
             
             #subtightcoord will be used for test if particle should be advected or not
-            subtightcoord[0] = max(0, tightcoord[0] + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
-            subtightcoord[1] = min(ny , tightcoord[0] + (jsub+1)*(tightcoord[1]+1-tightcoord[0])/nsub_y)
-            subtightcoord[2] = max(0, tightcoord[2] + isub*(tightcoord[3]+1-tightcoord[2])/nsub_x)
-            subtightcoord[3] = min(nx , tightcoord[2] + (isub+1)*(tightcoord[3]+1-tightcoord[2])/nsub_x)
+            subtightcoord[0] = max(0, tightcoord[0]
+                    + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
+            subtightcoord[1] = min(ny , tightcoord[0] 
+                    + (jsub+1)*(tightcoord[1]+1-tightcoord[0])/nsub_y)
+            subtightcoord[2] = max(0, tightcoord[2] 
+                    + isub*(tightcoord[3]+1-tightcoord[2])/nsub_x)
+            subtightcoord[3] = min(nx , tightcoord[2] 
+                    + (isub+1)*(tightcoord[3]+1-tightcoord[2])/nsub_x)
             subtightcoord_saves.append(copy(subtightcoord))
               
             #subcoord will be used to compute u,v,w (same than coord)
@@ -1019,8 +1030,55 @@ for time in timerange:
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
         nq_0 = nq_1
         nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
+       # JC ======================================================================= 
+       # ic = ic + 10
+       # jc = jc - 50
+        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+            nnlev=nnlev)
+        print(f'z : {z.shape}')
+
+        if initial_depth: #initial vertical position = depths0
+            z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+            z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
+        
+        print(f'z : {z.shape}')
+        ipmx = 0; px0,py0,pz0 = [],[],[]
+
+        # initializing px0, py0, pz0
+        if initial_cond:
+            # only true for rho variables
+            # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
+            # the subdomain for cond (see above)
+            #i0, j0, k0 = 0, 0, 0
+            temp = part.get_t_io(simul, x_periodic=x_periodic,
+                   y_periodic=y_periodic, ng=ng, coord=coord)
+            ini_cond = (temp > 14.) & (temp < 16.)
+
+            pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                ini_cond, ng, nq, i0, j0, k0)
+            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
+                    ng=ng, pcond=pcond)
+            nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
+        else:
+            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
+                    nq, ng=ng)
+
+        del x,y,z
+        if debug:
+            print('-----------------------')
+            print(f' i0, j0, k0 = {i0}, {j0}, {k0}')
+            print(f'temp.shape = {temp.shape}')
+            print(f'ini_cond.shape : {ini_cond.shape}')
+            print(f'pcond.shape : {pcond.shape}')
+            print(f'ipmx = {ipmx}')
+            print(f'nq_0 = {nq_0}; nq_1 = {nq_1}')
+            print(f'px0.shape = {np.shape(px0)}')
+            print('-----------------------')
+        #JC ==========================================================================
         px[nq_0:nq_1] = px0[:nq_1-nq_0]
-        py[nq_0:nq_1] = py0[:nq_1-nq_0] 
+        py[nq_0:nq_1] = py0[:nq_1-nq_0]
+ 
         if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
         
 
