@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Cont_inj_Cond'
+config='New_write'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -212,7 +212,7 @@ if initial_cond:
    # continuous_injection = False
 
 sedimentation=True
-w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -50 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config

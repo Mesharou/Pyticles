@@ -139,25 +139,4 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
 
 
 ##############################################################################
-def ini_cond(simul,x,y,z,px0,py0,pz0,nq,cond):
-    '''
-    '''
-    pcond = partF.interp3_d(pvar1,px,py,pz,var1,ng,npmx,i0,j0,k0)
-    debug_cond = False
-    if debug_seed:
-        print(f'mask = {mask}')
-        print(f'maskrho = {maskrho}')
-        print(f'ptopo = {ptopo}')
-        print(f'pmask = {pmask}')
-        print(f"topolim = {topolim} ")
-        print(f'nq = {nq}')
-
-
-    for ip in range(len(x.reshape(-1))):
-        if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipcount<nq):
-            px0.append(x.reshape(-1)[ip])
-            py0.append(y.reshape(-1)[ip])
-            pz0.append(z.reshape(-1)[ip])
-            ipcount +=1
-    return ipcount
 
