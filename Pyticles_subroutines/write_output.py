@@ -95,7 +95,7 @@ if write_uv:
 nc.w_sed0 = w_sed0
 
 # Options
-n.restart = int(restart)
+nc.restart = int(restart)
 nc.dfile = dfile
 nc.write_uv = int(write_uv)
 nc.adv3d = int(adv3d)
@@ -111,7 +111,7 @@ nc.x_periodic = int(x_periodic)
 nc.y_periodic = int(y_periodic)
 nc.timestep = timestep
 nc.sedimentation = int(sedimentation)
-nc.dt_injection = dt_injection
+if continuous_injection : nc.dt_injection = dt_injection
 
 # particles seeding 
 nc.ic = ic

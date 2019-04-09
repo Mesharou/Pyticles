@@ -97,9 +97,9 @@ def prho1(ptemp=0, psalt=0, pdepth=0):
     + psalt * (Q10 + ptemp * (Q11 + ptemp * (Q12 + ptemp * (Q13 + ptemp * Q14))) \
     + sqrtpsalt * (QS0 + ptemp * (QS1 + ptemp * QS2)) + psalt * Q20)
     
-    rho = rho1/(1 + 0.1 * pdepth / (K0 - pdepth *(K1 - pdepth * K2)))
+    prho = rho1/(1 + 0.1 * pdepth / (K0 - pdepth *(K1 - pdepth * K2)))
     
-    return rho
+    return prho
 
 
 ##############################################################################
@@ -126,7 +126,7 @@ def seed_box(ic=0, jc=0, lev0=0, lev1=0, iwd=0, jwd=0, nx=1, ny=1, nnx=1,
     return z, y, x
 
 ##############################################################################
-def ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=0):
+def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     '''
 Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
 z : sigma level for particles released at depths0
@@ -228,8 +228,5 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
                 ipcount +=1
     
     return ipcount
-
-
-
 ##############################################################################
 

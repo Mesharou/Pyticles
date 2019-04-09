@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='New_write'
+config='Rho_Seed'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -201,7 +201,7 @@ meanflow=False # if True the velocity field is not updated in time
 # i.e can't state pcond = True and depth = z0
 # Therefore if ini_cond = True: initial_depth = False
 
-continuous_injection = True 
+continuous_injection = False 
 # if True release particles continuously, if False only one release at initial time-step
 
 initial_cond = True
@@ -212,7 +212,7 @@ if initial_cond:
    # continuous_injection = False
 
 sedimentation=True
-w_sed0 = -50 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -355,17 +355,21 @@ if True:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
 
+
+    # OLD VERSION
     # define sigma vertical position using a condition on roms output
     # condition pcond is defined later
     # possibility to pass to coord as an argument to go faster
     if initial_cond:
+
         lev1 = len(depths)
         nnlev = 1
-        temp = part.get_t_io(simul, x_periodic=x_periodic,
-                y_periodic=y_periodic, ng=ng)
-        ini_cond = (temp > 14.) & (temp < 16.)
-        print('------------------------')
-        print(f'ini_cond.shape {ini_cond.shape}')
+
+        #temp = part.get_t_io(simul, x_periodic=x_periodic,
+        #        y_periodic=y_periodic, ng=ng)
+        #ini_cond = (temp > 14.) & (temp < 16.)
+     #   print('------------------------')
+     #   print(f'ini_cond.shape {ini_cond.shape}')
 
 ###########
 
@@ -465,8 +469,39 @@ if not restart:
         # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
         # the subdomain for cond (see above)
         i0, j0, k0 = 0, 0, 0
-        pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                ini_cond, ng, nq, i0, j0, k0)
+        '''
+        A matter of functionality... We take temp, salt, z_w from simulation 
+        Then interpolate each varialbe on px0,py0,pz0
+        Finally we compute potential density
+
+        Maybe we could compute rho from temp, salt, z_w and finally interpolate it...
+        '''
+        [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                y_periodic = y_periodic, ng=ng)
+        
+        ptemp = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                temp, ng, nq, i0, j0, k0)
+        
+        psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                salt, ng, nq, i0, j0, k0)
+        
+        z_w = part.get_depths_w(simul, x_periodic = x_periodic,
+                y_periodic = y_periodic, ng=ng)
+        
+        pdepth = partF.interp_3d_w(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                z_w, ng, nq, i0, j0, k0)
+        
+        prho = seeding_part.prho1(ptemp = ptemp, psalt = psalt, pdepth = pdepth)
+        
+        rho_min = 1026
+        rho_max = 1027
+        pcond = (prho > rho_min) & (prho < rho_max)
+        
+        # WE will keep someting like this for future
+        #
+        #pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+        #        ini_cond, ng, nq, i0, j0, k0)
+        
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
                 ng=ng, pcond=pcond)
     else:
