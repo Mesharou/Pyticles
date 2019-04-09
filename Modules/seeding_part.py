@@ -4,7 +4,8 @@
 #=============================================================================
 # Need to check whether it crashes or not when grid_box goes out of the domain
 # 
-
+# Create a file with parameters 
+# 
 
 import numpy as np
 from scipy.interpolate import interp1d

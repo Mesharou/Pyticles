@@ -95,7 +95,7 @@ if write_uv:
 nc.w_sed0 = w_sed0
 
 # Options
-nc.restart = int(restart)
+n.restart = int(restart)
 nc.dfile = dfile
 nc.write_uv = int(write_uv)
 nc.adv3d = int(adv3d)
