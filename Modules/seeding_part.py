@@ -6,6 +6,8 @@
 # 
 # Create a file with parameters 
 # 
+# Bug found: When pcond = False (due to an error into initialisation)
+# Then particles are released at every vertical grid-point
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -15,7 +17,7 @@ from copy import *
 
 
 ##############################################################################
-def prho1(ptemp=0, psalt=0, pdepth=0):
+def prho(ptemp=0, psalt=0, pdepth=0):
     '''
     Computes density via Equation Of State (EOS) for seawater at particules.
     If so prescribed, non-linear EOS of Jackett and McDougall (1995)
@@ -103,7 +105,7 @@ def prho1(ptemp=0, psalt=0, pdepth=0):
 
 
 ##############################################################################
-def seed_box(ic=0, jc=0, lev0=0, lev1=0, iwd=0, jwd=0, nx=1, ny=1, nnx=1,
+def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
              nny=1, nnlev=1):
     '''
     Spatial box for seeding partciles in sigma coordinates located at
@@ -126,6 +128,71 @@ def seed_box(ic=0, jc=0, lev0=0, lev1=0, iwd=0, jwd=0, nx=1, ny=1, nnx=1,
     return z, y, x
 
 ##############################################################################
+#def iso_surf(maskrho, simul, surf0, x, y, z, var, ng=0):
+    '''
+    Initialise particles at iso_variable surface
+    Variable must be at rho-points
+
+    Ex:----- isopycnals surfaces 1028 and 1030.1
+    | surf0 = [1028, 1030.1]
+    | var = rho
+    --------------------------------------------
+    
+    First step is to remap var on x, y, z
+    Then interpolate sigma levels onto surf0
+    '''
+
+
+    var_part = np.arange(len(simul.coord[4])+1, dtype='float')
+    
+#    for k in range(x.shape[0]):
+#        for i in range(x.shape[2]):
+#            for j in range(x.shape[1]):
+#                
+#                remap_var[k, j, i] = interp_3d_ts()
+#                ix = np.int(np.floor(x[k, j, i])) + ng
+#                iy = np.int(np.floor(y[k, j, i])) + ng
+#                iz = np.int(np.floor(z[k, j, i])) 
+#                
+#                fcx = x[k, j, i] - ix + 0.5 + ng
+#                fcy = y[k, j, i] - iy + 0.5 + ng
+#                fcz = z[k, j, i] - iz - 0.5
+                
+                #wt = partF.linear_3d(fcx, fcy, fcz)
+                #remap_var[] = sum(var1(i:i+1,j:j+1,k:k+1)*wt3)
+
+
+                #wt(1,1,1) = (1-fcz)*(1-fcy)*(1-fcx);
+                #wt(1,1,2) = fcz *(1-fcy)*(1-fcx);
+                #wt(1,2,1) = (1-fcz)* fcy *(1-fcx);
+                #wt(1,2,2) = fcz * fcy *(1-fcx);
+                #wt(2,1,1) = (1-fcz)*(1-fcy)* fcx ;
+                #wt(2,1,2) = fcz *(1-fcy)* fcx ;
+                #wt(2,2,1) = (1-fcz)* fcy * fcx ;
+                #wt(2,2,2) = fcz * fcy * fcx ;
+
+             #   zxp = z_w[ix+1, iy]
+              #  zyp = z_w[ix, iy+1]
+              #  zxyp = z_w[ix+1, iy+1]
+
+#                z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
+#                + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
+
+
+############ AUTRE LOOP sur la sous_box[nz = ] #################
+
+
+ #               if maskrho[ix,iy]==1:
+ #                   f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
+ #                   z[k,j,i] = f(depths0[k])
+
+  #              else:
+   #                 z[k,j,i] = 0.
+
+
+
+
+##############################################################################
 def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     '''
 Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
@@ -136,7 +203,7 @@ return z list
 parameters: simul
             maskrho : land mask
             depths0 : vector with seeding depths
-            x,y,z : 3 dimensionnal grid point for seeded particles
+            x, y, z : 3 dimensionnal coordinates for seeded particles
             z_w : depths in meters of sigma levels
             ng : nunber of ghost point for horizontal interpolation
 
@@ -147,22 +214,18 @@ z_part vector of size nz+1: is z_w interpolated at particles horizontal location
     for k in range(len(depths0)):
         for i in range(x.shape[2]):
             for j in range(x.shape[1]):
-
-                ix = np.int(np.floor(x[k,j,i])) + ng
-                iy = np.int(np.floor(y[k,j,i])) + ng
-                cfx = x[k,j,i] - ix + 0.5 + ng
-                cfy = y[k,j,i] - iy + 0.5 + ng
+                print(f'j = {j}')
+                ix = np.int(np.floor(x[k, j, i])) + ng
+                iy = np.int(np.floor(y[k, j, i])) + ng
+                cfx = x[k, j, i] - ix + 0.5 + ng
+                cfy = y[k, j, i] - iy + 0.5 + ng
                 
-                zxp = z_w[ix+1,iy]
-                zyp = z_w[ix,iy+1]
-                zxyp = z_w[ix+1,iy+1]
+                zxp = z_w[ix+1, iy]
+                zyp = z_w[ix, iy+1]
+                zxyp = z_w[ix+1, iy+1]
 
-               # zxp = z_wpsi[ix+1,iy]
-               # zyp = z_wpsi[ix,iy+1]
-               # zxyp = z_wpsi[ix+1,iy+1]
-                
-                z_part[:] = (1-cfx)*(1-cfy)*z_w[ix,iy] + (1-cfx)*cfy*zyp \
-                        + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
+                z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
+                + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
                 
                 if maskrho[ix,iy]==1:
                     f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
@@ -171,7 +234,7 @@ z_part vector of size nz+1: is z_w interpolated at particles horizontal location
                 else:
                     z[k,j,i] = 0.
 
-                debug_pdepth = False
+                debug_pdepth = True
                 if debug_pdepth:
                     print('---------- SEEDING----------')
                     print(f'cfx = {cfx}')

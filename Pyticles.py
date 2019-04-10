@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Rho_Seed'
+config='Depth_fast'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -204,7 +204,7 @@ meanflow=False # if True the velocity field is not updated in time
 continuous_injection = False 
 # if True release particles continuously, if False only one release at initial time-step
 
-initial_cond = True
+initial_cond = False
 initial_depth = True
 
 if initial_cond:
@@ -248,7 +248,7 @@ if adv3d: write_uv=False #not implemented yet for 3d
 # dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
 dfile = 1
 start_file = 1550
-end_file = 1560
+end_file = 1559
 
 #############
 
