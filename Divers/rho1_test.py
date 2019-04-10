@@ -87,7 +87,7 @@ rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
 ic = 10
 jc = 20
 lev0 = 0
-lev1 = 51
+lev1 = 50
 iwd = 5
 jwd = 2
 nx = rho.shape[0]
@@ -123,7 +123,7 @@ remap_rho  = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1), rho,
                             ng, nq,i0, j0, k0)
 new_rho = remap_rho.reshape(x.shape)
 mask = simul.mask
-rho0 = [1209]
+rho0 = [1026]
 
 del x, y, z
 
@@ -131,23 +131,13 @@ lev1 = len(rho0) - 1
 z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1, nnx=nnx,
                                 nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
 
-z = seeding_part.ini_depth(mask, simul, rho0, x, y, z, new_rho, ng=ng)
-
 ##############################################################################
 def ini_surf(maskrho, simul, rho0, x, y, z, rho, ng=0):
     for k in range(len(rho0)):
         for i in range(x.shape[2]):
             for j in range(x.shape[1]):
-                ix = np.int(np.floor(x[k, j, i])) + ng - 5
-                iy = np.int(np.floor(y[k, j, i])) + ng - 18
-                ix = i
-                iy = j
-                print(f'ix = {ix}')
-                print(f'iy = {iy}')
-                if maskrho[ix,iy]==1:
-                    print(f' rho = {rho[:, iy, ix]}')
-                    print(f'rho.shape')
-                    f = interp1d(rho[:, iy, ix], list(range(rho.shape[0])), kind='cubic')
+                if maskrho[i,j]==1:
+                    f = interp1d(rho[:, j, i], list(range(rho.shape[0])), kind='cubic')
                     z[k, j, i] = f(rho0[k])
                 else:
                     z[k, j, i] = 0.
@@ -156,7 +146,9 @@ def ini_surf(maskrho, simul, rho0, x, y, z, rho, ng=0):
 
 z = ini_surf(mask, simul, rho0, x, y, z, new_rho, ng=ng)
 
-
+plt.contourf(z[0,:,:])
+cbar = plt.colorbar()
+plt.show()
      
 
 
