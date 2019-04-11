@@ -107,17 +107,6 @@ nq = len(x.reshape(-1))
 remap_rho = np.ndarray(x.shape)
 
 ip = 0
-print('------ENTERING LOOP-------------------')
-#for k in range(x.shape[0]):
-#    for j in range(x.shape[1]):
-#        for i in range(x.shape[2]):
-#            remap_rho[i, j, k] = partF.interp_3d(x[i, j ,k], y[i, j, k],
-#                                                   z[i, j ,k], rho, ng, nq,
-#                                                   i0, j0, k0)
-#            ip += 1
-#            print(f'{ip}')
-
-
 
 remap_rho  = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1), rho,
                             ng, nq,i0, j0, k0)
@@ -127,6 +116,7 @@ rho0 = [1026]
 
 del x, y, z
 
+#####
 lev1 = len(rho0) - 1
 z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1, nnx=nnx,
                                 nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
@@ -145,6 +135,20 @@ def ini_surf(maskrho, simul, rho0, x, y, z, rho, ng=0):
 ##############################################################################
 
 z = ini_surf(mask, simul, rho0, x, y, z, new_rho, ng=ng)
+
+# To check if compute rho of x, y, z
+
+pdepth = partF.interp_3d_w(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                           z_w, ng, nq, i0, j0, k0)
+ptemp = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                        temp, ng, nq, i0, j0, k0)
+psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                        salt, ng, nq, i0, j0, k0)
+
+rho_check = seeding_part.prho(ptemp=ptemp, psalt=psalt, pdepth=pdepth)
+
+plt.hist(rho_check - rho0)
+plt.show()
 
 plt.contourf(z[0,:,:])
 cbar = plt.colorbar()
