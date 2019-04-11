@@ -163,7 +163,7 @@ dfct = 1. /subtstep * np.abs(dfile)
 
 def advance_3d(subrange,out,step):
     
-    global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0,
+    global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, \
     j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim
     
     # If using a Adams-Bashforth method we need to have access to previous vel. values
