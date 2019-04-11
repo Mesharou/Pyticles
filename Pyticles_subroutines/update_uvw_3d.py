@@ -40,7 +40,7 @@ else:
 
 pu[:]=partF.interp_3d_u(px,py,pz,u,ng,nq,i0,j0,k0)
 pv[:]=partF.interp_3d_v(px,py,pz,v,ng,nq,i0,j0,k0)
-pw[:]=partF.interp_3d_w(px,py,pz,w,ng,nq,i0,j0,k0)
+pw[:]=partF.interp_3d_w(px,py,pz,w,ng,nq,i0,j0,k0) + w_sed0
 
 
 ###################################################################################
