@@ -62,39 +62,28 @@ import matplotlib
 matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess)
 import matplotlib.pyplot as plt
 import matplotlib.colors as col
-
-#Some standard modules
 import sys, os
 import numpy as np
+import numpy.ma as ma
 import time as tm
-from netCDF4 import Dataset
 import multiprocessing as mp
 import ctypes 
 import queue
 import resource
 
-#add the Modules folder in your python PATH
-#sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
-sys.path.append("./Modules/") 
-
-#Specific modules needed for pyticles
-import pyticles_sig_sa as part
-import pyticles_3d_sig_sa as partF
-
-#Simulations (path, data...)
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-import numpy.ma as ma
-
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
-from R_files import load
-
 #For nested loop
 from itertools import product
 from copy import *
+from netCDF4 import Dataset
+
+#Specific modules needed for pyticles
+#add the Modules folder in your python PATH
+#sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
+sys.path.append("./Modules/") 
+import pyticles_sig_sa as part
+import pyticles_3d_sig_sa as partF
+from R_files import load
 
 
 ##################################################################################
@@ -136,7 +125,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Write_uvw_bis'
+config='Write_uvw_wsed0'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -184,7 +173,7 @@ meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
 # JC modif
 sedimentation=True
-w_sed0 = 0 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -250 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
