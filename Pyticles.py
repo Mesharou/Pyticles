@@ -145,7 +145,7 @@ print('-----------------------------------')
 ##################################################################################
 
 # name of your configuration (used to name output files)
-config='Depth_fast'
+config='Iso_surf'
 
 folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
@@ -205,7 +205,8 @@ continuous_injection = False
 # if True release particles continuously, if False only one release at initial time-step
 
 initial_cond = False
-initial_depth = True
+initial_depth = False
+initial_surf = True
 
 if initial_cond:
     initial_depth = False
@@ -422,27 +423,47 @@ if not restart:
     ###################################################################################
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
     ###################################################################################
-
-    #z,y,x = np.mgrid[lev0:lev1+1:nnlev,
-    #        np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
-    #        np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+    if initial_surf:
+        rho0 = [1028]
+        lev1 = len(rho0) - 1
 
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
             lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
             nnlev=nnlev)
-
-   # if (z == z_mod).all():
-   #     print(f'Z is ok')
-   # if (y == y_mod).all():
-   #     print(f'Y is ok')
-   # if (x == x_mod).all():
-   #     print(f'X is ok')
-
-
+    print(f'x.shape = {x.shape}')
+    print(f'y.shape = {y.shape}')
+    print(f'z.shape = {z.shape}')
     if initial_depth: #initial vertical position = depths0
         z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
         z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
     
+    if initial_surf:
+        print(f'-----------------------------------------------')
+        [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                                      y_periodic = y_periodic, ng=ng)
+        print(f'temp.shape = {temp.shape}')
+        print(f'salt.shape = {salt.shape}')
+        [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
+                              y_periodic=y_periodic, ng=ng)
+        print(f'z_r.shape = {z_r.shape}')
+        rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
+        ## temporary box used for sigma-interpolation onto var0 vect
+        print(f'rho.shape = rho.shape') 
+        lev1 = rho.shape[2] #  Needed to get all levels
+        print(f'lev1 = {lev1}')
+        z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+        print(f'z,y,x boxes shape = {z_box.shape}, {y_box.shape}, {y_box.shape}')
+        map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
+                z_box.reshape(-1), ng=ng).reshape(x_box.shape)
+        print(f'map_rho.shape = {map_rho.shape}')
+       
+        #del x_box, y_box, z_box, x, y, z
+        del z
+        z = np.ndarray(x.shape)
+        z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
+        
+
     nq = np.min([len(x.reshape(-1)),nqmx])
     if (nq / nproc) < 10:
         print('----------------------------------------------------')
@@ -508,7 +529,7 @@ if not restart:
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
 
-    if (not initial_cond) and (not continuous_injection): del x,y,z
+    del x,y,z
     # Else we need the grid box to compute px0, py0, pz0 at each injection time
 
     nq = ipmx

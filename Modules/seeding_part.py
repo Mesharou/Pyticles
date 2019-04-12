@@ -14,6 +14,16 @@ from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
 from copy import *
 
+#ic = 10
+#jc = 20
+#lev0 = 0
+#lev1 = 50
+#iwd = 5
+#jwd = 2
+#nny = 1
+#nnx = 1
+#nnlev = 1
+#rho0 = [1026]
 
 
 ##############################################################################
@@ -108,6 +118,7 @@ def prho(ptemp=0, psalt=0, pdepth=0):
 def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
              nny=1, nnlev=1):
     '''
+
     Spatial box for seeding partciles in sigma coordinates located at
     psi_w points
     If initial_depth : z will be redefined at depths0
@@ -120,94 +131,53 @@ def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
         iwd, jwd : box's horizontal half width
         nx, ny : domain's width
         nnx, nny, nnlev : seeding density; ex nnx = 2 (particles every 2 x_grid points)
+
     '''
     z, y, x = np.mgrid[lev0:lev1+1:nnlev,
               np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
               np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
 
     return z, y, x
-
 ##############################################################################
-#def iso_surf(maskrho, simul, surf0, x, y, z, var, ng=0):
+def ini_surf(simul, rho0, x, y, z, rho, ng=0):
+    ''' Interpolate sigma-levels onto rho0-isosurface 
+
+    simul : 
+    rho0 : vector of value for iso surface
+    rho : variable at psi_w points (same as particles)
+    x, y : horizontal location where particles will be seeded
+    z : sigma levels over the whole water-column
+    ng: number of ghost points 
+
     '''
-    Initialise particles at iso_variable surface
-    Variable must be at rho-points
-
-    Ex:----- isopycnals surfaces 1028 and 1030.1
-    | surf0 = [1028, 1030.1]
-    | var = rho
-    --------------------------------------------
-    
-    First step is to remap var on x, y, z
-    Then interpolate sigma levels onto surf0
-    '''
-
-
-    var_part = np.arange(len(simul.coord[4])+1, dtype='float')
-    
-#    for k in range(x.shape[0]):
-#        for i in range(x.shape[2]):
-#            for j in range(x.shape[1]):
-#                
-#                remap_var[k, j, i] = interp_3d_ts()
-#                ix = np.int(np.floor(x[k, j, i])) + ng
-#                iy = np.int(np.floor(y[k, j, i])) + ng
-#                iz = np.int(np.floor(z[k, j, i])) 
-#                
-#                fcx = x[k, j, i] - ix + 0.5 + ng
-#                fcy = y[k, j, i] - iy + 0.5 + ng
-#                fcz = z[k, j, i] - iz - 0.5
-                
-                #wt = partF.linear_3d(fcx, fcy, fcz)
-                #remap_var[] = sum(var1(i:i+1,j:j+1,k:k+1)*wt3)
-
-
-                #wt(1,1,1) = (1-fcz)*(1-fcy)*(1-fcx);
-                #wt(1,1,2) = fcz *(1-fcy)*(1-fcx);
-                #wt(1,2,1) = (1-fcz)* fcy *(1-fcx);
-                #wt(1,2,2) = fcz * fcy *(1-fcx);
-                #wt(2,1,1) = (1-fcz)*(1-fcy)* fcx ;
-                #wt(2,1,2) = fcz *(1-fcy)* fcx ;
-                #wt(2,2,1) = (1-fcz)* fcy * fcx ;
-                #wt(2,2,2) = fcz * fcy * fcx ;
-
-             #   zxp = z_w[ix+1, iy]
-              #  zyp = z_w[ix, iy+1]
-              #  zxyp = z_w[ix+1, iy+1]
-
-#                z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
-#                + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
-
-
-############ AUTRE LOOP sur la sous_box[nz = ] #################
-
-
- #               if maskrho[ix,iy]==1:
- #                   f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
- #                   z[k,j,i] = f(depths0[k])
-
-  #              else:
-   #                 z[k,j,i] = 0.
-
-
-
+    mask = simul.mask
+    for k in range(len(rho0)):
+        for i in range(x.shape[2]):
+            for j in range(x.shape[1]):
+                if mask[i,j]==1:
+                    f = interp1d(rho[:, j, i], list(range(rho.shape[0])), kind='cubic')
+                    z[k, j, i] = f(rho0[k])
+                else:
+                    z[k, j, i] = 0.
+    return z
 
 ##############################################################################
 def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
-    '''
-Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
-z : sigma level for particles released at depths0
+    ''' 
+    Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
+    z : sigma level for particles released at depths0
 
-return z list
+    return z list
 
-parameters: simul
-            maskrho : land mask
-            depths0 : vector with seeding depths
-            x, y, z : 3 dimensionnal coordinates for seeded particles
-            z_w : depths in meters of sigma levels
-            ng : nunber of ghost point for horizontal interpolation
+    parameters: simul
+                maskrho : land mask
+                depths0 : vector with seeding depths
+                x, y, z : 3 dimensionnal coordinates for seeded particles
+                z_w : depths in meters of sigma levels
+                ng : nunber of ghost point for horizontal interpolation
 
-z_part vector of size nz+1: is z_w interpolated at particles horizontal location
+    z_part vector of size nz+1: is z_w interpolated at particles horizontal location
+
     '''
     z_part = np.arange(len(simul.coord[4])+1, dtype='float')
 
@@ -250,7 +220,8 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
     '''
     Remove particles found in land mask and particles below sea-floor if ADV2D
     Modify in place px0, py0, pz0 with particles coordinates
-    Returns ipcount to keep count of seeded particles 
+    Returns ipcount to keep count of seeded particles
+
     '''
     # Recomputing some data to help readablility (less argument to remove_mask)
     # Carefull of Side Effects
