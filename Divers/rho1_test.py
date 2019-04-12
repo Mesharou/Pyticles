@@ -11,11 +11,13 @@ from scipy.interpolate import interp1d
 
 
 sys.path.append("../Modules/")
+sys.path.append("Python_Modules/")
 import seeding_part
 from R_files import load
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
 
+from R_tools import rho1_eos 
 
 ptemp = 3
 psalt = 35.5
@@ -96,7 +98,7 @@ nz = rho.shape[2]
 nny = 1
 nnx = 1
 nnlev = 1
-rho0 = [1026]
+rho0 = [1028]
 mask = simul.mask
 
 lev1 = len(rho0) - 1
@@ -107,14 +109,14 @@ z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1, nnx=nnx,
                                 nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
 #i0 = np.int(np.floor(np.min(x))) - 2
 #j0 = np.int(np.floor(np.min(y))) -2 
-#k0 = 0
+k0 = 0
 nq = len(x.reshape(-1))
-#i0 = 0
-#j0 = 0
+i0 = 0
+j0 = 0
 
 #remap_rho = np.ndarray(x.shape)
 #remap_rho  = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1), rho,
-                            ng, nq, i0, j0, k0)
+#                            ng, nq, i0, j0, k0)
 #new_rho = remap_rho.reshape(x.shape)
 map_rho = part.map_var(simul, rho, x.reshape(-1), y.reshape(-1), z.reshape(-1),
                        ng=ng).reshape(x.shape)
@@ -125,9 +127,6 @@ map_rho = part.map_var(simul, rho, x.reshape(-1), y.reshape(-1), z.reshape(-1),
 ###
 fig = plt.figure
 
-plt.subplot(121)
-plt.contourf(new_rho[12,:,:])
-cbar = plt.colorbar()
 
 plt.subplot(122)
 plt.contourf(map_rho[12,:,:])
@@ -155,7 +154,7 @@ def ini_surf(mask, simul, rho0, x, y, z, rho, ng=0):
     return z
 ##############################################################################
 
-z = ini_surf(mask, simul, rho0, x, y, z, new_rho, ng=ng)
+z = ini_surf(mask, simul, rho0, x, y, z, map_rho, ng=ng)
 
 # To check if compute rho of x, y, z
 
@@ -175,8 +174,9 @@ plt.contourf(z[0,:,:])
 cbar = plt.colorbar()
 plt.show()
      
-
-
+plt.plot(z_r[ic, jc, :])
+plt.grid(True)
+plt.show()
 toto
 
 plt.figure

@@ -2,7 +2,7 @@
 # Bash script to convert python from 2 to 3
 
 
-FILE_DIR=$(pwd)  
+FILE_DIR='/home/jeremy/Bureau/Project/Pyticles/Divers/Python_Modules/' 
 cd $FILE_DIR
 
 for file in $(ls *.py)

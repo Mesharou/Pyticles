@@ -1,0 +1,12 @@
+These files have been modified manually to replace the originals in :
+
+/usr/lib64/python2.7/site-packages/matplotlib$
+
+
+
+- Modif includes possibility of a vertical arrow in quiver.
+
+- New style 'circle' for boundingbox
+http://matplotlib.1069221.n5.nabble.com/Drawing-a-circle-around-a-letter-td3237.html
+
+
