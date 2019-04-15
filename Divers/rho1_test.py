@@ -167,6 +167,38 @@ psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
 
 rho_check = seeding_part.prho(ptemp=ptemp, psalt=psalt, pdepth=pdepth)
 
+############### rho1_eos #####################################################
+g = 9.81
+
+
+roms_rho0 = simul.rho0
+roms_rho0 = rho0
+
+roms_rho1 = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
+
+roms_rho1[np.isnan(roms_rho1)] = 0
+
+plt.subplot(211)
+plt.contour(roms_rho1[ic+200,0:1000,:].T, levels=10)
+cbar = plt.colorbar()
+plt.title('rho1')
+
+plt.subplot(212)
+plt.contour(rho[ic+200,0:1000,:].T, levels=10)
+cbar = plt.colorbar()
+plt.ylabel('sigma levels')
+plt.xlabel('Y(km)')
+plt.title('rho')
+#plt.caxis([-1,  1])
+plt.show()
+
+
+
+
+
+
+
+############
 plt.hist(rho_check - rho0)
 plt.show()
 
