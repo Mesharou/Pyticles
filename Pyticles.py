@@ -76,6 +76,7 @@ import resource
 #add the Modules folder in your python PATH
 #sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
 sys.path.append("./Modules/") 
+sys.path.append("./Inputs/")
 
 #Specific modules needed for pyticles
 import pyticles_sig_sa as part
@@ -104,6 +105,8 @@ from copy import *
 
 from scipy.interpolate import interp1d
 import seeding_part
+
+from input_file import *
 
 
 ##################################################################################
@@ -136,6 +139,7 @@ print('-----------------------------------')
 ###################################################################################
 ###################################################################################
 # THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
+# MOST OF PARAMTERS ARE DEFINED IN INPUTS/INPUT_FILE
 ###################################################################################
 ###################################################################################
 
@@ -144,10 +148,6 @@ print('-----------------------------------')
 # Define location of outputs
 ##################################################################################
 
-# name of your configuration (used to name output files)
-config='Iso_surf'
-
-folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -156,25 +156,11 @@ if not os.path.exists(folderout):
 # Load simulations parameters (date, subsection, static fields, files path ...etc..)
 # [you can check "dir(simul)" to see what has been loaded]
 ###################################################################################
-
-#time-stepping
-timestep='RK4' # Choices are FE (forward-Euler)
-               #             RK2, RK4 (Runge-Kutta 2nd and 4th order)
-               #             AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
-               #             ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
-
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
-debug = True
 
-#############
-x_periodic = False
-y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
-#3D advection
-adv3d = True 
-# if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
 if len(sys.argv)>=3:
     advdepth = np.int(sys.argv[2]) 
 else:
@@ -187,33 +173,7 @@ else:
         advdepth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
-#############
-meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
-# JC modif
-
-# Initialize seeding particles using a boolean condition ini_cond
-# Inside a box_grid as usual
-# Box grid supports: an horizontal (ic, jc), denisty nnx, nny
-#                    minimum maximum sigma levels 
-# Ex : temp < 5°C  
-# Does not support vertical condition
-# i.e can't state pcond = True and depth = z0
-# Therefore if ini_cond = True: initial_depth = False
-
-continuous_injection = False 
-# if True release particles continuously, if False only one release at initial time-step
-
-initial_cond = False
-initial_depth = False
-initial_surf = True
-
-if initial_cond:
-    initial_depth = False
-   # continuous_injection = False
-
-sedimentation=True
-w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -221,21 +181,8 @@ if (not adv3d) and (advdepth > 0):
     simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
 elif (not adv3d) and (advdepth <= 0):     
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
-    sedimentaion=False
+    sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
-
-
-#Write T,S at each particle position directly in output file
-write_ts=True
-
-#Write only Temperature (for simulations with no S)
-write_t=False
-if write_t: write_ts = False
-
-#Write lon,lat,topo,depth
-write_lonlat=True
-write_depth=True
-write_topo=True
 
 #Write u,v at each particle position directly in output file
 write_uv=True
@@ -245,37 +192,6 @@ if adv3d: write_uv=False #not implemented yet for 3d
 ###################################################################################
 # ROMS outputs
 ###################################################################################
-
-# dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
-dfile = 1
-start_file = 1550
-end_file = 1559
-
-#############
-
-restart = False
-restart_time = 4 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/home/jeremy/Bureau/Data/Pyticles/Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
-
-if not restart: 
-    restart_time = 0
-else:
-    start_file += restart_time
-
-#############
-
-# Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
-simul = load(simul = parameters, floattype=np.float64)
-
-'''
-simul attributes are:
-['Cs_r', 'Cs_w', 'Forder',  'coord', 'coordmax', 'cst', 'date', 'day', 'domain', 'dt', 'dtime', 'f', 'filetime', 'floattype', 'g', 'get_domain', 'hc', 'hour', 'infiletime', 'load_file', 'mask', 'min', 'month', 'ncfile', 'ncname', 'oceandate', 'oceantime', 'pm', 'simul.pn', 'rdrg', 'rho0', 'simul', 'time', 'time0', 'topo', 'update', 'variables_grd', 'varnames', 'x', 'y', 'year']
-
-simul.ncname attributes are:
-['Z0',  'frc', 'grd', 'his', 'tend', 'tfile', 'tstart', 'wind']
-
-'''
 
 simulname = simul.simul +  simulname
 
@@ -303,7 +219,6 @@ filetime = simul.filetime
 
 timerange = np.round(np.arange(start_file,end_file,dfile),3)
 
-
 #for timing purpose
 tstart = tm.time()
 
@@ -316,35 +231,10 @@ timing=True
 ###################################################################################
 
 if True:
-
-    #Initial Particle release
-    subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 25000   # maximum number of particles
-    maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
     
-    ##########################
-    # Particles initial location in the horizontal
+    # Number of time steps between frames
+    subtstep = np.int(nsub_steps * np.abs(dfile))
 
-    #if config=='TEST_Py3':
-    [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
-
-    # distance between 2 particles [in m]
-    dx_m = 1000.
-    
-    dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-
-    iwd  = 5.* dx0 # half width of seeding patch [in grid points
-    jwd  = 5.* dx0 # half width of seeding patch [in grid points]
-
-    #########
-    # density of pyticles (1 particle every n grid points)
-    nnx=dx0
-    nny=dx0
-    nnlev=1
-    
-    # !!!! KEEP !!!!
-    ##########################
-    # first and last vertical level to fill with pyticles
     lev0= 0
     lev1= len(depths)
     
@@ -352,16 +242,10 @@ if True:
 
     #########
     # define initial vertical position using depth
-    depths0 = [-50, -500] # [-50, -100, -200]
     if initial_depth:
         lev1 = lev0 + len(depths0) - 1
         nnlev = 1
 
-
-    # OLD VERSION
-    # define sigma vertical position using a condition on roms output
-    # condition pcond is defined later
-    # possibility to pass to coord as an argument to go faster
     if initial_cond:
 
         lev1 = len(depths)
