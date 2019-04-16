@@ -17,8 +17,7 @@ from R_files import load
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
 
-from R_tools import rho1_eos 
-
+from R_tools import rho1_eos, rho_eos
 
 ncfile = '/home/jeremy/Bureau/Data/Pyticles/Rho1_Seed/Case_1_Rho1_Seed_12_1550.nc'
 roms_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_his.1550.nc'
@@ -103,7 +102,7 @@ nz = len(simul.coord[4])
 nny = 1
 nnx = 1
 nnlev = 1
-surf0 = 0.  #[1027] - simul.rho0
+surf0 = [1025] #- simul.rho0
 mask = simul.mask
 
 lev1 = len(surf0) - 1
@@ -130,16 +129,28 @@ j0 = 0
 # interpolate rho1 onto sub_box : x, y, z
 # Compute surface vertical level at surf0 values ex 
 # 
+# rho 1 density perturbation
 roms_rho0 = simul.rho0
 roms_rho1 = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
 map_rho1 = (part.map_var(simul, roms_rho1, x.reshape(-1), y.reshape(-1),
                         z.reshape(-1), ng=ng)).reshape(x.shape)
+## rho density anomly
+rho0 = surf0
+rho = rho_eos(temp, salt , z_r, z_w, rho0)
+map_rho = (part.map_var(simul, rho, x.reshape(-1), y.reshape(-1),
+                        z.reshape(-1), ng=ng)).reshape(x.shape)
+
 ###
 fig = plt.figure
+ip = 2
+plt.subplot(121)
+plt.contourf(map_rho[:, :, ip])
+cbar = plt.colorbar()
 
 plt.subplot(122)
-plt.contourf(map_rho1[12,:,:])
+plt.contourf(rho[ic - iwd + ip +1, jc-jwd:jc+jwd, :].T)
 cbar = plt.colorbar()
+
 plt.show()
 
 del x, y, z
@@ -150,7 +161,7 @@ lev1 = len(surf0) - 1
 z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1, nnx=nnx,
                                 nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
 z = ini_surf(mask, simul, surf0, x, y, z, map_rho1, ng=ng)
-
+zrho = ini_surf(mask, simul, 0, x, y, z, map_rho, ng=ng)
 ########
 # diags
 #
@@ -177,8 +188,10 @@ plt.title('rho')
 #plt.caxis([-1,  1])
 plt.show()
 
-
-
+##########
+plt.contourf(rho[200, 250:1000 , :].T)
+plt.colorbar()
+plt.show()
 
 
 
