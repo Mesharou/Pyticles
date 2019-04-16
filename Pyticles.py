@@ -72,6 +72,7 @@ import multiprocessing as mp
 import ctypes 
 import queue
 import resource
+import numpy.ma as ma
 
 #add the Modules folder in your python PATH
 #sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
@@ -79,15 +80,15 @@ sys.path.append("./Modules/")
 sys.path.append("./Inputs/")
 
 #Specific modules needed for pyticles
-import pyticles_sig_sa as part
-import pyticles_3d_sig_sa as partF
+#import pyticles_sig_sa as part
+#import pyticles_3d_sig_sa as partF
 
 #Simulations (path, data...)
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+#import matplotlib
+#matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
 
-import numpy.ma as ma
+#import numpy.ma as ma
 
 #from scipy.interpolate import interp1d
 
@@ -105,7 +106,7 @@ from copy import *
 
 from scipy.interpolate import interp1d
 import seeding_part
-
+from R_tools import rho1_eos
 from input_file import *
 
 
@@ -121,8 +122,6 @@ else:
     nproc = int(sys.argv[1])
 
 print('-----------------------------------')
-
-
 
 #Use multiprocess version of the code   
 print('Parallel version')
@@ -184,30 +183,21 @@ elif (not adv3d) and (advdepth <= 0):
     sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
 
-#Write u,v at each particle position directly in output file
-write_uv=True
-if adv3d: write_uv=False #not implemented yet for 3d
-
 
 ###################################################################################
 # ROMS outputs
 ###################################################################################
 
 simulname = simul.simul +  simulname
-
 simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
-
 # Resolution (dx,dy)
 dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
-
 # Total size of the domain (nx,ny,nz)
-(nx,ny) = simul.pm.shape
-
+(nx, ny) = simul.pm.shape
 nx += 2*ng; ny += 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
 k0 = 0
-
 mask = simul.mask
 maskrho = copy(mask)
 maskrho[np.isnan(maskrho)] = 0.
@@ -216,12 +206,9 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-
 timerange = np.round(np.arange(start_file,end_file,dfile),3)
-
 #for timing purpose
 tstart = tm.time()
-
 #Time all subparts of the code 
 timing=True
 
@@ -230,38 +217,28 @@ timing=True
 # Define Particle seeding
 ###################################################################################
 
-if True:
-    
-    # Number of time steps between frames
-    subtstep = np.int(nsub_steps * np.abs(dfile))
+# Number of time steps between frames
+subtstep = np.int(nsub_steps * np.abs(dfile))
 
-    lev0= 0
-    lev1= len(depths)
-    
-    if not adv3d: lev0 = -1; lev1 = lev0
-
-    #########
-    # define initial vertical position using depth
-    if initial_depth:
-        lev1 = lev0 + len(depths0) - 1
-        nnlev = 1
-
-    if initial_cond:
-
-        lev1 = len(depths)
-        nnlev = 1
-
-        #temp = part.get_t_io(simul, x_periodic=x_periodic,
-        #        y_periodic=y_periodic, ng=ng)
-        #ini_cond = (temp > 14.) & (temp < 16.)
-     #   print('------------------------')
-     #   print(f'ini_cond.shape {ini_cond.shape}')
+# bottom at top vertical levels in sigma coordinate 
+lev0= 0
+lev1= len(depths)
+if not adv3d: lev0 = -1; lev1 = lev0
+#########
+# define initial vertical position using depth
+if initial_depth:
+    lev1 = lev0 + len(depths0) - 1
+    nnlev = 1
+#########
+if initial_cond:
+    lev1 = len(depths)
+    nnlev = 1
 
 ###########
-
 if continuous_injection:
-    dt_injection = 1 #(1 = injection every time step, 10 = injection every 10 time steps)
-    N_injection = 1 + np.int(timerange.shape[0]/dt_injection)
+    dt_injection = 1 #(1 = injection every time step,
+                     # 10 = injection every 10 time steps)
+    N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
 
 ###################################################################################
@@ -305,9 +282,9 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
 ###################################################################################
 
 if not restart:
-    ###################################################################################
+    ##################################################################################
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
-    ###################################################################################
+    ##################################################################################
     if initial_surf:
         rho0 = [1028]
         lev1 = len(rho0) - 1
@@ -319,8 +296,9 @@ if not restart:
     print(f'y.shape = {y.shape}')
     print(f'z.shape = {z.shape}')
     if initial_depth: #initial vertical position = depths0
-        z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-        z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
+        z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                y_periodic=y_periodic, ng=ng)
+        z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=ng)
     
     if initial_surf:
         print(f'-----------------------------------------------')

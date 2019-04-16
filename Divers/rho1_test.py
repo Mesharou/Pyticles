@@ -19,10 +19,6 @@ import pyticles_3d_sig_sa as partF
 
 from R_tools import rho1_eos 
 
-ptemp = 3
-psalt = 35.5
-Z = -5000 
-rho = 1050.3639165364
 
 ncfile = '/home/jeremy/Bureau/Data/Pyticles/Rho1_Seed/Case_1_Rho1_Seed_12_1550.nc'
 roms_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_his.1550.nc'
@@ -69,6 +65,21 @@ def get_attr(attr, ncfile, it=0):
 
 ##############################################################################
 
+##############################################################################
+def ini_surf(mask, simul, surf0, x, y, z, rho, ng=0):
+    for k in range(len(surf0)):
+        for i in range(x.shape[2]):
+            for j in range(x.shape[1]):
+                if mask[i,j]==1:
+                    f = interp1d(rho[:, j, i], list(range(rho.shape[0])), kind='cubic')
+                    z[k, j, i] = f(surf0[k])
+                else:
+                    z[k, j, i] = 0.
+    return z
+##############################################################################
+
+
+
 start_file = 1550
 parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
@@ -77,31 +88,25 @@ x_periodic = get_attr('x_periodic', ncfile)
 y_periodic = get_attr('y_periodic', ncfile)
 ng = get_attr('ng', ncfile)
 
-[temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
-                y_periodic = y_periodic, ng=ng)
-
-[z_r, z_w] = part.get_depths(simul)
-
-rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
-
+#########
 # box parameters
 
 ic = 400
-jc = 20
+jc = 200
 lev0 = 0
 lev1 = 50
-iwd = 5
-jwd = 2
-nx = rho.shape[0]
-ny = rho.shape[1]
-nz = rho.shape[2]
+iwd = 1
+jwd = 20
+nx = simul.coord[3]
+ny = simul.coord[1]
+nz = len(simul.coord[4])
 nny = 1
 nnx = 1
 nnlev = 1
-rho0 = [1028]
+surf0 = 0.  #[1027] - simul.rho0
 mask = simul.mask
 
-lev1 = len(rho0) - 1
+lev1 = len(surf0) - 1
 
 ##### First box in order to interpolate sigma onto rho levels
 lev1 = 50 # Needed to get all levels
@@ -114,74 +119,54 @@ nq = len(x.reshape(-1))
 i0 = 0
 j0 = 0
 
-#remap_rho = np.ndarray(x.shape)
-#remap_rho  = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1), rho,
-#                            ng, nq, i0, j0, k0)
-#new_rho = remap_rho.reshape(x.shape)
-map_rho = part.map_var(simul, rho, x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                       ng=ng).reshape(x.shape)
-#new_rho == map_rho
-
-#np.max(np.abs(new_rho-map_rho))
-
+## Long to process no need to reload this
+[temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                y_periodic = y_periodic, ng=ng)
+[z_r, z_w] = part.get_depths(simul)
+                       
+#####
+# Good algorithm : takes rho1 from R_tools using rho0 from roms model
+# Take temp, salt, z_r, z_w
+# interpolate rho1 onto sub_box : x, y, z
+# Compute surface vertical level at surf0 values ex 
+# 
+roms_rho0 = simul.rho0
+roms_rho1 = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
+map_rho1 = (part.map_var(simul, roms_rho1, x.reshape(-1), y.reshape(-1),
+                        z.reshape(-1), ng=ng)).reshape(x.shape)
 ###
 fig = plt.figure
 
-
 plt.subplot(122)
-plt.contourf(map_rho[12,:,:])
+plt.contourf(map_rho1[12,:,:])
 cbar = plt.colorbar()
 plt.show()
 
-print(f'map_rho = ')
 del x, y, z
 
 #####
-lev1 = len(rho0) - 1
+# Getting iso_surface
+lev1 = len(surf0) - 1
 z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1, nnx=nnx,
                                 nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+z = ini_surf(mask, simul, surf0, x, y, z, map_rho1, ng=ng)
 
-##############################################################################
-def ini_surf(mask, simul, rho0, x, y, z, rho, ng=0):
-    for k in range(len(rho0)):
-        for i in range(x.shape[2]):
-            for j in range(x.shape[1]):
-                if mask[i,j]==1:
-                    f = interp1d(rho[:, j, i], list(range(rho.shape[0])), kind='cubic')
-                    z[k, j, i] = f(rho0[k])
-                else:
-                    z[k, j, i] = 0.
-    return z
-##############################################################################
-
-z = ini_surf(mask, simul, rho0, x, y, z, map_rho, ng=ng)
-
-# To check if compute rho of x, y, z
-
-pdepth = partF.interp_3d_w(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                           z_w, ng, nq, i0, j0, k0)
-ptemp = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                        temp, ng, nq, i0, j0, k0)
-psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                        salt, ng, nq, i0, j0, k0)
-
-rho_check = seeding_part.prho(ptemp=ptemp, psalt=psalt, pdepth=pdepth)
-
-############### rho1_eos #####################################################
-g = 9.81
+########
+# diags
+#
+plt.contour(roms_rho1[ic+200,0:1000,:].T , levels=10)
+cbar = plt.colorbar()
+plt.scatter(y,z)
+plt.show()
 
 
-roms_rho0 = simul.rho0
-roms_rho0 = rho0
 
-roms_rho1 = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
-
-roms_rho1[np.isnan(roms_rho1)] = 0
 
 plt.subplot(211)
 plt.contour(roms_rho1[ic+200,0:1000,:].T, levels=10)
 cbar = plt.colorbar()
-plt.title('rho1')
+plt.title(f'rho1 with rho0 = {roms_rho0}')
+plt.ylabel('sigma levels')
 
 plt.subplot(212)
 plt.contour(rho[ic+200,0:1000,:].T, levels=10)
