@@ -58,10 +58,20 @@ simul = load(simul = parameters, floattype=np.float64)
 ##############################################################################
 # Particles Dynamcis
 ##############################################################################
-#3D advection
-adv3d = True
-# if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
+# 3D advection
+adv3d = False
+# Else 2D advection using (u,v) interpolated at advdepth 
+if not adv3d:
+    advdepth = -200
+'''
+        NOTE that advdepths is used as follows:
 
+        advdepth <= 0 means depths in meters
+        advdepth = 0 means surface
+        advdepth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
+                             ..., Nz = surface [Nz-1 in netcdf file])
+'''
+# sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
 w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
 
@@ -80,7 +90,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Input_new'
+config = 'ADV_2D'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 ############# Restart from a Pyticles output file

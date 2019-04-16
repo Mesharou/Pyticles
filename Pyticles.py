@@ -160,10 +160,11 @@ nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for 
 
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
-if len(sys.argv)>=3:
-    advdepth = np.int(sys.argv[2]) 
-else:
-    advdepth = 0 
+
+#if len(sys.argv)>=3:
+#    advdepth = np.int(sys.argv[2]) 
+#else:
+#    advdepth = 0 
 '''
         NOTE that advdepths is used as follows:
 
@@ -178,10 +179,12 @@ else:
 simulname = '_' + config
 if (not adv3d) and (advdepth > 0):
     simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
+    write_depth = False
 elif (not adv3d) and (advdepth <= 0):     
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
     sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
+    write_depth = False
 
 
 ###################################################################################
@@ -220,20 +223,27 @@ timing=True
 # Number of time steps between frames
 subtstep = np.int(nsub_steps * np.abs(dfile))
 
+#########
 # bottom at top vertical levels in sigma coordinate 
 lev0= 0
 lev1= len(depths)
-if not adv3d: lev0 = -1; lev1 = lev0
+##########
+# 2D advection at advdepth 
+if not adv3d:
+    initial_depth = True
+    lev0 = -1
+    lev1 = lev0
+    depths0 = [advdepth]
 #########
 # define initial vertical position using depth
 if initial_depth:
     lev1 = lev0 + len(depths0) - 1
     nnlev = 1
 #########
+# boolean matrix condition to define seeding patch
 if initial_cond:
     lev1 = len(depths)
     nnlev = 1
-
 ###########
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
@@ -292,36 +302,26 @@ if not restart:
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
             lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
             nnlev=nnlev)
-    print(f'x.shape = {x.shape}')
-    print(f'y.shape = {y.shape}')
-    print(f'z.shape = {z.shape}')
+    
     if initial_depth: #initial vertical position = depths0
         z_w = part.get_depths_w(simul, x_periodic=x_periodic,
                                 y_periodic=y_periodic, ng=ng)
         z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=ng)
     
     if initial_surf:
-        print(f'-----------------------------------------------')
         [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
                                       y_periodic = y_periodic, ng=ng)
-        print(f'temp.shape = {temp.shape}')
-        print(f'salt.shape = {salt.shape}')
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
                               y_periodic=y_periodic, ng=ng)
-        print(f'z_r.shape = {z_r.shape}')
         rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
         ## temporary box used for sigma-interpolation onto var0 vect
-        print(f'rho.shape = rho.shape') 
         lev1 = rho.shape[2] #  Needed to get all levels
-        print(f'lev1 = {lev1}')
         z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                     lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
-        print(f'z,y,x boxes shape = {z_box.shape}, {y_box.shape}, {y_box.shape}')
         map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
                 z_box.reshape(-1), ng=ng).reshape(x_box.shape)
         print(f'map_rho.shape = {map_rho.shape}')
        
-        #del x_box, y_box, z_box, x, y, z
         del z
         z = np.ndarray(x.shape)
         z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)

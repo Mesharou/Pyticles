@@ -27,7 +27,7 @@ from copy import copy
 import R_tools_fort as toolsF
 
 #Simulations (path, data...)
-import R_vars as va
+#import R_vars as va
 
 #for plotting
 import matplotlib.pyplot as py
@@ -37,7 +37,7 @@ import time as tm
 ###################################################################################
 
 
-import R_smooth as sm
+#import R_smooth as sm
 
 
 #################################################
