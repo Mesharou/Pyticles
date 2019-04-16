@@ -14,17 +14,6 @@ from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
 from copy import *
 
-#ic = 10
-#jc = 20
-#lev0 = 0
-#lev1 = 50
-#iwd = 5
-#jwd = 2
-#nny = 1
-#nnx = 1
-#nnlev = 1
-#rho0 = [1026]
-
 
 ##############################################################################
 def prho(ptemp=0, psalt=0, pdepth=0):
@@ -126,11 +115,12 @@ def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
     returns z, y, x
 
     parameters:
-        ic, jc : center location 
-        lev0, lev1 : first and final vertical levels
-        iwd, jwd : box's horizontal half width
-        nx, ny : domain's width
-        nnx, nny, nnlev : seeding density; ex nnx = 2 (particles every 2 x_grid points)
+    ic, jc : center location 
+    lev0, lev1 : first and final vertical levels
+    iwd, jwd : box's horizontal half width
+    nx, ny : domain's width
+    nnx, nny, nnlev : seeding density;
+    Ex nnx = 2 (particles every 2 x_grid points)
 
     '''
     z, y, x = np.mgrid[lev0:lev1+1:nnlev,
@@ -155,7 +145,8 @@ def ini_surf(simul, rho0, x, y, z, rho, ng=0):
         for i in range(x.shape[2]):
             for j in range(x.shape[1]):
                 if mask[i,j]==1:
-                    f = interp1d(rho[:, j, i], list(range(rho.shape[0])), kind='cubic')
+                    f = interp1d(rho[:, j, i], list(range(rho.shape[0])),
+                                 kind='cubic')
                     z[k, j, i] = f(rho0[k])
                 else:
                     z[k, j, i] = 0.
