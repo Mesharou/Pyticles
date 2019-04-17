@@ -73,6 +73,13 @@ if np.isnan(pm_s[0,0]):
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]],v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
                                                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+    ### JC 
+    elif advzavg:
+        [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
+                pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
+                coord=subcoord)
+    ### JC
     else:
         [u[:,:,itim[0]],v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
                                                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
@@ -106,6 +113,14 @@ if adv3d:
 elif simul.simul[-4:]=='surf':
     [u[:,:,itim[1]],v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
                                                            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+### JC 
+elif advzavg:
+    [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
+            pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+            y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
+            coord=subcoord)
+### JC
+
 else:
     [u[:,:,itim[1]],v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s, pn=pn_s, timing=subtiming,\
                                                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
@@ -300,9 +315,9 @@ def advance_2d(subrange,out,step):
     step.put(istep_F)     
         
     px[subrange],py[subrange]=px_F,py_F
-
-
-
+    print(f'istep_F = {istep_F}')
+    print(f'px_F = {px_F}')
+    print(f'py_F = {py_F}')
 
 ###################################################################################
 # ADVANCE_3D

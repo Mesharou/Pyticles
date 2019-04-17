@@ -60,9 +60,13 @@ simul = load(simul = parameters, floattype=np.float64)
 ##############################################################################
 # 3D advection
 adv3d = False
+advzavg = True
+if advzavg:
+    z_thick = 100. # water column thickness to average 2D velocity field around
+                   # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -200
+    advdepth = -200.
 '''
         NOTE that advdepths is used as follows:
 
@@ -90,14 +94,9 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'ADV_2D'
+config = 'ADV_ZAVG'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
-############# Restart from a Pyticles output file
-restart = False
-restart_time = 4 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/home/jeremy/Bureau/Data/ \
-                Pyticles/Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
 
 ################################################################################
 # Define Particle seeding
@@ -165,31 +164,7 @@ timestep = 'RK4' # Choices are
 
 nsub_steps = 360 # Number of time steps between 2 roms time steps
 
-################################################################################
-# ROMS outputs
-################################################################################
-
-# if meanflow = True Roms data are not updated (used for climatology)
-meanflow = False
-# in case of periodic channel
-x_periodic = False
-y_periodic = False
-
-# dfile is frequency for the use of the ROMS outputs
-# (default is 1 = using all outputs files)
-dfile = 1
-start_file = 1550
-end_file = 1559
-if not restart:
-    restart_time = 0
-else:
-    start_file += restart_time
-
-# Load simulation
-# parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'Case_1'
-parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
-
+##############################################################################
 
 
 

@@ -175,7 +175,6 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     for k in range(len(depths0)):
         for i in range(x.shape[2]):
             for j in range(x.shape[1]):
-                print(f'j = {j}')
                 ix = np.int(np.floor(x[k, j, i])) + ng
                 iy = np.int(np.floor(y[k, j, i])) + ng
                 cfx = x[k, j, i] - ix + 0.5 + ng
@@ -195,7 +194,7 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
                 else:
                     z[k,j,i] = 0.
 
-                debug_pdepth = True
+                debug_pdepth = False
                 if debug_pdepth:
                     print('---------- SEEDING----------')
                     print(f'cfx = {cfx}')
@@ -251,7 +250,8 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
                 py0.append(y.reshape(-1)[ip])
                 pz0.append(z.reshape(-1)[ip])
                 ipcount +=1
-    
+                print(f'ptopo(ip) = {ptopo[ip]}')
+                print(f'topolim = {topolim}')
     return ipcount
 ##############################################################################
 

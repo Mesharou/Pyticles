@@ -22,6 +22,25 @@ if simul.simul[-4:]=='surf':
         simul.update(np.floor(time))
         u = linear(u,u2,alpha_time)
         v = linear(v,v2,alpha_time)
+### JC 
+elif advzavg:
+    
+    [u, v] = part.get_vel_io_2d_zavg(simul, x_periodic=x_periodic,
+            y_periodic=y_periodic, ng=ng, advdepth=advdepth, z_thick=z_thick,
+            coord=coord)
+    if not meanflow and alpha_time != 0:
+        simul.update(np.ceil(time))
+        [u2,v2] = part.get_vel_io_2d_zavg(simul, x_periodic=x_periodic,
+                  y_periodic=y_periodic, ng=ng, coord=coord, advdepth=advdepth,
+                  z_thick=z_thick)
+        simul.update(np.floor(time))
+        u = linear(u,u2,alpha_time)
+        v = linear(v,v2,alpha_time)
+        if debug_zavg:
+            print('-------------------------------------')
+            print(f'max u = {np.max(u)}')
+            print(f'max v = {np.max(v)}')
+### JC
 else:
     [u,v] = part.get_vel_io_2d(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng, advdepth = advdepth,coord=coord)
     if not meanflow and alpha_time != 0:
