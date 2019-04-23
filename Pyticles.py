@@ -70,6 +70,7 @@ import multiprocessing as mp
 import ctypes 
 import queue
 import resource
+import numpy.ma as ma
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 #For nested loop
@@ -81,9 +82,37 @@ from netCDF4 import Dataset
 #add the Modules folder in your python PATH
 #sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
 sys.path.append("./Modules/") 
+sys.path.append("./Inputs/")
+
+#Specific modules needed for pyticles
+#import pyticles_sig_sa as part
+#import pyticles_3d_sig_sa as partF
+
+#Simulations (path, data...)
+#import matplotlib
+#matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
+
+#import numpy.ma as ma
+
+#from scipy.interpolate import interp1d
+
+#Specific modules needed for pyticles
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
+#import seeding_part
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
 from R_files import load
+
+#For nested loop
+from itertools import product
+from copy import *
+
+from scipy.interpolate import interp1d
+import seeding_part
+from R_tools import rho1_eos
+from input_file import *
 
 
 ##################################################################################
@@ -98,8 +127,6 @@ else:
     nproc = int(sys.argv[1])
 
 print('-----------------------------------')
-
-
 
 #Use multiprocess version of the code   
 print('Parallel version')
@@ -116,6 +143,7 @@ print('-----------------------------------')
 ###################################################################################
 ###################################################################################
 # THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
+# MOST OF PARAMTERS ARE DEFINED IN INPUTS/INPUT_FILE
 ###################################################################################
 ###################################################################################
 
@@ -124,11 +152,6 @@ print('-----------------------------------')
 # Define location of outputs
 ##################################################################################
 
-# name of your configuration (used to name output files)
-config='Write_uvw_wsed0'
-
-folderout= '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
-
 if not os.path.exists(folderout):
     os.makedirs(folderout)
 
@@ -136,30 +159,16 @@ if not os.path.exists(folderout):
 # Load simulations parameters (date, subsection, static fields, files path ...etc..)
 # [you can check "dir(simul)" to see what has been loaded]
 ###################################################################################
-
-#time-stepping
-timestep='RK4' # Choices are FE (forward-Euler)
-               #             RK2, RK4 (Runge-Kutta 2nd and 4th order)
-               #             AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
-               #             ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
-
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
-debug = True
 
-#############
-x_periodic = False
-y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 #############
-#3D advection
-adv3d = True
-write_uvw = True
-# if adv3d = False then the particles are advected in 2d using horizontal velocities at advdepth
-if len(sys.argv)>=3:
-    advdepth = np.int(sys.argv[2]) 
-else:
-    advdepth = 0 
+
+#if len(sys.argv)>=3:
+#    advdepth = np.int(sys.argv[2]) 
+#else:
+#    advdepth = 0 
 '''
         NOTE that advdepths is used as follows:
 
@@ -168,91 +177,34 @@ else:
         advdepth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
-#############
-meanflow=False # if True the velocity field is not updated in time
 #############    python Pyticles.py 14 $depth > output_case1
-# JC modif
-sedimentation=True
-w_sed0 = -250 # vertical velocity for particles sedimentation (m/s)
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
 if (not adv3d) and (advdepth > 0):
     simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
-    w_sed0 = 0. # JC no sedimentation for 2D advection
+    write_depth = False
 elif (not adv3d) and (advdepth <= 0):     
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
-    sedimentaion=False
+    sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
-
-
-#Write T,S at each particle position directly in output file
-write_ts=True
-
-#Write only Temperature (for simulations with no S)
-write_t=False
-if write_t: write_ts = False
-
-#Write lon,lat,topo,depth
-write_lonlat=True
-write_depth=True
-write_topo=True
-
-#Write u,v at each particle position directly in output file
-write_uv=True
-if adv3d: write_uv=False #not implemented yet for 3d
+    write_depth = False
 
 
 ###################################################################################
 # ROMS outputs
 ###################################################################################
 
-# dfile is frequency for the use of the ROMS outputs (default is 1 = using all outputs files)
-dfile = 1
-start_file = 1550
-end_file = 1559
-
-#############
-
-restart = False
-restart_time = 4 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
-
-if not restart: 
-    restart_time = 0
-else:
-    start_file += restart_time
-
-#############
-
-# Load simulation [mysimul is the name of the simul as defined in Modules/R_files.py]
-parameters = 'Case_1 [0,10000,0,10000,[1,100,1]] '+ format(start_file)
-simul = load(simul = parameters, floattype=np.float64)
-
-'''
-simul attributes are:
-['Cs_r', 'Cs_w', 'Forder',  'coord', 'coordmax', 'cst', 'date', 'day', 'domain', 'dt', 'dtime', 'f', 'filetime', 'floattype', 'g', 'get_domain', 'hc', 'hour', 'infiletime', 'load_file', 'mask', 'min', 'month', 'ncfile', 'ncname', 'oceandate', 'oceantime', 'pm', 'simul.pn', 'rdrg', 'rho0', 'simul', 'time', 'time0', 'topo', 'update', 'variables_grd', 'varnames', 'x', 'y', 'year']
-
-simul.ncname attributes are:
-['Z0',  'frc', 'grd', 'his', 'tend', 'tfile', 'tstart', 'wind']
-
-'''
-
 simulname = simul.simul +  simulname
-
 simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
-
 # Resolution (dx,dy)
 dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
-
 # Total size of the domain (nx,ny,nz)
-(nx,ny) = simul.pm.shape
-
+(nx, ny) = simul.pm.shape
 nx += 2*ng; ny += 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
 k0 = 0
-
 mask = simul.mask
 maskrho = copy(mask)
 maskrho[np.isnan(maskrho)] = 0.
@@ -261,13 +213,9 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-
 timerange = np.round(np.arange(start_file,end_file,dfile),3)
-
-
 #for timing purpose
 tstart = tm.time()
-
 #Time all subparts of the code 
 timing=True
 
@@ -276,58 +224,35 @@ timing=True
 # Define Particle seeding
 ###################################################################################
 
-if True:
+# Number of time steps between frames
+subtstep = np.int(nsub_steps * np.abs(dfile))
 
-    #Initial Particle release
-    subtstep = np.int(360 * np.abs(dfile))    # Number of time steps between frames
-    nqmx = 100   # maximum number of particles
-    maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
-    
-    ##########################
-    # Particles initial location in the horizontal
-
-    [ic,jc] = [400,600] #= part.find_points(simul.x,simul.y,-32.28,37.30)
-
-    # distance between 2 particles [in m]
-    dx_m = 1000.
-    
-    dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-
-    iwd  = 50.* dx0 # half width of seeding patch [in grid points]
-    jwd  = 50.* dx0 # half width of seeding patch [in grid points]
-
-    #########
-    # density of pyticles (1 particle every n grid points)
-    nnx=dx0*5
-    nny=dx0
-    nnlev=1.
-
-    ##########################
-    # first and last vertical level to fill with pyticles
-    lev0= len(depths); lev1= len(depths)
-    if not adv3d: lev0 = -1; lev1 = lev0
-    #########
-    # define initial vertical position using depth
+#########
+# bottom at top vertical levels in sigma coordinate 
+lev0= 0
+lev1= len(depths)
+##########
+# 2D advection at advdepth 
+if not adv3d:
     initial_depth = True
-    depths0 = [-500] # [-50, -100, -200]
-    if initial_depth:
-        lev1 = lev0 + len(depths0) - 1
-        nnlev = 1
-# JC DEBUG
-print(f'depths = {depths}')
-print(f'advdepth = {advdepth}')
-
+    lev0 = -1
+    lev1 = lev0
+    depths0 = [advdepth]
+#########
+# define initial vertical position using depth
+if initial_depth:
+    lev1 = lev0 + len(depths0) - 1
+    nnlev = 1
+#########
+# boolean matrix condition to define seeding patch
+if initial_cond:
+    lev1 = len(depths)
+    nnlev = 1
 ###########
-
-continuous_injection = False # if True release particles continuously, if False only one release at initial time-step
-
-###########
-
 if continuous_injection:
-    
-    #pyticles injection at all time steps?
-    dt_injection = 1 #(1 = injection every time step, 10 = injection every 10 time steps)
-    N_injection = 1 + np.int(timerange.shape[0]/dt_injection)
+    dt_injection = 1 #(1 = injection every time step,
+                     # 10 = injection every 10 time steps)
+    N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
 
 ###################################################################################
@@ -341,13 +266,9 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
     '''
     Function used to create shared variables compatible with numpy and fortran ordered
     '''
-    # JC option prec='double' seems obsolete since python 3 
     if prec=='float':
         shared_array_base = mp.Array(ctypes.c_float, nx*ny*nz*nt )
     elif prec=='double':
-        #print(f'nx = {nx}, ny = {ny}, nz = {nz}, nt = {nt}')
-        new_len = nx*ny*nz*nt
-        #shared_array_base = mp.Array(ctypes.c_double, nx*ny*nz*nt )
         shared_array_base = mp.Array(ctypes.c_double, int(nx*ny*nz*nt), lock=True)
     elif prec=='int':
         shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
@@ -375,92 +296,109 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
 ###################################################################################
 
 if not restart:
-    ###################################################################################
+    ##################################################################################
     # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
-    ###################################################################################
+    ##################################################################################
+    if initial_surf:
+        rho0 = [1028]
+        lev1 = len(rho0) - 1
 
-    z,y,x = np.mgrid[lev0:lev1+1:nnlev,np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny, np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+    z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+            nnlev=nnlev)
+    ##############################
+    # initial vertical position = depths0
+    if initial_depth: 
+        z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                y_periodic=y_periodic, ng=ng)
+        z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=ng)
+   
+    ##############################
+    # Release particles on iso-surfaces of a variable
+    # Typically isopycnals
+    if initial_surf:
+        [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                                      y_periodic = y_periodic, ng=ng)
+        [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng)
+        rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
+        
+        ## temporary box used for sigma-interpolation onto surf0 vector
+        lev1 = rho.shape[2] #  Needed to get all levels
+        z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+        map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
+                z_box.reshape(-1), ng=ng).reshape(x_box.shape)
+       
+        del z
+        z = np.ndarray(x.shape)
+        z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
 
-    if initial_depth: #initial vertical position = depths0
-        from scipy.interpolate import interp1d
-        z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-        for k in range(len(depths0)):
-            for i in range(x.shape[2]):
-                for j in range(x.shape[1]):
-                    ix,iy = np.int(np.floor(x[k,j,i])),np.int(np.floor(y[k,j,i]))
-                    if maskrho[ix,iy]==1:
-                        f = interp1d(z_w[ix,iy], list(range(nz+1)), kind='cubic')
-                        z[k,j,i] = f(depths0[k])
-                    else:
-                        z[k,j,i] = 0.
-    
     nq = np.min([len(x.reshape(-1)),nqmx])
-
+    if (nq / nproc) < 10:
+        print('----------------------------------------------------')
+        print(f'WARNING : Multithreading Issue')
+        print('number of particles too small relatively to nprocs')
+        print(f'in subranges')
+        print('use less procs')
+        print('----------------------------------------------------')
     ###################################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
-
+    # ipmx : count seeding partciles
+    # px0, py0, pz0 : initial position for seeding
+    # topolim : used in ADV_2D to prevent particles from being seeded below seafloor
+    
     ipmx = 0; px0,py0,pz0 = [],[],[]
-
     topolim=0
 
-    if not adv3d: topolim = np.nanmax([topolim,-advdepth])
-    
-    # if you want to add a condition based on temp and/or salt:
-    #[temp,salt] = part.get_ts_io(simul)
+    if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
+    elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick])
 
-    ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
-    pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1))
-    #ptemp = part.map_var(simul,temp,x.reshape(-1),y.reshape(-1),z.reshape(-1))
-    #psalt = part.map_var(simul,salt,x.reshape(-1),y.reshape(-1),z.reshape(-1))
+    # initializing px0, py0, pz0
+    if initial_cond:
+        # only true for rho variables
+        # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
+        # the subdomain for cond (see above)
+        i0, j0, k0 = 0, 0, 0
+        '''
+        A matter of functionality... We take temp, salt, z_w from simulation 
+        Then interpolate each varialbe on px0,py0,pz0
+        Finally we compute potential density
 
-    for ip in range(len(x.reshape(-1))):
-        if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipmx<nq):    
-            px0.append(x.reshape(-1)[ip])
-            py0.append(y.reshape(-1)[ip])   
-            pz0.append(z.reshape(-1)[ip])  
-            ipmx +=1
+        '''
+        #########################
+        # Data to compute condition
+        [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                                      y_periodic = y_periodic, ng=ng)
+        ptemp = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                                temp, ng, nq, i0, j0, k0)
+        psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                                salt, ng, nq, i0, j0, k0)
+        
+        z_w = part.get_depths_w(simul, x_periodic = x_periodic,
+                                y_periodic = y_periodic, ng=ng)
+        pdepth = partF.interp_3d_w(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                                   z_w, ng, nq, i0, j0, k0)
+        #########################
+        # boolean condition
+        rho_min = 1026
+        rho_max = 1027
+        prho = seeding_part.prho1(ptemp = ptemp, psalt = psalt, pdepth = pdepth)
+        pcond = (prho > rho_min) & (prho < rho_max)
+        #########################
+        # Remove partciles that does not match condition
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
+                ng=ng, pcond=pcond)
+    else:
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
+                nq, ng=ng)
 
-    #del temp,salt
+    del x, y, z
+    # Else we need the grid box to compute px0, py0, pz0 at each injection time
+
     nq = ipmx
-    
-    debug_depth0 = False
-    #!!! NEED to comment line in order to use debug_pdeth part 
-    # matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess)
-
-    if debug_depth0:
-    #JC check numerical error
-        coord = simul.coord
-        #[ny1,ny2,nx1,nx2] = np.array(coord)
-        i0=coord[2]; j0=coord[0];
-
-        pdepth_test = partF.interp_3d_w(px0,py0,pz0,z_w,ng,nq,i0,j0,k0)
-        ptopo_test = partF.interp_2d(px0,py0,simul.topo,0,nq,i0,j0)
-
-        print(f'JC DEBUG ============')
-        print(f' pdepth_test = {pdepth_test}')
-
-        plt.figure
-
-        plt.subplot(121)
-        n, bins, patches = plt.hist(pdepth_test,20)
-        plt.xlabel('Smarts')
-        plt.ylabel('Probability')
-        plt.title('Histogram of pdepth à t=0')
-        #plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
-        # plt.axis([.03])
-        plt.grid(True)
-
-        plt.subplot(122)
-        n, bins, patches = plt.hist(ptopo_test,20)
-        plt.xlabel('Smarts')
-        plt.title('Histogram of ptopo at t = 0')
-        plt.grid(True)
-
-        plt.show()
-
-
-    del x,y,z
+    print('nq = {nq}')
     ###################################################################################
 
     if continuous_injection:
@@ -473,15 +411,23 @@ if not restart:
         print('it would take', nq_injection*N_injection - nqmx, ' more pyticles')
         print('to be able to release through all the simulation')
         nq_1=nq_injection
+        if debug:
+            print('---------------------------------------')
+            print(f'nq_injection = {nq_injection}')
+            print(f'nq = {nq}')
+
+
     else:
         nq_1=-1  
 
     ###################################################################################
-
+    # nq: total number of particles
+    
     px = shared_array(nq,prec='double')
     py = shared_array(nq,prec='double')
     pz = shared_array(nq,prec='double')
 
+    print('px.shape = {px.shape}')
     if continuous_injection:
         px[:nq_1]=px0; py[:nq_1]=py0; pz[:nq_1]=pz0
 
@@ -491,11 +437,10 @@ if not restart:
 
 
     ###################################################################################
-
-else:
+# restart = True
+else: 
 
     if not continuous_injection:
-
         # just load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]
@@ -503,7 +448,7 @@ else:
         pz0 = nc.variables['pz'][restart_time,:]
         nc.close()
 
-        nq = px0.shape[0]
+        nq = len(px0)
         
         px = shared_array(nq,prec='double')
         py = shared_array(nq,prec='double')
@@ -513,14 +458,13 @@ else:
         del px0,py0,pz0
         
     else:
-
         # load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]
         py0 = nc.variables['py'][restart_time,:]
         pz0 = nc.variables['pz'][restart_time,:]
 
-        nq = px0.shape[0]
+        nq = len(px0)
         
         px = shared_array(nq,prec='double')
         py = shared_array(nq,prec='double')
@@ -531,7 +475,8 @@ else:
 
         ##################################
         # determine px0,py0,pz0,nq_injection
-        
+        # JC not True in case of initital_cond and continuous injection
+        # because px0, py0, pz0 may vary upon time
         nq_injection = np.argmax(np.isnan(nc.variables['px'][0,:]))
 
         px0 = nc.variables['px'][0,:nq_injection]
@@ -539,7 +484,6 @@ else:
         pz0 = nc.variables['pz'][0,:nq_injection]
         nc.close()
         
-        # JC debug int cast...
         nq_1=np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
         
         '''
@@ -951,13 +895,10 @@ for time in timerange:
     ###################################################################################
     #Automatic division:
     
-
-    # Issue for now 
-    # JC 
     nsub_x = 1
     nsub_y = 1
-    nsub_x = 1+(coord[3]-coord[2])//1000
-    nsub_y = 1+(coord[1]-coord[0])//1000
+    nsub_x = 1 + (coord[3] - coord[2]) // 1000
+    nsub_y = 1 + (coord[1] - coord[0]) // 1000
 
     # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
     if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
@@ -978,10 +919,14 @@ for time in timerange:
         for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
             
             #subtightcoord will be used for test if particle should be advected or not
-            subtightcoord[0] = max(0, tightcoord[0] + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
-            subtightcoord[1] = min(ny , tightcoord[0] + (jsub+1)*(tightcoord[1]+1-tightcoord[0])/nsub_y)
-            subtightcoord[2] = max(0, tightcoord[2] + isub*(tightcoord[3]+1-tightcoord[2])/nsub_x)
-            subtightcoord[3] = min(nx , tightcoord[2] + (isub+1)*(tightcoord[3]+1-tightcoord[2])/nsub_x)
+            subtightcoord[0] = max(0, tightcoord[0]
+                    + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
+            subtightcoord[1] = min(ny , tightcoord[0] 
+                    + (jsub+1)*(tightcoord[1]+1-tightcoord[0])/nsub_y)
+            subtightcoord[2] = max(0, tightcoord[2] 
+                    + isub*(tightcoord[3]+1-tightcoord[2])/nsub_x)
+            subtightcoord[3] = min(nx , tightcoord[2] 
+                    + (isub+1)*(tightcoord[3]+1-tightcoord[2])/nsub_x)
             subtightcoord_saves.append(copy(subtightcoord))
               
             #subcoord will be used to compute u,v,w (same than coord)
@@ -1023,9 +968,45 @@ for time in timerange:
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
         nq_0 = nq_1
-        nq_1 = np.nanmin([nq_injection*((itime+1)//dt_injection+1),nqmx])
-        px[nq_0:nq_1]=px0[:nq_1-nq_0]; py[nq_0:nq_1]=py0[:nq_1-nq_0]; 
-        if adv3d: pz[nq_0:nq_1]=pz0[:nq_1-nq_0]
+        nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
+        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+            nnlev=nnlev)
+
+        if initial_depth: #initial vertical position = depths0
+            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                    y_periodic=y_periodic, ng=ng)
+            z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
+                                       z_w, ng=ng)
+        
+        ipmx = 0; px0,py0,pz0 = [],[],[]
+
+        # initializing px0, py0, pz0
+        if initial_cond:
+            # only true for rho variables
+            # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
+            # the subdomain for cond (see above)
+            #i0, j0, k0 = 0, 0, 0
+            temp = part.get_t_io(simul, x_periodic=x_periodic,
+                   y_periodic=y_periodic, ng=ng, coord=coord)
+            ini_cond = (temp > 14.) & (temp < 16.)
+
+            pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
+                ini_cond, ng, nq, i0, j0, k0)
+            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
+                    ng=ng, pcond=pcond)
+            nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
+        else:
+            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
+                    nq, ng=ng)
+
+        del x,y,z
+        
+        px[nq_0:nq_1] = px0[:nq_1-nq_0]
+        py[nq_0:nq_1] = py0[:nq_1-nq_0]
+ 
+        if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
+
 
     ###################################################################################
     # Plot particles position (+ SST)

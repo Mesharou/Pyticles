@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 # ========================================================
 # USER PARAMETERS 
 
-config_3 = 'ADV_2D_UV'
-config_2 = 'ADV_2D_UV'
+config_3 = 'Seed_Test'
+config_2 = 'Write_Test'
 
 folder_root = '/home/jeremy/Bureau/Data/Pyticles/'
 folder_save = folder_root + config_3
@@ -186,6 +186,7 @@ ptopo2 = get_var('ptopo', ncfile_p2)
 save_name = folder_save + 'err_ptopo.png'
 plot_diff(ptopo3, ptopo2, time0=time0, save_plot=save_plot,
         save_name=save_name, npart=10, title='ptopo')
+
 
 
 

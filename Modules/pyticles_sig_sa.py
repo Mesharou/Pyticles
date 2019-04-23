@@ -120,7 +120,6 @@ def cull2d(px,py,nx,ny,x_periodic=False,y_periodic=False,ng=0):
         py[py<=1-ng] = np.nan; py[py>=ny-3+ng] = np.nan; 
         #pz[pz<0] = np.nan; pz[pz>nz] = np.nan; 
 
-
     py[np.isnan(px)] = np.nan
     px[np.isnan(py)] = np.nan
 
@@ -350,6 +349,141 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
 '''
 ###################################################################################
 
+#@profile   
+def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
+        y_periodic=False, ng=0, advdepth = -1, z_thick=100., **kwargs):  
+
+    '''
+    Get averaged horizontal velocities between depths z = advdepth +/- z_thick
+    Fill ghost points
+    '''
+    if 'coord' in  kwargs:
+        coord = kwargs['coord'][0:4]
+    else: 
+        coord = simul.coord[0:4]
+    
+    [ny1tot, ny2tot, nx1tot, nx2tot] = simul.coord[0:4]
+    
+    if timing: tstart2 = tm.time()     
+  
+    nc = Dataset(simul.ncfile, 'r')
+    [ny1, ny2, nx1, nx2] = coord
+
+    ################################
+
+    mask = copy(simul.mask)
+    mask[np.isnan(mask)] = 0
+
+    ################################
+
+    u = np.zeros((nx2-nx1-1, ny2-ny1))*np.nan
+    v = np.zeros((nx2-nx1, ny2-ny1-1))*np.nan
+
+    ################################
+
+    def zaverage(simul, varname, coord=coord, advdepth=advdepth, z_thick=z_thick):
+        '''
+        Computes vertically averaged zonal velocity field between advdepth +/- z_thick 
+        '''
+        coordz = copy(coord)
+
+        if varname=='u':
+            imin = 1
+            jmin = 0
+            coordz[3] += 1
+        elif varname=='v':
+            imin = 0
+            jmin = 1
+            coordz[1] += 1
+
+        [z_r, z_w] = get_depths(simul, coord=coordz)
+        
+        var0  = simul.Forder(np.squeeze(nc.variables[varname][simul.infiletime, :,
+                             coord[0]:coord[1], coord[2]:coord[3]]))
+        if varname == 'u':
+            z_wvar = rho2u_3d(z_w)
+
+        elif varname == 'v':
+            z_wvar = rho2v(z_w)
+
+        indexp = z_wvar > advdepth + z_thick/2.
+        indexm = z_wvar < advdepth - z_thick/2.
+        z_wvar[indexp] = advdepth + z_thick/2.
+        z_wvar[indexm] = advdepth - z_thick/2.
+        h_var = z_wvar[:, :, 1:] - z_wvar[:, :, :-1]
+        var_bar = np.sum(h_var * var0, axis=-1) / z_thick
+
+        return var_bar
+
+    ################################
+
+    nw = min(ng,nx1); ne = min(ng,nx2tot-nx1tot+2*ng-nx2)
+    ns = min(ng,ny1); nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
+
+    # Fill inside points [if x periodic shift one index right in netcdf file]
+    if x_periodic:
+        iper=1
+    else:
+        iper = 0
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',
+            coord=[ny1-ns, ny2-2*ng+nn, nx1+iper-nw, nx2-1+iper-2*ng+ne])
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,
+                                                      ng-ns:ny2-ny1-ng+nn].T \
+                          * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn] \
+                           * mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
+
+    # Fill inside points [if y periodic shift one index north in netcdf file]
+    if y_periodic: jper=1
+    else: jper = 0
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul, 'v',
+                coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
+
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T\
+            * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn] \
+             * mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
+
+    ################################
+    # Filling Ghost points
+    ################################
+
+    if nw<ng and x_periodic:
+        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot,nx1tot+1])
+        for i in range(1,ng):
+            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx2tot-i,nx2tot-i+1])
+        for i in range(ng):
+            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx2tot-1-i,nx2tot-1-i+1])
+        nw=ng 
+
+    if ne<ng and x_periodic:
+        for i in range(ng):
+            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot+i,nx1tot+i+1])
+        for i in range(ng):
+            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1tot+i,nx1tot+i+1])
+        ne=ng
+
+    if ns<ng and y_periodic:
+        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = zaverage(simul,'v',coord=[ny1tot,ny1tot+1,nx1-nw,nx2-2*ng+ne])
+        for i in range(1,ng):
+            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = zaverage(simul,'v',
+                    coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])
+        for i in range(1,ng):
+            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = zaverage(simul,'u',coord=[ny2tot-1-i,ny2tot-1-i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
+
+    if nn<ng and y_periodic:
+        for i in range(ng):
+            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = zaverage(simul,'v',coord=[ny1tot+i,ny1tot+i+1,nx1-nw,nx2-2*ng+ne])
+        for i in range(1,ng):
+            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = zaverage(simul,'u',coord=[ny1tot+i,ny1tot+i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
+
+
+    ################################
+
+    if timing: print('get u,v from file....', tm.time()-tstart2)
+    if timing: tstart2 = tm.time()    
+
+    ################################
+
+    return u,v
 
 ###################################################################################
 
@@ -1405,6 +1539,40 @@ def find_points(x,y,lon,lat):
     print(i,j)
 
     return i[0],j[0]
+
+#############################
+
+def rho2u_3d(var_rho):
+
+    var_u = 0.5*(var_rho[1:,:,:]+var_rho[:-1,:,:])
+
+    return var_u
+
+
+
+#######################################################
+#Transfert a field at rho points to v points
+#######################################################
+
+def rho2v(var_rho):
+
+    if np.ndim(var_rho)==1:
+        var_v = 0.5*(var_rho[1:]+var_rho[:-1])
+    elif np.ndim(var_rho)==2:
+        var_v = rho2v_2d(var_rho)
+    else:
+        var_v = rho2v_3d(var_rho)
+
+    return var_v
+
+
+##############################
+
+def rho2v_3d(var_rho):
+
+    var_v = 0.5*(var_rho[:,1:,:]+var_rho[:,:-1,:])
+
+    return var_v
 
 
 

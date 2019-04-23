@@ -80,6 +80,13 @@ if np.isnan(pm_s[0,0]):
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng, coord=subcoord)
+    ### JC 
+    elif advzavg:
+        [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
+                pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
+                coord=subcoord)
+    ### JC
     else:
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
@@ -116,13 +123,21 @@ if adv3d:
     w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
 ##LM
 elif simul.simul[-4:]=='surf':
-    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s,
+    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,
+                                       x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+### JC 
+elif advzavg:
+    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
             pn=pn_s, timing=subtiming, x_periodic=x_periodic,
-            y_periodic=y_periodic, ng=ng, coord=subcoord)
+            y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
+            coord=subcoord)
+### JC
+
 else:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
-            pn=pn_s, timing=subtiming, x_periodic=x_periodic,
-            y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
+                                      pn=pn_s, timing=subtiming,
+                                      x_periodic=x_periodic, y_periodic=y_periodic,
+                                      ng=ng, advdepth = advdepth, coord=subcoord)
 
 if subtiming: print(('Computing velocity at t2.......', tm.time()-tstart))
 if subtiming: tstart = tm.time()
@@ -280,7 +295,7 @@ def advance_2d(subrange,out,step):
     
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,iab
-         
+    
     px_F = np.asfortranarray(px[subrange])
     py_F = np.asfortranarray(py[subrange])
     istep_F = istep[0]
@@ -301,6 +316,7 @@ def advance_2d(subrange,out,step):
 
         ########################  
         #Remove particles exiting the domain:
+
         [px_F,py_F] = part.cull2d(px_F,py_F,nx,ny,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
 
         subtime += dt
@@ -309,9 +325,6 @@ def advance_2d(subrange,out,step):
     step.put(istep_F)     
         
     px[subrange],py[subrange]=px_F,py_F
-
-
-
 
 ###################################################################################
 # ADVANCE_3D
