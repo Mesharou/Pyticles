@@ -120,7 +120,9 @@ def cull2d(px,py,nx,ny,x_periodic=False,y_periodic=False,ng=0):
         py[py<=1-ng] = np.nan; py[py>=ny-3+ng] = np.nan; 
         #pz[pz<0] = np.nan; pz[pz>nz] = np.nan; 
 
-
+    print(f'ng = {ng}')
+    print(f'nx = {nx}')
+    print(f'ny = {ny}')
     py[np.isnan(px)] = np.nan
     px[np.isnan(py)] = np.nan
 
@@ -427,6 +429,8 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
     if y_periodic: jper=1
     else: jper = 0
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
+    print('--------------------------------------------------')
+    print(f' v = {v}')
 
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
 
@@ -469,6 +473,10 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
     if timing: tstart2 = tm.time()    
 
     ################################
+    print('--------------------------------------------------')
+    print(f' u = {u}')
+    print('--------------------------------------------------')
+    print(f' v = {v}')
 
 
     return u,v
