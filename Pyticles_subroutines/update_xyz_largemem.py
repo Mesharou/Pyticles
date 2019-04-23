@@ -292,8 +292,7 @@ def advance_2d(subrange,out,step):
     
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,iab
-    print(f'px = {px}')
-    print(f'py = {py}')
+    
     px_F = np.asfortranarray(px[subrange])
     py_F = np.asfortranarray(py[subrange])
     istep_F = istep[0]
@@ -323,9 +322,6 @@ def advance_2d(subrange,out,step):
     step.put(istep_F)     
         
     px[subrange],py[subrange]=px_F,py_F
-    print(f'istep_F = {istep_F}')
-    print(f'px_F = {px_F}')
-    print(f'py_F = {py_F}')
 
 ###################################################################################
 # ADVANCE_3D

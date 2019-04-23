@@ -120,9 +120,6 @@ def cull2d(px,py,nx,ny,x_periodic=False,y_periodic=False,ng=0):
         py[py<=1-ng] = np.nan; py[py>=ny-3+ng] = np.nan; 
         #pz[pz<0] = np.nan; pz[pz>nz] = np.nan; 
 
-    print(f'ng = {ng}')
-    print(f'nx = {nx}')
-    print(f'ny = {ny}')
     py[np.isnan(px)] = np.nan
     px[np.isnan(py)] = np.nan
 
@@ -346,8 +343,8 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
         y_periodic=False, ng=0, advdepth = -1, z_thick=100., **kwargs):  
 
     '''
-    get averaged horizontal velocities between z = advdepth +/- z_thick
-
+    Get averaged horizontal velocities between depths z = advdepth +/- z_thick
+    Fill ghost points
     '''
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
@@ -374,7 +371,9 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
     ################################
 
     def zaverage(simul, varname, coord=coord, advdepth=advdepth, z_thick=z_thick):
-
+        '''
+        Computes vertically averaged zonal velocity field between advdepth +/- z_thick 
+        '''
         coordz = copy(coord)
 
         if varname=='u':
@@ -397,15 +396,11 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
             z_wvar = rho2v(z_w)
 
         indexp = z_wvar > advdepth + z_thick/2.
-        indexm = z_wvar < advdepth - z_thick/2
-
+        indexm = z_wvar < advdepth - z_thick/2.
         z_wvar[indexp] = advdepth + z_thick/2.
         z_wvar[indexm] = advdepth - z_thick/2.
-
         h_var = z_wvar[:, :, 1:] - z_wvar[:, :, :-1]
-        print(f'hvar = {h_var}')
-        print(f'vertical sum {np.sum(h_var, axis=-1)}')
-        var_bar = np.sum( h_var * var0, axis=-1) / z_thick
+        var_bar = np.sum(h_var * var0, axis=-1) / z_thick
 
         return var_bar
 
@@ -421,18 +416,20 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
         iper = 0
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',
             coord=[ny1-ns, ny2-2*ng+nn, nx1+iper-nw, nx2-1+iper-2*ng+ne])
-    print('--------------------------------------------------')
-    print(f' u = {u}')  
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,
+                                                      ng-ns:ny2-ny1-ng+nn].T \
+                          * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn] \
+                           * mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
-    print('--------------------------------------------------')
-    print(f' v = {v}')
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul, 'v',
+                coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
 
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T\
+            * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn] \
+             * mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
 
     ################################
     # Filling Ghost points
@@ -456,7 +453,8 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
     if ns<ng and y_periodic:
         v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = zaverage(simul,'v',coord=[ny1tot,ny1tot+1,nx1-nw,nx2-2*ng+ne])
         for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = zaverage(simul,'v',coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])
+            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = zaverage(simul,'v',
+                    coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])
         for i in range(1,ng):
             u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = zaverage(simul,'u',coord=[ny2tot-1-i,ny2tot-1-i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
 
@@ -473,17 +471,8 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
     if timing: tstart2 = tm.time()    
 
     ################################
-    print('--------------------------------------------------')
-    print(f' u = {u}')
-    print('--------------------------------------------------')
-    print(f' v = {v}')
-
 
     return u,v
-
-###################################################################################
-
-
 
 ###################################################################################
 

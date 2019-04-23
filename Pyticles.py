@@ -184,7 +184,7 @@ elif (not adv3d) and (advdepth <= 0):
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
     sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
-    #write_depth = False
+    write_depth = False
 
 
 ###################################################################################
@@ -302,30 +302,33 @@ if not restart:
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
             lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
             nnlev=nnlev)
-    
-    if initial_depth: #initial vertical position = depths0
+    ##############################
+    # initial vertical position = depths0
+    if initial_depth: 
         z_w = part.get_depths_w(simul, x_periodic=x_periodic,
                                 y_periodic=y_periodic, ng=ng)
         z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=ng)
-    
+   
+    ##############################
+    # Release particles on iso-surfaces of a variable
+    # Typically isopycnals
     if initial_surf:
         [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
                                       y_periodic = y_periodic, ng=ng)
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
-                              y_periodic=y_periodic, ng=ng)
+                                     y_periodic=y_periodic, ng=ng)
         rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
-        ## temporary box used for sigma-interpolation onto var0 vect
+        
+        ## temporary box used for sigma-interpolation onto surf0 vector
         lev1 = rho.shape[2] #  Needed to get all levels
         z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                     lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
         map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
                 z_box.reshape(-1), ng=ng).reshape(x_box.shape)
-        print(f'map_rho.shape = {map_rho.shape}')
        
         del z
         z = np.ndarray(x.shape)
         z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
-        
 
     nq = np.min([len(x.reshape(-1)),nqmx])
     if (nq / nproc) < 10:
@@ -345,7 +348,8 @@ if not restart:
     ipmx = 0; px0,py0,pz0 = [],[],[]
     topolim=0
 
-    if not adv3d: topolim = np.nanmax([topolim,-advdepth])
+    if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
+    elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick])
 
     # initializing px0, py0, pz0
     if initial_cond:
@@ -358,41 +362,35 @@ if not restart:
         Then interpolate each varialbe on px0,py0,pz0
         Finally we compute potential density
 
-        Maybe we could compute rho from temp, salt, z_w and finally interpolate it...
         '''
+        #########################
+        # Data to compute condition
         [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
-                y_periodic = y_periodic, ng=ng)
-        
+                                      y_periodic = y_periodic, ng=ng)
         ptemp = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                temp, ng, nq, i0, j0, k0)
-        
+                                temp, ng, nq, i0, j0, k0)
         psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                salt, ng, nq, i0, j0, k0)
+                                salt, ng, nq, i0, j0, k0)
         
         z_w = part.get_depths_w(simul, x_periodic = x_periodic,
-                y_periodic = y_periodic, ng=ng)
-        
+                                y_periodic = y_periodic, ng=ng)
         pdepth = partF.interp_3d_w(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                z_w, ng, nq, i0, j0, k0)
-        
-        prho = seeding_part.prho1(ptemp = ptemp, psalt = psalt, pdepth = pdepth)
-        
+                                   z_w, ng, nq, i0, j0, k0)
+        #########################
+        # boolean condition
         rho_min = 1026
         rho_max = 1027
+        prho = seeding_part.prho1(ptemp = ptemp, psalt = psalt, pdepth = pdepth)
         pcond = (prho > rho_min) & (prho < rho_max)
-        
-        # WE will keep someting like this for future
-        #
-        #pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-        #        ini_cond, ng, nq, i0, j0, k0)
-        
+        #########################
+        # Remove partciles that does not match condition
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
                 ng=ng, pcond=pcond)
     else:
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
 
-    del x,y,z
+    del x, y, z
     # Else we need the grid box to compute px0, py0, pz0 at each injection time
 
     nq = ipmx
@@ -949,19 +947,16 @@ for time in timerange:
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
         nq_0 = nq_1
         nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
-       # JC ======================================================================= 
-       # ic = ic + 10
-       # jc = jc - 50
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
             lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
             nnlev=nnlev)
-        print(f'z : {z.shape}')
 
         if initial_depth: #initial vertical position = depths0
-            z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-            z = seeding_part.ini_depth(maskrho,simul,depths0,x,y,z,z_w,ng=ng)
+            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                    y_periodic=y_periodic, ng=ng)
+            z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
+                                       z_w, ng=ng)
         
-        print(f'z : {z.shape}')
         ipmx = 0; px0,py0,pz0 = [],[],[]
 
         # initializing px0, py0, pz0
@@ -984,22 +979,11 @@ for time in timerange:
                     nq, ng=ng)
 
         del x,y,z
-        if debug:
-            print('-----------------------')
-            print(f' i0, j0, k0 = {i0}, {j0}, {k0}')
-            print(f'temp.shape = {temp.shape}')
-            print(f'ini_cond.shape : {ini_cond.shape}')
-            print(f'pcond.shape : {pcond.shape}')
-            print(f'ipmx = {ipmx}')
-            print(f'nq_0 = {nq_0}; nq_1 = {nq_1}')
-            print(f'px0.shape = {np.shape(px0)}')
-            print('-----------------------')
-        #JC ==========================================================================
+        
         px[nq_0:nq_1] = px0[:nq_1-nq_0]
         py[nq_0:nq_1] = py0[:nq_1-nq_0]
  
         if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
-        
 
 
     ###################################################################################
