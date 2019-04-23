@@ -59,8 +59,8 @@ simul = load(simul = parameters, floattype=np.float64)
 # Particles Dynamcis
 ##############################################################################
 # 3D advection
-adv3d = True
-advzavg = False
+adv3d = False
+advzavg = True
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth

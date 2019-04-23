@@ -184,7 +184,7 @@ elif (not adv3d) and (advdepth <= 0):
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
     sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
-    write_depth = False
+    #write_depth = False
 
 
 ###################################################################################
