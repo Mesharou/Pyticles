@@ -98,7 +98,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Barycentric'
+config = 'Crash_box'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -113,14 +113,14 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
-barycentric = True  # Automatically modifies patch's center to previsously seeded
+[ic,jc] = [200,400] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
 dx_m = 1000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 50.* dx0 # half width of seeding patch [in grid points
-jwd  = 25.* dx0 # half width of seeding patch [in grid points]
+iwd  = 25.* dx0 # half width of seeding patch [in grid points
+jwd  = 5.* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)

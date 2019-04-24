@@ -417,9 +417,8 @@ if not restart:
             print(f'nq_injection = {nq_injection}')
             print(f'nq = {nq}')
 
-
     else:
-        nq_1=-1  
+        nq_1 = -1  
 
     ###################################################################################
     # nq: total number of particles
@@ -428,12 +427,15 @@ if not restart:
     py = shared_array(nq,prec='double')
     pz = shared_array(nq,prec='double')
 
-    print('px.shape = {px.shape}')
     if continuous_injection:
-        px[:nq_1]=px0; py[:nq_1]=py0; pz[:nq_1]=pz0
+        px[:nq_1] = px0
+        py[:nq_1] = py0
+        pz[:nq_1] = pz0
 
     else: 
-        px[:]=px0; py[:]=py0; pz[:]=pz0
+        px[:] = px0
+        py[:] = py0
+        pz[:] = pz0
         del px0,py0,pz0
 
 
@@ -974,18 +976,12 @@ for time in timerange:
         # previously released particules after a time_step of advection
         if barycentric:
             [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
-            print('###############################################')
-            print(f'ic = {ic}')
-            print(f'jc = {jc}')
         
-        ########################
-        # TEST TO CRASH THE BOX
-
-        nq_0 = nq_1
-        nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
-        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                  lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
-                  nnlev=nnlev)
+        #nq_0 = nq_1
+        #nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
+        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                                        iwd=iwd, jwd=jwd, nx=nx, ny=ny,
+                                        nnx=nnx, nny=nny, nnlev=nnlev)
         ###############################
         # Release particles at depths0
         if initial_depth: 
@@ -1028,25 +1024,31 @@ for time in timerange:
                                     ini_cond, ng, nq, i0, j0, k0)
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
                                             ng=ng, pcond=pcond)
-            nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
+           # nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
         else:
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                                             nq, ng=ng)
 
-        del x,y,z
+        del x, y, z
         
-        px[nq_0:nq_1] = px0[:nq_1-nq_0]
-        py[nq_0:nq_1] = py0[:nq_1-nq_0]
+        #================================================
+        # OLD VERSION WORKS WHEN NO PARTICLES ARE REMOVED
+        # px[nq_0:nq_1] = px0[:nq_1-nq_0]
+        # py[nq_0:nq_1] = py0[:nq_1-nq_0]
  
-        if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
-        
+        #if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
+        #=================================================
+
         ####################################################################
         # To solve issue in moving box case where patch encounters the mask ?
-        # 
-        # px[nq_0: nq_0+ipmx-1] = px0
-        # py[nq_0: nq_0+ipmx-1] = py0
-        # if adv3d: pz[nq_0: nq_0+ipmx-1] = pz0
-        # nq_0 = nq_0 + ipmx
+        print(f'nq_0 = {nq_0}')
+        print(f'nq_1 = {nq_1}')
+        nq_0 = nq_1 + 1 
+        nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
+        px[nq_0: nq_1] = px0
+        py[nq_0: nq_1] = py0
+        if adv3d: pz[nq_0: nq_1] = pz0
+        
 
 
     ###################################################################################
