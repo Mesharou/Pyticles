@@ -976,7 +976,10 @@ for time in timerange:
         # previously released particules after a time_step of advection
         if barycentric:
             [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
-        
+        ######################################
+        # CRACH MASK TEST
+        # 
+        jc = jc + 50
         #nq_0 = nq_1
         #nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
