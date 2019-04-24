@@ -59,8 +59,8 @@ simul = load(simul = parameters, floattype=np.float64)
 # Particles Dynamcis
 ##############################################################################
 # 3D advection
-adv3d = False
-advzavg = True
+adv3d = True
+advzavg = False
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth
@@ -88,13 +88,17 @@ write_lonlat = True
 write_depth = True
 write_topo = True
 write_uv = True
-write_ts = True 
+write_ts = True
+write_uvw = True
+if write_uvw:
+    write_uv = False
+
 #Write only Temperature (for simulations with no S)
 write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'ADV_ZAVG'
+config = 'Barycentric'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -106,20 +110,23 @@ folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 nqmx = 25000   # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
-# patch's center in grid points 
+###########
+# Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 [ic,jc] = [600,800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+barycentric = True  # Automatically modifies patch's center to previsously seeded
+                    # Particles After being advected over one time step 
 
 dx_m = 1000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 5.* dx0 # half width of seeding patch [in grid points
-jwd  = 5.* dx0 # half width of seeding patch [in grid points]
+iwd  = 50.* dx0 # half width of seeding patch [in grid points
+jwd  = 25.* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 1 * dx0
-nny = 1 * dx0
+nnx = 10 * dx0
+nny = 5 * dx0
 nnlev = 1
 
 #########
@@ -145,12 +152,12 @@ initial_surf = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-50, -500]
-surf0 = [0]
+depths0 = [-50]
+surf0 = [1028]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = False
+continuous_injection = True
 
 ##############################################################################
 # Pyticles numerical schemes

@@ -322,7 +322,7 @@ if not restart:
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
                                      y_periodic=y_periodic, ng=ng)
         rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
-        
+         
         ## temporary box used for sigma-interpolation onto surf0 vector
         lev1 = rho.shape[2] #  Needed to get all levels
         z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
@@ -410,7 +410,8 @@ if not restart:
         nq = np.nanmin([nq_injection*(N_injection+1),nqmx])
         print('it would take', nq_injection*N_injection - nqmx, ' more pyticles')
         print('to be able to release through all the simulation')
-        nq_1=nq_injection
+        nq_1 = nq_injection
+        nq_0 = 0
         if debug:
             print('---------------------------------------')
             print(f'nq_injection = {nq_injection}')
@@ -484,8 +485,8 @@ else:
         pz0 = nc.variables['pz'][0,:nq_injection]
         nc.close()
         
-        nq_1=np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
-        
+        nq_1 = np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
+        nq_0 = np.nanmin([nq_injection*((restart_time-1)//dt_injection+1),nqmx])
         '''
         if (nq_1<nqmx) and (restart_time%dt_injection)==0:
 
@@ -967,38 +968,70 @@ for time in timerange:
     ###################################################################################
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
+        
+        ###############################################
+        # modify seeding patch center to barycenter of
+        # previously released particules after a time_step of advection
+        if barycentric:
+            [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
+            print('###############################################')
+            print(f'ic = {ic}')
+            print(f'jc = {jc}')
+        
+        ########################
+        # TEST TO CRASH THE BOX
+
         nq_0 = nq_1
         nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
-            nnlev=nnlev)
-
-        if initial_depth: #initial vertical position = depths0
+                  lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+                  nnlev=nnlev)
+        ###############################
+        # Release particles at depths0
+        if initial_depth: 
             z_w = part.get_depths_w(simul, x_periodic=x_periodic,
                                     y_periodic=y_periodic, ng=ng)
             z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
                                        z_w, ng=ng)
         
         ipmx = 0; px0,py0,pz0 = [],[],[]
+        ##############################
+        # Release particles on iso-surfaces of a variable
+        # Typically isopycnals
+        if initial_surf:
+            [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                                          y_periodic = y_periodic, ng=ng, coord=coord)
+            [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng, coord=coord)
+            rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
 
-        # initializing px0, py0, pz0
+            ## temporary box used for sigma-interpolation onto surf0 vector
+            lev1 = rho.shape[2] #  Needed to get all levels
+            z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+            map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
+                    z_box.reshape(-1), ng=ng, coord=coord).reshape(x_box.shape)
+
+            del z
+            z = np.ndarray(x.shape)
+            z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
+
+        ################################
+        # Add a boolean condition at rho points 
+        # Only particles stastying condition are released
         if initial_cond:
-            # only true for rho variables
-            # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
-            # the subdomain for cond (see above)
-            #i0, j0, k0 = 0, 0, 0
             temp = part.get_t_io(simul, x_periodic=x_periodic,
-                   y_periodic=y_periodic, ng=ng, coord=coord)
+                                 y_periodic=y_periodic, ng=ng, coord=coord)
             ini_cond = (temp > 14.) & (temp < 16.)
 
             pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                ini_cond, ng, nq, i0, j0, k0)
+                                    ini_cond, ng, nq, i0, j0, k0)
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
-                    ng=ng, pcond=pcond)
+                                            ng=ng, pcond=pcond)
             nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
         else:
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
-                    nq, ng=ng)
+                                            nq, ng=ng)
 
         del x,y,z
         
@@ -1006,6 +1039,14 @@ for time in timerange:
         py[nq_0:nq_1] = py0[:nq_1-nq_0]
  
         if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
+        
+        ####################################################################
+        # To solve issue in moving box case where patch encounters the mask ?
+        # 
+        # px[nq_0: nq_0+ipmx-1] = px0
+        # py[nq_0: nq_0+ipmx-1] = py0
+        # if adv3d: pz[nq_0: nq_0+ipmx-1] = pz0
+        # nq_0 = nq_0 + ipmx
 
 
     ###################################################################################
