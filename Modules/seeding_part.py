@@ -177,20 +177,30 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
             for j in range(x.shape[1]):
                 ix = np.int(np.floor(x[k, j, i])) + ng
                 iy = np.int(np.floor(y[k, j, i])) + ng
-                cfx = x[k, j, i] - ix + 0.5 + ng
-                cfy = y[k, j, i] - iy + 0.5 + ng
-                
-                zxp = z_w[ix+1, iy]
-                zyp = z_w[ix, iy+1]
-                zxyp = z_w[ix+1, iy+1]
-
-                z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
-                + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
-                
                 if maskrho[ix,iy]==1:
-                    f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
-                    z[k,j,i] = f(depths0[k])
+                    cfx = x[k, j, i] - ix + 0.5 + ng
+                    cfy = y[k, j, i] - iy + 0.5 + ng
+                
+                    zxp = z_w[ix+1, iy]
+                    zyp = z_w[ix, iy+1]
+                    zxyp = z_w[ix+1, iy+1]
 
+                    z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
+                    + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
+                
+                    f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
+                    try:
+                        z[k,j,i] = f(depths0[k])
+                    except ValueError:
+                        z[k,j,i] = 0.
+                    '''
+                    Need to handle exeption where 
+                    
+                    raise ValueError("A value in x_new is below the interpolation "
+                    ValueError: A value in x_new is below the interpolation range.
+                    
+                    just need to put z=0
+                    '''
                 else:
                     z[k,j,i] = 0.
 
