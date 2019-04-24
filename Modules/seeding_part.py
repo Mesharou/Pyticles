@@ -211,17 +211,23 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
     Remove particles found in land mask and particles below sea-floor if ADV2D
     Modify in place px0, py0, pz0 with particles coordinates
     Returns ipcount to keep count of seeded particles
-
+    
+    Found an issue sue to machine precision
+    After mask interpolation on particules you might get 0.999...999
+    And therefore remove particles from patch area
+    Therefore we introduce eps to fiw this numerical issue
+    
     '''
     # Recomputing some data to help readablility (less argument to remove_mask)
     # Carefull of Side Effects
     
+    eps = 1e-8
 
     mask = simul.mask
     maskrho = copy(mask)
     maskrho[np.isnan(maskrho)] = 0.
     ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
-    pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1))
+    pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1)) + eps
     
     debug_seed = False
     if debug_seed:
@@ -249,6 +255,11 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
                 py0.append(y.reshape(-1)[ip])
                 pz0.append(z.reshape(-1)[ip])
                 ipcount +=1
+            else:
+                if debug_seed:
+                    print(f'ipcount = {ipcount}')
+                    print(f'ptopo[ip] {ptopo[ip]}')
+                    print(f'pmask[ip] {pmask[ip]}')
     return ipcount
 ##############################################################################
 
