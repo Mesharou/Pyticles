@@ -274,8 +274,17 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
         shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
     var = np.ctypeslib.as_array(shared_array_base.get_obj())
     
-    if nt>1:   
-        var = var.reshape(nx,ny,nz,nt, order='F');
+    if nt>1:
+        try:
+            var = var.reshape(nx,ny,nz,nt, order='F');
+        except TypeError:
+            print('------------------------------------')
+            print('Type Error')
+            print(f' nx = {nx} {type(nx)}')
+            print(f' ny = {ny} {type(ny)}')
+            print(f' nz = {nz} {type(nz)}')
+            print(f' nt = {nt} {type(nt)}')
+
     elif nz>1:
         var = var.reshape(nx,ny,nz, order='F');
     elif ny>1:
@@ -923,13 +932,13 @@ for time in timerange:
             
             #subtightcoord will be used for test if particle should be advected or not
             subtightcoord[0] = max(0, tightcoord[0]
-                    + jsub*(tightcoord[1]+1-tightcoord[0])/nsub_y)
+                    + jsub*(tightcoord[1]+1-tightcoord[0])//nsub_y)
             subtightcoord[1] = min(ny , tightcoord[0] 
-                    + (jsub+1)*(tightcoord[1]+1-tightcoord[0])/nsub_y)
+                    + (jsub+1)*(tightcoord[1]+1-tightcoord[0])//nsub_y)
             subtightcoord[2] = max(0, tightcoord[2] 
-                    + isub*(tightcoord[3]+1-tightcoord[2])/nsub_x)
+                    + isub*(tightcoord[3]+1-tightcoord[2])//nsub_x)
             subtightcoord[3] = min(nx , tightcoord[2] 
-                    + (isub+1)*(tightcoord[3]+1-tightcoord[2])/nsub_x)
+                    + (isub+1)*(tightcoord[3]+1-tightcoord[2])//nsub_x)
             subtightcoord_saves.append(copy(subtightcoord))
               
             #subcoord will be used to compute u,v,w (same than coord)
@@ -979,7 +988,7 @@ for time in timerange:
         ######################################
         # CRACH MASK TEST
         # 
-        jc = jc + 50
+        #jc = jc + 50
         #nq_0 = nq_1
         #nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
