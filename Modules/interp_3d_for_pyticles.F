@@ -15,8 +15,9 @@
 
 
 
-
-
+#define NEW_VERSION
+#undef LINEAR_INTERPOLATION
+#define CUBIC_INTERPOLATION
 !----------------------------------------------------------------------------------------------
 ! #define NEW_VERSION
 ! #define LINEAR_INTERPOLATION

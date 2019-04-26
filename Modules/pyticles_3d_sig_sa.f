@@ -71,8 +71,8 @@
 ! 16/01/26:
 ! Modified sizes of u,v,w,dz,pm,pn to add ghost points (ng*2)
 
-
-
+!#define NEW_VERSION
+!#define CUBIC_INTERPOLATION
        subroutine advance_3d(px,py,pz,u,v,w,itim,fct,pm,pn,
      & dz,dt,i0,j0,k0,nx,ny,nz,ng,np,dpx,dpy,dpz)
        implicit none
