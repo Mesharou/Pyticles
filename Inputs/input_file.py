@@ -34,14 +34,16 @@ y_periodic = False
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1550
-end_file = 1559
+start_file = 1510
+end_file = 1535
 
 ###### Restart from a Pyticles output file
+# user should not change start_file
+# restart_time : number of time step since start_file
 restart = False
-restart_time = 4 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/home/jeremy/Bureau/Data/ \
-                Pyticles/Port_Test_P3/Case_1_Port_Test_P3_12_1550.nc'
+restart_time = 25 #nb of time steps in the restart_file
+restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
+               +'/Visual_test/Case_1_Visual_test_12_1510.nc'
 
 if not restart:
     restart_time = 0
@@ -98,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Crash_box'
+config = 'Visual_test'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -119,14 +121,14 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 
 dx_m = 1000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 40.* dx0 # half width of seeding patch [in grid points
-jwd  = 10.* dx0 # half width of seeding patch [in grid points]
+iwd  = 400.* dx0 # half width of seeding patch [in grid points
+jwd  = 100.* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 10 * dx0
-nny = 5 * dx0
+nnx = 20 * dx0
+nny = 50 * dx0
 nnlev = 1
 
 #########
@@ -157,7 +159,7 @@ surf0 = [1028]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 
 ##############################################################################
 # Pyticles numerical schemes

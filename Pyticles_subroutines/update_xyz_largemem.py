@@ -189,8 +189,10 @@ def advance_3d(subrange,out,step):
     pz_F = np.asfortranarray(pz[subrange])
     istep_F = istep[0]
     subtime= tim0 + alpha_time * delt[0]/np.abs(dfile)
-
-
+    print(f'{subrange} ')
+    print(f'{px} ')
+    print(f'{py} ')
+    print(f'{pz} ')
     
     if timestep[:2]=='AB': 
         dpx_F = np.asfortranarray(dpx[subrange,:])
@@ -222,8 +224,8 @@ def advance_3d(subrange,out,step):
             #print 'debug py0', py_F[:3]
             #print 'debug others itim,fct,dfct,dt,ng,nq,i0,j0,k0'
             #print 'debug others', itim,fct,dfct,dt,ng,nq,i0,j0,k0
-            partF.timestep_rk4(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,mask_s,\
-                               dz,dt,ng,nq,i0,j0,k0)
+            partF.timestep_rk4(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,
+            	                   mask_s,dz,dt,ng,nq,i0,j0,k0)
 
         ########################
         elif timestep[:2]=='AB':

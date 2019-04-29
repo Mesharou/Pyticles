@@ -454,11 +454,16 @@ else:
 
     if not continuous_injection:
         # just load px,py,pz from restart_file
+        print('#################################################')
+        print(f'restart_file is {restart_file}')
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time,:]
         py0 = nc.variables['py'][restart_time,:]
         pz0 = nc.variables['pz'][restart_time,:]
         nc.close()
+        print(f'px0 {px0.shape}')
+        print(f'py0 {py0.shape}')
+        print(f'pz0 {pz0.shape}')
 
         nq = len(px0)
         
@@ -519,7 +524,7 @@ istep = shared_array(1,prec='int',value=-1)
 
 # Index of the  previous (itim[0]) and next(itim[1]) time-step for u,v,w,dz
 itim = shared_array(2,prec='int')
-itim[:]=[0,1]
+itim[:] = [0,1]
 
 ###################################################################################
 #If using a Adams-Bashforth method we need to have access to previous vel. values
