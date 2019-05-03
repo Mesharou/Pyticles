@@ -192,7 +192,7 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
                     try:
                         z[k,j,i] = f(depths0[k])
                     except ValueError:
-                        z[k,j,i] = 0.
+                        z[k,j,i] = -1.
                     '''
                     Need to handle exeption where 
                     
@@ -216,9 +216,11 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     return z
 
 ##############################################################################
-def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
+def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
+                pcond=np.array(False)):
     '''
     Remove particles found in land mask and particles below sea-floor if ADV2D
+    Also chech for particles below floor in advd3d and(z.reshape(-1)[ip]>=0.)
     Modify in place px0, py0, pz0 with particles coordinates
     Returns ipcount to keep count of seeded particles
     
@@ -252,7 +254,8 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
     if pcond.any():
 
          for ip in range(len(x.reshape(-1))):
-            if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipcount<nq) and (pcond[ip]==1.):
+            if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipcount<nq)\
+            and (pcond[ip]==1.) and(z.reshape(-1)[ip]>=0.):
                 px0.append(x.reshape(-1)[ip])
                 py0.append(y.reshape(-1)[ip])
                 pz0.append(z.reshape(-1)[ip])
@@ -260,7 +263,8 @@ def remove_mask(simul,topolim,x,y,z,px0,py0,pz0,nq,ng=0,pcond=np.array(False)):
     else:
 
         for ip in range(len(x.reshape(-1))):
-            if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipcount<nq):
+            if (ptopo[ip]>topolim) and (pmask[ip]>=1.) and (ipcount<nq) \
+            and(z.reshape(-1)[ip]>=0.):
                 px0.append(x.reshape(-1)[ip])
                 py0.append(y.reshape(-1)[ip])
                 pz0.append(z.reshape(-1)[ip])
