@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 '''
 
@@ -305,9 +306,10 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
 ###################################################################################
 
 if not restart:
-    ##################################################################################
-    # Define initial px,py,pz pyticles position (Fast .py version_ fill in order x,y,z)
-    ##################################################################################
+    ###########################################################################
+    # Define initial px,py,pz pyticles position 
+    # (Fast .py version_ fill in order x,y,z)
+    ###########################################################################
     if initial_surf:
         rho0 = [1028]
         lev1 = len(rho0) - 1
@@ -320,7 +322,8 @@ if not restart:
     if initial_depth: 
         z_w = part.get_depths_w(simul, x_periodic=x_periodic,
                                 y_periodic=y_periodic, ng=ng)
-        z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=ng)
+        z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w,
+                                   ng=ng)
    
     ##############################
     # Release particles on iso-surfaces of a variable
@@ -331,7 +334,6 @@ if not restart:
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
                                      y_periodic=y_periodic, ng=ng)
         rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
-         
         ## temporary box used for sigma-interpolation onto surf0 vector
         lev1 = rho.shape[2] #  Needed to get all levels
         z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
@@ -988,6 +990,8 @@ for time in timerange:
         ###############################################
         # modify seeding patch center to barycenter of
         # previously released particules after a time_step of advection
+        if eddy_center:
+            pass
         if barycentric:
             [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
         ######################################
