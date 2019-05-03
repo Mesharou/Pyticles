@@ -72,9 +72,19 @@ if np.isnan(pm_s[0,0]):
     ###################################################################################
     # Load (u,v,w) on sigmal-levels at time-step t
     if adv3d:
+
+        #############JC debug
+        subcoord_test = simul.coord
+        print('In update_xyz_largemem')
+        print(f'subcoord = {subcoord}')
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
-        part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
-                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+                part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
+                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
+                coord=subcoord_test)
+
+     #   part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
+     #           x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
+     #           coord=subcoord)
     
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
@@ -189,10 +199,6 @@ def advance_3d(subrange,out,step):
     pz_F = np.asfortranarray(pz[subrange])
     istep_F = istep[0]
     subtime= tim0 + alpha_time * delt[0]/np.abs(dfile)
-    print(f'{subrange} ')
-    print(f'{px} ')
-    print(f'{py} ')
-    print(f'{pz} ')
     
     if timestep[:2]=='AB': 
         dpx_F = np.asfortranarray(dpx[subrange,:])

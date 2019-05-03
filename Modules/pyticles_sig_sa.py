@@ -144,40 +144,45 @@ def kick(pz,nz):
 ###################################################################################
   
 #@profile   
-def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0,**kwargs):  
+def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
+               y_periodic=False, ng=0, **kwargs):  
 
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
     else: 
         coord = simul.coord[0:4]
     
-    [ny1tot,ny2tot,nx1tot,nx2tot] = simul.coord[0:4]
+    [ny1tot, ny2tot, nx1tot, nx2tot] = simul.coord[0:4]
     
     if timing: tstart2 = tm.time()     
   
     nc = Dataset(simul.ncfile, 'r')
-    [ny1,ny2,nx1,nx2] = coord
+    [ny1, ny2, nx1, nx2] = coord
     nz = len(simul.coord[4])
 
     ################################
     mask = copy(simul.mask)
-    mask[np.isnan(mask)]=0
+    mask[np.isnan(mask)] = 0
     ################################
 
-    u = np.zeros((nx2-nx1-1,ny2-ny1,nz))*np.nan
-    v = np.zeros((nx2-nx1,ny2-ny1-1,nz))*np.nan
-    w = np.zeros((nx2-nx1-1,ny2-ny1-1,nz))*np.nan
+    u = np.zeros((nx2-nx1-1, ny2-ny1, nz))*np.nan
+    v = np.zeros((nx2-nx1, ny2-ny1-1, nz))*np.nan
+    w = np.zeros((nx2-nx1-1, ny2-ny1-1, nz))*np.nan
 
     ################################
 
-    nw = min(ng,nx1); ne = min(ng,nx2tot-nx1tot+2*ng-nx2)
-    ns = min(ng,ny1); nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
+    nw = min(ng, nx1)
+    ne = min(ng, nx2tot-nx1tot+2*ng-nx2)
+    ns = min(ng, ny1)
+    nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
 
 
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+    u[ng-nw:nx2-nx1-1-ng+ne, ng-ns:ny2-ny1-ng+nn, :] = simul.Forder(np.squeeze( \
+         nc.variables['u'][simul.infiletime, :, ny1-ns:ny2-2*ng+nn,
+                           nx1+iper-nw:nx2-1+iper-2*ng+ne]))
     
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn,:] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn,:].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 
@@ -230,21 +235,24 @@ def get_vel_io(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=Fa
     ################################
 
     try:
-        w = periodize3d_fromnc(simul,'omega',coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        w = periodize3d_fromnc(simul, 'omega', coord, x_periodic=x_periodic,
+                               y_periodic=y_periodic,ng=ng)
     except:
         print('no omega in file, computing')
-        [z_r,z_w] = get_depths(simul,coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        [z_r,z_w] = get_depths(simul, coord=coord, x_periodic=x_periodic,
+                               y_periodic=y_periodic,ng=ng)
         print(f'u = {np.shape(u)}')
         print(f'v = {np.shape(v)}')
         print(f'z_r = {np.shape(z_r)}')
         print(f'z_w = {np.shape(z_w)}')
-        print(f'pm = {np.shape(pm)}')
-        print(f'pn = {np.shape(pn)}')
         print(f'coord = {coord}')
+        print(f'nx1, nx2 {nx1, nx2} ; ny1, ny2 {ny1, ny2}')
         pm = simul.pm[nx1:nx2, ny1:ny2]
         pn = simul.pn[nx1:nx2, ny1:ny2]
+        print(f'pm = {np.shape(pm)}')
+        print(f'pn = {np.shape(pn)}')
 
-        w = partF.get_omega(u,v,z_r,z_w,pm,pn)
+        w = partF.get_omega(u, v, z_r, z_w, pm, pn)
         w[np.isnan(w)] = 0.
         if x_periodic and nx1<ng and nx2>nx2tot-nx1tot+ng: 
             w[0,:,:] = w[nx2tot,:,:]

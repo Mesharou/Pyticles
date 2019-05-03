@@ -930,6 +930,11 @@ for time in timerange:
 
     if nsub_x*nsub_y==1:
         subcoord = coord
+        # JC debug
+        # to be removed
+        print('=' * 40)
+        print('fake coord')
+        subcoord = simul.coord
         subsubrange = list(range(nq))
         r = run_process(update_xyz);
         

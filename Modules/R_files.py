@@ -279,13 +279,23 @@ example: for an interactive session:
                 depths=np.arange(eval(domainname)[4][0],int(np.min([len(ncfile.dimensions['s_rho']),eval(domainname)[4][1]]))+1,eval(domainname)[4][2])
               except:
                 depths=[0]
-
+        
         if ny1==ny2: ny1=ny1-1; ny2=ny2+2
         if nx1==nx2: nx1=nx1-1; nx2=nx2+2
 
+        #JC debug
+        print('-' * 40)
+        print('in Modules/R_files.py :')
+        print(f"before nx1, nx2 = {nx1, nx2}")
+        print(f"before ny1, ny2 = {ny1, ny2}")
+
+        print(f"eta_rho    {len(ncfile0.dimensions['eta_rho'])}")
+        print(f"xi_rho     {len(ncfile0.dimensions['xi_rho'])}")
         nx2 = int(np.min([nx2,len(ncfile0.dimensions['xi_rho'])]))
         ny2 = int(np.min([ny2,len(ncfile0.dimensions['eta_rho'])]))
-
+        
+        print(f"after nx1, nx2 = {nx1, nx2}")
+        print(f"after ny1, ny2 = {ny1, ny2}")
         ncfile0.close()
         ncfile.close()
 
