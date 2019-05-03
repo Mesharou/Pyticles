@@ -100,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Visual_test'
+config = 'Visual_2_depths'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -121,7 +121,7 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 
 dx_m = 1000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 400.* dx0 # half width of seeding patch [in grid points
+iwd  = 100.* dx0 # half width of seeding patch [in grid points
 jwd  = 100.* dx0 # half width of seeding patch [in grid points]
 
 #########
@@ -147,14 +147,17 @@ nnlev = 1
 # i.e can't state pcond = True and depth = z0
 # Therefore if ini_cond = True: initial_depth = False
 
-initial_cond = False
+initial_cond = False # 1036 in Pyticles.py
 initial_depth = True
 initial_surf = False
+eddy_center = False
+
+eddy_file = ''
 
 if initial_cond:
    initial_depth = False
 
-depths0 = [-50]
+depths0 = [-50, -500]
 surf0 = [1028]
 
 # if True release particles continuously
