@@ -1,9 +1,9 @@
 '''
-################################################################################
-################################################################################
+############u##################################################################
+###############################################################################
 THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
-################################################################################
-################################################################################
+###############################################################################
+###############################################################################
 
 '''
 ##############################################################################
@@ -41,9 +41,9 @@ end_file = 1535
 # user should not change start_file
 # restart_time : number of time step since start_file
 restart = False
-restart_time = 25 #nb of time steps in the restart_file
+restart_time = 19 #nb of time steps in the restart_file
 restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
-               +'/Visual_test/Case_1_Visual_test_12_1510.nc'
+               +'/Visual_2_depths/Case_1_Visual_2_depths_1_1510.nc'
 
 if not restart:
     restart_time = 0
@@ -61,8 +61,8 @@ simul = load(simul = parameters, floattype=np.float64)
 # Particles Dynamcis
 ##############################################################################
 # 3D advection
-adv3d = True
-advzavg = False
+adv3d = False
+advzavg = True
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth
@@ -78,7 +78,7 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = True
+sedimentation = False
 w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
 
 ##############################################################################
@@ -91,7 +91,7 @@ write_depth = True
 write_topo = True
 write_uv = True
 write_ts = True
-write_uvw = True
+write_uvw = False
 if write_uvw:
     write_uv = False
 
@@ -100,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Visual_2_depths'
+config = 'Visual_ZAVG_'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -115,7 +115,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic,jc] = [120,400] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic,jc] = [600, 800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
@@ -150,14 +150,11 @@ nnlev = 1
 initial_cond = False # 1036 in Pyticles.py
 initial_depth = True
 initial_surf = False
-eddy_center = False
-
-eddy_file = ''
 
 if initial_cond:
    initial_depth = False
 
-depths0 = [-50, -500]
+depths0 = [-200]
 surf0 = [1028]
 
 # if True release particles continuously

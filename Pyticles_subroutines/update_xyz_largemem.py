@@ -346,7 +346,7 @@ for i in range(nproc):
     if len(subranges[-1])>0: nprocs.append(i)
 
 
-###################################################################################
+################################################################################
 # Run nproc simultaneous processes
 
 procs = []
@@ -355,9 +355,11 @@ if len(nprocs)>0:
     out = mp.Queue(); step = mp.Queue()
     for i in range(nproc):
         if adv3d:
-            procs.append(mp.Process(target=advance_3d, args=(subranges[i],out,step,)))
+            procs.append(mp.Process(target=advance_3d,
+                         args=(subranges[i], out, step,)))
         else:
-            procs.append(mp.Process(target=advance_2d, args=(subranges[i],out,step,)))
+            procs.append(mp.Process(target=advance_2d,
+                         args=(subranges[i], out, step,)))
 
     for p in procs: p.start()
     for p in procs: p.join()   
@@ -370,11 +372,11 @@ if len(nprocs)>0:
         raise Exception("advance_3d did not complete")
 
 
-    ###################################################################################
+    ############################################################################
     if timing: print(('Integration between 2 frames...', tm.time()-tstart))
     if timing: tstart = tm.time()
 
-    ###################################################################################
+    ############################################################################
 
 
 
