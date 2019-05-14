@@ -1,0 +1,15 @@
+JCollin 05-2019
+
+Script with demo for use of visual_tools module
+
+- 2_depths : partciles initialized at 2 different depths
+             Marker shape differs to indentify particles regarding depth
+
+animation.py : aborted, trying to perform online videos
+               Seems more efficient to create a video from a serie of picture
+               using ffmpeg or avconv
+anim_from_pic : generate a series of plot 
+                movie made using ffmpeg
+
+                - anim_2_depths.py 
+                case test with 2 different depths

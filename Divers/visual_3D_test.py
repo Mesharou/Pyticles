@@ -67,4 +67,24 @@ for ip in range(1,100):
 plt.show()
 
 
+####################################################################
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
+roms_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_grd.nc'
+
+topo = simul.topo
+lon = get_var('lon_rho', roms_file)
+lat = get_var('lat_rho', roms_file)
+
+pt = get_var('pt', ncfile)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+ax.contour(lon, lat, topo.T)
+
+ax.scatter(px[0,:], py[0,:], zs=pdepth[0,:], c=pt[0,:], cmap='coolwarm')
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
+plt.show()
