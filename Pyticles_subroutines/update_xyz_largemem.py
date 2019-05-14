@@ -74,17 +74,10 @@ if np.isnan(pm_s[0,0]):
     if adv3d:
 
         #############JC debug
-        subcoord_test = simul.coord
-        print('In update_xyz_largemem')
-        print(f'subcoord = {subcoord}')
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-                coord=subcoord_test)
-
-     #   part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
-     #           x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-     #           coord=subcoord)
+                coord=subcoord)
     
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,

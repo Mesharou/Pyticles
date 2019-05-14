@@ -31,6 +31,8 @@ def get_var(var, ncfile, **kwargs):
                 ndims = len(nc.variables[var][:].shape)
             else:
                  ndims = kwargs['ndims']
+            if ndims == 2:
+                py_var = nc.variables[var][itime, :]
             if ndims == 3:
                 py_var = nc.variables[var][itime, :, :]
             elif ndims == 4:

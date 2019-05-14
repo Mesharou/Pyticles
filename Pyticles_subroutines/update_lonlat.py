@@ -29,7 +29,7 @@ def interp_2d(subrange):
 # Get T,S at particles positions
 ###############################################################################
 
-nslice = int(nq/nproc+1)
+nslice = nq//nproc + 1
 subranges=[]
 procs = []
 for i in range(nproc):

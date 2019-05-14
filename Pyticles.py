@@ -346,13 +346,7 @@ if not restart:
         z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
 
     nq = np.min([len(x.reshape(-1)),nqmx])
-    if (nq / nproc) < 10:
-        print('----------------------------------------------------')
-        print(f'WARNING : Multithreading Issue')
-        print('number of particles too small relatively to nprocs')
-        print(f'in subranges')
-        print('use less procs')
-        print('----------------------------------------------------')
+    
     ###################################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
@@ -463,9 +457,6 @@ else:
         py0 = nc.variables['py'][restart_time,:]
         pz0 = nc.variables['pz'][restart_time,:]
         nc.close()
-        print(f'px0 {px0.shape}')
-        print(f'py0 {py0.shape}')
-        print(f'pz0 {pz0.shape}')
 
         nq = len(px0)
         
@@ -764,7 +755,14 @@ print('newfile', newfile)
 ###################################################################################
 #START OF THE TIME LOOP
 ###################################################################################
-
+if (nq / nproc) < 10:
+    print('----------------------------------------------------')
+    print(f'WARNING : Multithreading Issue')
+    print('number of particles too small relatively to nprocs')
+    print(f'in subranges')
+    print('use less procs')
+    print('----------------------------------------------------')
+    #  [nq/nprocs > nprocs-1]
 print (' ')
 print (' ')
 tstart = tm.time()
@@ -930,11 +928,6 @@ for time in timerange:
 
     if nsub_x*nsub_y==1:
         subcoord = coord
-        # JC debug
-        # to be removed
-        print('=' * 40)
-        print('fake coord')
-        subcoord = simul.coord
         subsubrange = list(range(nq))
         r = run_process(update_xyz);
         
@@ -944,13 +937,13 @@ for time in timerange:
             
             #subtightcoord will be used for test if particle should be advected or not
             subtightcoord[0] = max(0, tightcoord[0]
-                    + jsub*(tightcoord[1]+1-tightcoord[0])//nsub_y)
+                             + jsub*(tightcoord[1] + 1 - tightcoord[0])//nsub_y)
             subtightcoord[1] = min(ny , tightcoord[0] 
-                    + (jsub+1)*(tightcoord[1]+1-tightcoord[0])//nsub_y)
+                             + (jsub+1) * (tightcoord[1] + 1 - tightcoord[0])//nsub_y)
             subtightcoord[2] = max(0, tightcoord[2] 
-                    + isub*(tightcoord[3]+1-tightcoord[2])//nsub_x)
+                             + isub * (tightcoord[3] + 1 - tightcoord[2])//nsub_x)
             subtightcoord[3] = min(nx , tightcoord[2] 
-                    + (isub+1)*(tightcoord[3]+1-tightcoord[2])//nsub_x)
+                             + (isub+1) * (tightcoord[3] + 1 - tightcoord[2])//nsub_x)
             subtightcoord_saves.append(copy(subtightcoord))
               
             #subcoord will be used to compute u,v,w (same than coord)
@@ -979,7 +972,8 @@ for time in timerange:
     ###################################################################################
 
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
-    if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2) : simul.update(np.int(np.floor(time)+simul.dtime));
+    if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2):
+        simul.update(np.int(np.floor(time)+simul.dtime));
 
     print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
@@ -1057,26 +1051,13 @@ for time in timerange:
 
         del x, y, z
         
-        #================================================
-        # OLD VERSION WORKS WHEN NO PARTICLES ARE REMOVED
-        # px[nq_0:nq_1] = px0[:nq_1-nq_0]
-        # py[nq_0:nq_1] = py0[:nq_1-nq_0]
- 
-        #if adv3d: pz[nq_0:nq_1] = pz0[:nq_1-nq_0]
-        #=================================================
-
         ####################################################################
-        # To solve issue in moving box case where patch encounters the mask ?
-        print(f'nq_0 = {nq_0}')
-        print(f'nq_1 = {nq_1}')
         nq_0 = nq_1 + 1 
         nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
         px[nq_0: nq_1] = px0
         py[nq_0: nq_1] = py0
         if adv3d: pz[nq_0: nq_1] = pz0
         
-
-
     ###################################################################################
     # Plot particles position (+ SST)
         

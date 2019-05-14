@@ -62,7 +62,7 @@ def subsection(px,py,dx=1,dy=1,maxvel=[1,1],delt=1,nx=2000,ny=2000,ng=0,nadv=0,*
     i1 = min(nx,i1)
     j0 = int(np.floor(np.nanmin(py) + ng  - offset_y) - nadv) - 1
     j0 = max(0,j0)
-    j1 = int(np.ceil(np.nanmax(py)+ ng  + offset_y) + nadv)  + 2
+    j1 = int(np.ceil(np.nanmax(py) + ng  + offset_y) + nadv)  + 2
     j1 = min(ny,j1)
 
     #########################

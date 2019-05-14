@@ -1,7 +1,7 @@
 '''
-############u##################################################################
 ###############################################################################
-THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
+###############################################################################
+THE FOLLOWING CONTAINS ROMS AND PARTICLES SETTINGS TO BE EDITED BY USER
 ###############################################################################
 ###############################################################################
 
@@ -22,7 +22,7 @@ debug = True # Increase verbosity to help debug
 
 
 ################################################################################
-# ROMS outputs
+# ROMS INPUTS
 ################################################################################
 
 # if meanflow = True Roms data are not updated (used for climatology)
@@ -40,10 +40,10 @@ end_file = 1535
 ###### Restart from a Pyticles output file
 # user should not change start_file
 # restart_time : number of time step since start_file
-restart = False
-restart_time = 19 #nb of time steps in the restart_file
+restart = True
+restart_time = 7 #nb of time steps in the restart_file
 restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
-               +'/Visual_2_depths/Case_1_Visual_2_depths_1_1510.nc'
+               +'/Linear_interp/Case_1_Linear_interp_6_1510.nc'
 
 if not restart:
     restart_time = 0
@@ -61,8 +61,8 @@ simul = load(simul = parameters, floattype=np.float64)
 # Particles Dynamcis
 ##############################################################################
 # 3D advection
-adv3d = False
-advzavg = True
+adv3d = True
+advzavg = False
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth
@@ -91,7 +91,7 @@ write_depth = True
 write_topo = True
 write_uv = True
 write_ts = True
-write_uvw = False
+write_uvw = True
 if write_uvw:
     write_uv = False
 
@@ -100,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Visual_ZAVG_'
+config = 'Linear_interp'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 

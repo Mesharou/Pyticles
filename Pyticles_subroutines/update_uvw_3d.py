@@ -26,15 +26,8 @@ if simul.simul[-4:]=='surf':
         u = linear(u,u2,alpha_time)
         v = linear(v,v2,alpha_time)
 else:
-    # JC debug
-    print(f'in update uvw; coord = {coord}')
-    coord_test = simul.coord
-    print('-' * 40)
-    print(f'coord_test = {coord_test}')
-    [u, v, w] = part.get_vel_io(simul, x_periodic=x_periodic,
-                                y_periodic=y_periodic, ng=ng, coord=coord_test)
-#    [u, v, w] = part.get_vel_io(simul, x_periodic=x_periodic, 
-#                                y_periodic=y_periodic, ng=ng, coord=coord)
+    [u, v, w] = part.get_vel_io(simul, x_periodic=x_periodic, 
+                                y_periodic=y_periodic, ng=ng, coord=coord)
     if not meanflow and alpha_time != 0:
         simul.update(np.ceil(time))
         [u2,v2,w2] = part.get_vel_io(simul,x_periodic=x_periodic,

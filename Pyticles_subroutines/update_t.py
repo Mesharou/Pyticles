@@ -46,7 +46,8 @@ if not meanflow and alpha_time != 0:
 ###############################################################################
 
 
-nslice = nq/nproc+1; subranges=[]
+nslice = nq//nproc + 1
+subranges=[]
 for i in range(nproc): subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
 
 procs = [mp.Process(target=interp_3d_t, args=([subranges[i]])) for i in range(nproc)]

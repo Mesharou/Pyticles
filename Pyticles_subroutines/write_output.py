@@ -37,8 +37,6 @@ if not os.path.isfile(newfile):
     #Dimensions
     nc.createDimension('time', None) 
     nc.createDimension('nq', nq) 
-    print(f'JC DEBUG')
-    print(f'nq = {nq}')
     # Time variables
     nc.createVariable('ocean_time', 'f', ('time',) )
     nc.createVariable('time', 'f', ('time',) )
