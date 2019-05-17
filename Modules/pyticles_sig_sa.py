@@ -167,14 +167,14 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
 
     u = np.zeros((nx2-nx1-1, ny2-ny1, nz))*np.nan
     v = np.zeros((nx2-nx1, ny2-ny1-1, nz))*np.nan
-    w = np.zeros((nx2-nx1-1, ny2-ny1-1, nz))*np.nan
+    w = np.zeros((nx2-nx1, ny2-ny1, nz+1))*np.nan
 
     ################################
 
     nw = min(ng, nx1)
     ne = min(ng, nx2tot-nx1tot+2*ng-nx2)
     ns = min(ng, ny1)
-    nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
+    nn = min(ng, ny2tot-ny1tot+2*ng-ny2)
 
 
     # Fill inside points [if x periodic shift one index right in netcdf file]
@@ -235,24 +235,38 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     ################################
 
     try:
-        w = periodize3d_fromnc(simul, 'omega', coord, x_periodic=x_periodic,
-                               y_periodic=y_periodic,ng=ng)
+        w = simul.Forder(np.squeeze(nc.variables['w'][simul.infiletime, :, :,
+        :]))
     except:
         print('no omega in file, computing')
-        [z_r,z_w] = get_depths(simul, coord=coord, x_periodic=x_periodic,
-                               y_periodic=y_periodic,ng=ng)
+        [z_r, z_w] = get_depths(simul, coord=coord, x_periodic=x_periodic,
+                               y_periodic=y_periodic, ng=ng)
         print(f'u = {np.shape(u)}')
         print(f'v = {np.shape(v)}')
         print(f'z_r = {np.shape(z_r)}')
         print(f'z_w = {np.shape(z_w)}')
         print(f'coord = {coord}')
         print(f'nx1, nx2 {nx1, nx2} ; ny1, ny2 {ny1, ny2}')
-        pm = simul.pm[nx1:nx2, ny1:ny2]
-        pn = simul.pn[nx1:nx2, ny1:ny2]
+        ###################################################################
+        # GOT lost in indexes....
+        #...
+        pm = simul.pm[ny1-ns:ny2-2*ng+nn, nx1+iper-nw:nx2-1+iper-2*ng+ne] 
+        pn = simul.pn[ nx1+iper-nw:nx2-1+iper-2*ng+ne, nx1+iper-nw:nx2-1+iper-2*ng+ne]
+        z_r = z_r[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
+        z_w = z_w[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
         print(f'pm = {np.shape(pm)}')
         print(f'pn = {np.shape(pn)}')
-
-        w = partF.get_omega(u, v, z_r, z_w, pm, pn)
+        print(f'z_r = {np.shape(z_r)}')
+        print(f'z_w = {np.shape(z_w)}')
+        
+        # coord in 
+        # u[ng-nw:nx2-nx1-1-ng+ne, ng-ns:ny2-ny1-ng+nn, :] =  partF.get_omega(u, v,
+        # coord out
+        # ['u'][simul.infiletime, :, ny1-ns:ny2-2*ng+nn,
+        #                   nx1+iper-nw:nx2-1+iper-2*ng+ne]
+        w[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = partF.get_omega(u, v,
+                                                         z_r, z_w, pm, pn)
+       # w = partF.get_omega(u, v, z_r, z_w, pm, pn)
         w[np.isnan(w)] = 0.
         if x_periodic and nx1<ng and nx2>nx2tot-nx1tot+ng: 
             w[0,:,:] = w[nx2tot,:,:]
@@ -699,26 +713,34 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
 ###################################################################################
 
 
-def periodize3d_fromnc(simul,variable,coord,x_periodic=False,y_periodic=False,ng=0):
+def periodize3d_fromnc(simul, variable, coord, x_periodic=False, y_periodic=False,
+                       ng=0):
 
-    [ny1tot,ny2tot,nx1tot,nx2tot] = simul.coord[0:4]
-    [ny1,ny2,nx1,nx2] = coord[0:4]
+    [ny1tot, ny2tot, nx1tot, nx2tot] = simul.coord[0:4]
+    [ny1, ny2, nx1, nx2] = coord[0:4]
     nz = len(simul.coord[4])
     nc = Dataset(simul.ncfile, 'r')
 
     ################################
     mask = copy(simul.mask)
-    mask[np.isnan(mask)]=0
+    mask[np.isnan(mask)] = 0
     ################################
 
-    nw = min(ng,nx1); ne = min(ng,nx2tot-nx1tot+2*ng-nx2)
-    ns = min(ng,ny1); nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
-    
+    nw = min(ng, nx1)
+    ne = min(ng, nx2tot - nx1tot + 2*ng - nx2)
+    ns = min(ng, ny1)
+    nn = min(ng, ny2tot - ny1tot + 2*ng - ny2)
+    debug_crash = True
+    if debug_crash:
+        print(f'ny1tot, ny2tot, nx1tot, nx2tot = {ny1tot, ny2tot, nx1tot, nx2tot}')
+        print(f'ny1, ny2, nx1, nx2 = {ny1, ny2, nx1, nx2}')
+        print(f'nw = {nw}; ne = {ne}; ns = {ns}; nn = {nn}')
     if variable=='omega':
         print('We are here')
-        myvar = np.zeros((nx2-nx1,ny2-ny1,nz+1))*np.nan
+        myvar = np.zeros((nx2-nx1, ny2-ny1, nz+1)) * np.nan
+        print(f'my_var.shape = {my_var.shape}')
     else:
-        myvar = np.zeros((nx2-nx1,ny2-ny1,nz))*np.nan
+        myvar = np.zeros((nx2-nx1, ny2-ny1, nz))*np.nan
 
     myvar[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables[variable][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
 
