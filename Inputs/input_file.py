@@ -40,7 +40,7 @@ end_file = 1535
 ###### Restart from a Pyticles output file
 # user should not change start_file
 # restart_time : number of time step since start_file
-restart = True
+restart = False
 restart_time = 7 #nb of time steps in the restart_file
 restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
                +'/Linear_interp/Case_1_Linear_interp_6_1510.nc'
@@ -100,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Linear_interp'
+config = 'Rho1_-1.5'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -115,7 +115,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic,jc] = [600, 800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic,jc] = [600, 400] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
@@ -148,14 +148,14 @@ nnlev = 1
 # Therefore if ini_cond = True: initial_depth = False
 
 initial_cond = False # 1036 in Pyticles.py
-initial_depth = True
-initial_surf = False
+initial_depth = False
+initial_surf = True
 
 if initial_cond:
    initial_depth = False
 
 depths0 = [-200]
-surf0 = [1028]
+rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
@@ -173,6 +173,15 @@ timestep = 'RK4' # Choices are
 
 nsub_steps = 360 # Number of time steps between 2 roms time steps
 
+# Spatial interpolation
+# Default is linear
+# Avalaible : #define CUBIC_INTERPOLATION
+#             #define CRSPL_INTERPOLATION
+#             #define WENO_INTERPOLATION
+# Beware these higher order schemes have not been rigourusly tested
+# To define them, in Modules/interp_3d_for_pyticles.F 
+# Activate ccp keys : NEW_VERSION and chosen numerical scheme
+# Compile cpp keys use make command
 ##############################################################################
 
 

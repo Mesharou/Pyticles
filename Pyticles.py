@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
 
 Version 2.0 of pyticles script
@@ -309,8 +309,9 @@ if not restart:
     # Define initial px,py,pz pyticles position 
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
+    # isosurface
     if initial_surf:
-        rho0 = [1028]
+        #rho0 = [-1.5]
         lev1 = len(rho0) - 1
 
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
@@ -328,11 +329,14 @@ if not restart:
     # Release particles on iso-surfaces of a variable
     # Typically isopycnals
     if initial_surf:
+        from R_tools import rho1_eos
         [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
                                       y_periodic = y_periodic, ng=ng)
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
                                      y_periodic=y_periodic, ng=ng)
-        rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
+        #rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
+        roms_rho0 = simul.rho0
+        rho = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
         ## temporary box used for sigma-interpolation onto surf0 vector
         lev1 = rho.shape[2] #  Needed to get all levels
         z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,

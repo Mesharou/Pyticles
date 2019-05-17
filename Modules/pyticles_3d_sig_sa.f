@@ -5,12 +5,6 @@
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 32 "<command-line>" 2
 # 1 "pyticles_3d_sig_sa.F"
-# 1 "pyticles_3d_sig_sa.F"
-# 1 "<built-in>"
-# 1 "<command-line>"
-# 1 "/usr/include/stdc-predef.h" 1 3 4
-# 1 "<command-line>" 2
-# 1 "pyticles_3d_sig_sa.F"
 !----------------------------------------------------------------------------------------------
 ! Fortran Routines for Pyticles
 !
@@ -48,11 +42,12 @@
 
 
 
-
-
+!#undef NEW_VERSION
+!#defin LINEAR_INTERPOLATION
+!#define CUBIC_INTERPOLATION
 !----------------------------------------------------------------------------------------------
-! #define NEW_VERSION
-! #define LINEAR_INTERPOLATION
+
+
 ! #define CUBIC_INTERPOLATION
 ! #define CRSPL_INTERPOLATION
 ! #define WENO_INTERPOLATION
@@ -62,7 +57,7 @@
 ! if is defined, px,py,pz correpond to staggered positions (u,v,w grids)
 ! if is NOT defined, px,py,pz correspond to positions on the horizontal rho-grid and vertical w-grid
 !---------------------------------------------------------------------!
-# 435 "interp_3d_for_pyticles.F"
+# 436 "interp_3d_for_pyticles.F"
 !---------------------------------------------------------------------!
 ! Compute displacement given u,v,w at particule position
 ! with linear interpolation in space and time
@@ -71,8 +66,8 @@
 ! 16/01/26:
 ! Modified sizes of u,v,w,dz,pm,pn to add ghost points (ng*2)
 
-!#define NEW_VERSION
-!#define CUBIC_INTERPOLATION
+
+
        subroutine advance_3d(px,py,pz,u,v,w,itim,fct,pm,pn,
      & dz,dt,i0,j0,k0,nx,ny,nz,ng,np,dpx,dpy,dpz)
        implicit none
@@ -131,7 +126,7 @@
            fcx_u = px+1+ng - i_u - i0;
            fcy_v = py+1+ng - j_v - j0;
            fcz_w = pz+1 - k_w - k0;
-# 522 "interp_3d_for_pyticles.F"
+# 523 "interp_3d_for_pyticles.F"
            fctl = fct
            if (itim(0).eq.1) fctl = 1-fct
 
@@ -242,7 +237,7 @@
 
            fcx_u = px+1+ng - i_u - i0;
            fcy_v = py+1+ng - j_v - j0;
-# 648 "interp_3d_for_pyticles.F"
+# 649 "interp_3d_for_pyticles.F"
            fctl = fct
            if (itim(0).eq.1) fctl = 1-fct
 
@@ -269,7 +264,6 @@
            dpy = dt*pv*ppn
 
        end
-
 
 
 
