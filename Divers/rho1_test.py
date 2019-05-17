@@ -140,6 +140,27 @@ rho = rho_eos(temp, salt , z_r, z_w, rho0)
 map_rho = (part.map_var(simul, rho, x.reshape(-1), y.reshape(-1),
                         z.reshape(-1), ng=ng)).reshape(x.shape)
 
+
+###
+fig = plt.figure
+
+ax1 = plt.subplot(211)
+ax1.contour(roms_rho1[200:-1, 600, :].T, [-1.5], linewidths=2.)
+im1 = ax1.contourf(roms_rho1[200:-1, 600, :].T)
+
+cbar1 = plt.colorbar(im1, ax=ax1)
+ax1.set_xlabel('X (grid points)')
+plt.title(r'density anomaly \rho')
+
+ax2 = plt.subplot(212)
+ax2.contour(roms_rho1[500, :1000, :].T, [-1.5], linewidths=2.)
+
+im2 = ax2.contourf(roms_rho1[500, :1000, :].T)
+cbar2 = plt.colorbar(im2, ax=ax2)
+ax2.set_xlabel('Y (grid points)')
+
+plt.tight_layout()
+plt.show()
 ###
 fig = plt.figure
 ip = 2
