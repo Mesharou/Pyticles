@@ -19,7 +19,7 @@ from R_files import load
 ##############################################################################
 
 debug = True # Increase verbosity to help debug
-
+debug_crash = True
 
 ################################################################################
 # ROMS INPUTS
@@ -100,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Rho1_-1.5'
+config = 'Crash_w'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -115,20 +115,20 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic,jc] = [600, 400] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic, jc] = [900, 1100] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
 dx_m = 1000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 100.* dx0 # half width of seeding patch [in grid points
-jwd  = 100.* dx0 # half width of seeding patch [in grid points]
+iwd  = 1.* dx0 # half width of seeding patch [in grid points
+jwd  = 1.* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 20 * dx0
-nny = 50 * dx0
+nnx = 1 * dx0
+nny = 1 * dx0
 nnlev = 1
 
 #########
@@ -148,13 +148,13 @@ nnlev = 1
 # Therefore if ini_cond = True: initial_depth = False
 
 initial_cond = False # 1036 in Pyticles.py
-initial_depth = False
-initial_surf = True
+initial_depth = True
+initial_surf = False
 
 if initial_cond:
    initial_depth = False
 
-depths0 = [-200]
+depths0 = [-50]
 rho0 = [-1.5]
 
 # if True release particles continuously
