@@ -167,7 +167,7 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
 
     u = np.zeros((nx2-nx1-1, ny2-ny1, nz))*np.nan
     v = np.zeros((nx2-nx1, ny2-ny1-1, nz))*np.nan
-    w = np.zeros((nx2-nx1, ny2-ny1, nz+1))*np.nan
+    #w = np.zeros((nx2-nx1, ny2-ny1, nz+1))*np.nan
 
     ################################
 
@@ -180,18 +180,26 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne, ng-ns:ny2-ny1-ng+nn, :] = simul.Forder(np.squeeze( \
-         nc.variables['u'][simul.infiletime, :, ny1-ns:ny2-2*ng+nn,
-                           nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+    u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = simul.Forder(
+      np.squeeze(nc.variables['u'][simul.infiletime, :, ny1-ns : ny2-2*ng+nn,
+                           nx1+iper-nw : nx2-1+iper-2*ng+ne]))
     
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn,:] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn,:].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
+    u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = \
+        (u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn, :].T \
+      * (mask[nx1+1-nw : nx2-2*ng+ne, ny1-ns : ny2-2*ng+nn] \
+      * mask[nx1-nw : nx2-1-2*ng+ne, ny1-ns : ny2-2*ng+nn]).T).T
 
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
+    v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn, :] = simul.Forder(
+       np.squeeze(nc.variables['v'][simul.infiletime, :,
+                  ny1-ns+jper : ny2-1+jper-2*ng+nn, nx1-nw : nx2-2*ng+ne]))
 
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn,:] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn,:].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
+    v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn, :] = \
+        (v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn, :].T \
+      * (mask[nx1-nw : nx2-2*ng+ne, ny1+1-ns : ny2-2*ng+nn]
+      * mask[nx1-nw : nx2-2*ng+ne, ny1-ns : ny2-1-2*ng+nn]).T).T
     
 
     ################################
@@ -235,14 +243,15 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     ################################
 
     try:
-        w = simul.Forder(np.squeeze(nc.variables['w'][simul.infiletime, :, :,
-        :]))
+        w = periodize3d_fromnc(simul, 'omega', coord, x_periodic=x_periodic,
+                               y_periodic=y_periodic, ng=ng)
     except:
         print('no omega in file, computing')
         [z_r, z_w] = get_depths(simul, coord=coord, x_periodic=x_periodic,
                                y_periodic=y_periodic, ng=ng)
         print(f'u = {np.shape(u)}')
         print(f'v = {np.shape(v)}')
+        # print(f'w = {np.shape(w)}')
         print(f'z_r = {np.shape(z_r)}')
         print(f'z_w = {np.shape(z_w)}')
         print(f'coord = {coord}')
@@ -250,23 +259,29 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
         ###################################################################
         # GOT lost in indexes....
         #...
-        pm = simul.pm[ny1-ns:ny2-2*ng+nn, nx1+iper-nw:nx2-1+iper-2*ng+ne] 
-        pn = simul.pn[ nx1+iper-nw:nx2-1+iper-2*ng+ne, nx1+iper-nw:nx2-1+iper-2*ng+ne]
-        z_r = z_r[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
-        z_w = z_w[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
-        print(f'pm = {np.shape(pm)}')
-        print(f'pn = {np.shape(pn)}')
-        print(f'z_r = {np.shape(z_r)}')
-        print(f'z_w = {np.shape(z_w)}')
+        # U in roms_file
+        # ny1-ns : ny2-2*ng+nn, nx1+iper-nw : nx2-1+iper-2*ng+ne])
+        #pm = simul.pm[nx1 : nx2, ny1 : ny2] 
+        #pn = simul.pn[nx1 : nx2, ny1 : ny2] 
+        #z_r = z_r[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
+        #z_w = z_w[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
         
+        #pm = np.zeros(nx2-nx1, ny2-ny1)
+        #pm = np.zeros(nx2-nx1, ny2-ny1)
+        pm = periodize2d_fromvar(simul, simul.pm, coord, x_periodic=x_periodic, 
+                                 y_periodic=y_periodic, ng=ng)
+        pn = periodize2d_fromvar(simul, simul.pn, coord, x_periodic=x_periodic,
+                                 y_periodic=y_periodic, ng=ng)                         
+        print(f'pm = {pm.shape}')
+        print(f'pn = {pn.shape}')
+
         # coord in 
         # u[ng-nw:nx2-nx1-1-ng+ne, ng-ns:ny2-ny1-ng+nn, :] =  partF.get_omega(u, v,
         # coord out
         # ['u'][simul.infiletime, :, ny1-ns:ny2-2*ng+nn,
         #                   nx1+iper-nw:nx2-1+iper-2*ng+ne]
-        w[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = partF.get_omega(u, v,
-                                                         z_r, z_w, pm, pn)
-       # w = partF.get_omega(u, v, z_r, z_w, pm, pn)
+        #w[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = partF.get_omega(u,                                                             v, z_r, z_w, pm, pn)
+        w = partF.get_omega(u, v, z_r, z_w, pm, pn)
         w[np.isnan(w)] = 0.
         if x_periodic and nx1<ng and nx2>nx2tot-nx1tot+ng: 
             w[0,:,:] = w[nx2tot,:,:]
@@ -376,8 +391,9 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
         y_periodic=False, ng=0, advdepth = -1, z_thick=100., **kwargs):  
 
     '''
-    Get averaged horizontal velocities between depths z = advdepth +/- z_thick
-    Fill ghost points
+    returns vertically averaged horizontal velocities between depths 
+    z = advdepth +/- z_thick
+    
     '''
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
@@ -403,9 +419,19 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
 
     ################################
 
-    def zaverage(simul, varname, coord=coord, advdepth=advdepth, z_thick=z_thick):
+    def zaverage(simul, varname, coord=coord, advdepth=advdepth,
+                 z_thick=z_thick):
         '''
-        Computes vertically averaged zonal velocity field between advdepth +/- z_thick 
+        Computes vertically averaged zonal velocity field between
+        advdepth +/- z_thick
+
+        returns var_bar 2d ndarray
+        
+        parameter varname string, 'u' or 'v'
+
+        when ptopo < |advdepth| + z_thick/2
+        velocity is divided by local water column thickness :
+            np.sum(h_var)
         '''
         coordz = copy(coord)
 
@@ -420,8 +446,8 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
 
         [z_r, z_w] = get_depths(simul, coord=coordz)
         
-        var0  = simul.Forder(np.squeeze(nc.variables[varname][simul.infiletime, :,
-                             coord[0]:coord[1], coord[2]:coord[3]]))
+        var0  = simul.Forder(np.squeeze(nc.variables[varname][simul.infiletime,
+                             :, coord[0]:coord[1], coord[2]:coord[3]]))
         if varname == 'u':
             z_wvar = rho2u_3d(z_w)
 
@@ -433,69 +459,79 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
         z_wvar[indexp] = advdepth + z_thick/2.
         z_wvar[indexm] = advdepth - z_thick/2.
         h_var = z_wvar[:, :, 1:] - z_wvar[:, :, :-1]
-        var_bar = np.sum(h_var * var0, axis=-1) / z_thick
+        var_bar = np.sum(h_var * var0, axis=-1) / np.sum(h_var, axis=2)
+        var_bar[np.isnan(var_bar)] = 0.
 
         return var_bar
 
     ################################
 
-    nw = min(ng,nx1); ne = min(ng,nx2tot-nx1tot+2*ng-nx2)
-    ns = min(ng,ny1); nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
+    nw = min(ng, nx1); ne = min(ng, nx2tot-nx1tot+2*ng-nx2)
+    ns = min(ng, ny1); nn = min(ng, ny2tot-ny1tot+2*ng-ny2)
 
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic:
         iper=1
     else:
         iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',
-            coord=[ny1-ns, ny2-2*ng+nn, nx1+iper-nw, nx2-1+iper-2*ng+ne])
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,
-                                                      ng-ns:ny2-ny1-ng+nn].T \
-                          * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn] \
-                           * mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
+    u[ng-nw : nx2-nx1-1-ng+ne,ng-ns : ny2-ny1-ng+nn] = zaverage(simul, 'u',
+               coord=[ny1-ns, ny2-2*ng+nn, nx1+iper-nw, nx2-1+iper-2*ng+ne])
+    u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn] = \
+               (u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn].T \
+             * (mask[nx1+1-nw : nx2-2*ng+ne, ny1-ns : ny2-2*ng+nn] \
+             * mask[nx1-nw : nx2-1-2*ng+ne, ny1-ns : ny2-2*ng+nn]).T).T
 
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul, 'v',
-                coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
+    v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn] = zaverage(simul, 'v',
+                coord=[ny1-ns+jper, ny2-1+jper-2*ng+nn, nx1-nw, nx2-2*ng+ne])
 
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T\
-            * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn] \
-             * mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
+    v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn] = \
+                       (v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn].T \
+                     * (mask[nx1-nw : nx2-2*ng+ne, ny1+1-ns : ny2-2*ng+nn] \
+                      * mask[nx1-nw : nx2-2*ng+ne, ny1-ns : ny2-1-2*ng+nn]).T).T
 
     ################################
     # Filling Ghost points
     ################################
 
     if nw<ng and x_periodic:
-        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot,nx1tot+1])
-        for i in range(1,ng):
-            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx2tot-i,nx2tot-i+1])
+        u[ng-nw-1, ng-ns : ny2-ny1-ng+nn] = zaverage(simul,'u',
+                                coord=[ny1-ns, ny2-2*ng+nn, nx1tot, nx1tot+1])
+        for i in range(1, ng):
+            u[ng-nw-1-i, ng-ns : ny2-ny1-ng+nn] = zaverage(simul, 'u',
+                             coord=[ny1-ns, ny2-2*ng+nn, nx2tot-i, nx2tot-i+1])
         for i in range(ng):
-            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx2tot-1-i,nx2tot-1-i+1])
+            v[ng-nw-1-i, ng-ns : ny2-ny1-1-ng+nn] = zaverage(simul, 'v',
+              coord=[ny1-ns+jper, ny2-1+jper-2*ng+nn, nx2tot-1-i, nx2tot-1-i+1])
         nw=ng 
 
     if ne<ng and x_periodic:
         for i in range(ng):
-            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = zaverage(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot+i,nx1tot+i+1])
+            u[nx2-nx1-1-ng+ne+i, ng-ns : ny2-ny1-ng+nn] = zaverage(simul, 'u',
+                            coord=[ny1-ns, ny2-2*ng+nn, nx1tot+i, nx1tot+i+1])
         for i in range(ng):
-            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = zaverage(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1tot+i,nx1tot+i+1])
+            v[nx2-nx1-ng+ne+i, ng-ns : ny2-ny1-1-ng+nn] = zaverage(simul, 'v',
+                 coord=[ny1-ns+jper, ny2-1+jper-2*ng+nn, nx1tot+i, nx1tot+i+1])
         ne=ng
 
     if ns<ng and y_periodic:
-        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = zaverage(simul,'v',coord=[ny1tot,ny1tot+1,nx1-nw,nx2-2*ng+ne])
-        for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = zaverage(simul,'v',
-                    coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])
-        for i in range(1,ng):
+        v[ng-nw : nx2-nx1-ng+ne, ng-ns-1] = zaverage(simul, 'v',
+                                coord=[ny1tot, ny1tot+1, nx1-nw, nx2-2*ng+ne])
+        for i in range(1, ng):
+            v[ng-nw : nx2-nx1-ng+ne, ng-ns-1-i] = zaverage(simul,'v',
+                              coord=[ny2tot-i, ny2tot-i+1, nx1-nw, nx2-2*ng+ne])
+        for i in range(1, ng):
             u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = zaverage(simul,'u',coord=[ny2tot-1-i,ny2tot-1-i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
 
     if nn<ng and y_periodic:
         for i in range(ng):
-            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = zaverage(simul,'v',coord=[ny1tot+i,ny1tot+i+1,nx1-nw,nx2-2*ng+ne])
-        for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = zaverage(simul,'u',coord=[ny1tot+i,ny1tot+i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
+            v[ng-nw : nx2-nx1-ng+ne, ny2-ny1-1-ng+nn+i] = zaverage(simul, 'v',
+                            coord=[ny1tot+i, ny1tot+i+1, nx1-nw, nx2-2*ng+ne])
+        for i in range(1, ng):
+            u[ng-nw : nx2-nx1-1-ng+ne, ny2-ny1-ng+nn+i] = zaverage(simul, 'u',
+                coord=[ny1tot+i, ny1tot+i+1, nx1+iper-nw, nx2-1+iper-2*ng+ne])
 
 
     ################################
@@ -505,7 +541,7 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
 
     ################################
 
-    return u,v
+    return u, v
 
 ###################################################################################
 

@@ -100,7 +100,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Crash_w'
+config = 'Crash_w_AGAIN'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -121,14 +121,14 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 
 dx_m = 1000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 1.* dx0 # half width of seeding patch [in grid points
-jwd  = 1.* dx0 # half width of seeding patch [in grid points]
+iwd  = 100.* dx0 # half width of seeding patch [in grid points
+jwd  = 100.* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 1 * dx0
-nny = 1 * dx0
+nnx = 20 * dx0
+nny = 20 * dx0
 nnlev = 1
 
 #########

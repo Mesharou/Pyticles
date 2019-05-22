@@ -27,6 +27,11 @@ def rho2u_3d(var_rho):
 
     return var_u
 
+##############################################################################
+
+def rho2u_2d(var_rho):
+    var_u = 0.5*(var_rho[1:,:]+var_rho[:-1,:])
+    return var_u
 
 
 #######################################################
@@ -188,7 +193,7 @@ def interp(simul, varname, coord, advdepth, z_thick):
     return varz
 ##############################################################################
 z_thick = 100.
-
+advdepth = -200
 
 ###### MAIN ######
 timing = True
@@ -273,15 +278,116 @@ plt.show()
 plt.contour(u_ana[1000, :, :])
 plt.colorbar()
 plt.show()
+#################################################################################
+'''
+Issue found in case where ptopo < -advdepth + z_thick/2
+i.e bottom of water column intersects with bathymetry
+
+at the moment ubar/zthick however it should be divided by
+-advdepth + zthick/2 - ptopo
+
+We can check usinh analytical velocity field u_ana = 0*np.ndarray(var0.shape) + 1
+'''
+
+advdepth = -200
+z_thick = 50
+
+u_ana = 0*np.ndarray(var0.shape) + 1
+varname = 'u'
+coordz = copy(coord)
+    if varname=='u':
+        imin = 1
+        jmin = 0
+        coordz[3] += 1
+    elif varname=='v':
+        imin = 0
+        jmin = 1
+        coordz[1] += 1
+
+[z_r, z_w] = get_depths(simul, coord=coordz)
+if varname == 'u':
+    z_wvar = rho2u_3d(z_w)
+elif varname == 'v':
+    z_wvar = rho2v(z_w)
+
+plt.figure
+plt.subplot(2,1,1)
+plt.plot(z_wvar[5,5,:])
+plt.subplot(2,1,2)
+plt.plot(z_w[5,5,:])
+plt.plot(z_w[6,5,:])
+plt.show()
+
+# indexp and indexm are here to truncate and therefore ensure the water column
+# thickeness does not exceed z_thick when multiplied to var
+indexp = z_wvar > advdepth + z_thick/2.
+indexm = z_wvar < advdepth - z_thick/2.
+z_wvar[indexp] = advdepth + z_thick/2.
+z_wvar[indexm] = advdepth - z_thick/2.
+h_var = z_wvar[:, :, 1:] - z_wvar[:, :, :-1]
+#var_bar = np.sum(h_var * u_ana, axis=-1) / z_thick
+var_bar = np.sum(h_var * u_ana, axis=-1) / np.sum(h_var, axis=2)
+var_bar[np.isnan(var_bar)] = 0.
+
+
+# topo at u points
+topo = simul.topo
+u_topo = rho2u_2d(topo)
+
+
+#var_bar_ok = np.sum(h_var * u_ana, axis=-1) / (-advdepth + z_thick/2 -u_topo)
+'''
+# indexes where topo is below, in between and above water column for average
+# These are used in case where topography intersects advdepth - zthick/2
+# In this region we have to divide
+ind_low = u_topo > -advdepth - z_thick/2
+ind_mid = (u_topo <= -advdepth - z_thick/2) & (u_topo <= -advdepth +  z_thick/2)  
+ind_upp = u_topo < -advdepth + z_thick/2
+
+plt.figure
+plt.subplot(311)
+plt.pcolormesh(ind_low.T)
+plt.colorbar()
+plt.subplot(312)
+plt.pcolormesh(ind_mid.T)
+plt.colorbar()
+plt.subplot(313)
+plt.pcolormesh(ind_upp.T)
+plt.colorbar()
+plt.show()
+
+
+h_thick = np.ndarray(u_topo.shape)
+h_thick[ind_low] = z_thick
+h_thick[ind_mid] = advdepth + z_thick/2 - u_topo[ind_mid]
+h_thick[ind_upp] =  
+'''
 
 
 
 
+plt.figure
+plt.subplot(211)
+plt.pcolormesh(var_bar.T)
+plt.colorbar()
+plt.subplot(212)
+plt.pcolormesh(topo.T)
+plt.colorbar()
+
+plt.show()
+plt.close('all')
 
 
+plt.figure
+plt.subplot(211)
+plt.pcolormesh(var_bar_ok.T)
+plt.colorbar()
+plt.subplot(212)
+plt.pcolormesh(np.sum(h_var, axis=2).T)
+plt.colorbar()
 
-
-
+plt.show()
+plt.close('all')
 
 
 
