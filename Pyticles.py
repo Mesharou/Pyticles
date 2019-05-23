@@ -190,7 +190,6 @@ elif (not adv3d) and (advdepth <= 0):
     w_sed0 = 0. # JC no sedimentation for 2D advection
     write_depth = False
 
-
 ###################################################################################
 # ROMS outputs
 ###################################################################################
@@ -361,7 +360,8 @@ if not restart:
     topolim=0
 
     if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
-    elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick])
+    #elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick])
+    elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick])
 
     # initializing px0, py0, pz0
     if initial_cond:
