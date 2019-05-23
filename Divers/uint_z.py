@@ -292,7 +292,7 @@ We can check usinh analytical velocity field u_ana = 0*np.ndarray(var0.shape) + 
 '''
 
 advdepth = -200
-z_thick = 50
+z_thick = 100
 
 u_ana = 0*np.ndarray(var0.shape) + 1
 varname = 'u'
@@ -466,16 +466,32 @@ yu = np.int(np.floor(py0))
 pu_test = pu[ip]
 
 plt.figure
+ax = plt.subplot(111)
 plt.plot(z_r[xu, yu, :], u[:, yu, xu]-pu_test)
 plt.plot(z_r[xu, yu+1, :], u[:, yu+1, xu]-pu_test)
-
+ax.set_xlim(left=advdepth-z_thick/2, right=advdepth+z_thick/2)
 plt.show()
 
+##################################################
+'''
+Slow but reliable algorithm to test our method
 
+- map ubar, vbar using loops
+    indx = 
+'''
 
+z_u = rho2u_3d(z_w)
+z_ru = rho2u_3d(z_r)
+ind_u = (z_ru[0, 0, :] > advdepth - z_thick/2) & (z_ru[0, 0, :] < advdepth + z_thick/2)
+ind_mid = (z_u[0, 0, :] > advdepth - z_thick/2) & (z_u[0, 0, :] < advdepth + z_thick/2)
+z_mid = z_u[0, 0, ind_mid]
 
+H = np.arange(u.shape[0])) * 0
+#H[] = z_mid[0] - advdepth + z_thick/2
+H[ind_mid[:-1]] = z_mid[1:] - z_mid[:-1]
+#H[-1] = advdepth + z_thick/2 - z_mid[-1]
 
-
+ubar = H * u[:, 0, 0]
 
 
 
