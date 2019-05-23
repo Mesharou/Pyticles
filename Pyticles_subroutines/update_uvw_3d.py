@@ -4,6 +4,8 @@ JC added 3D uvw in no surface case
 
 Compute pu,pv,pw corresponsing to u,v,w at particles positions for 2d surf 
 
+- add w_sed0 to pw 
+
 Input: 
     simul, dx, dy, dz, nx, ny, nz
     px, py, pz
@@ -18,10 +20,12 @@ Outputs:
 #Load u,v
 
 if simul.simul[-4:]=='surf':
-    [u,v] = part.get_vel_io_surf(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+    [u,v] = part.get_vel_io_surf(simul, x_periodic=x_periodic,
+                                 y_periodic=y_periodic, ng=ng, coord=coord)
     if not meanflow and alpha_time != 0:
         simul.update(np.ceil(time))
-        [u2,v2] = part.get_vel_io_surf(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+        [u2,v2] = part.get_vel_io_surf(simul, x_periodic=x_periodic, 
+                                       y_periodic=y_periodic, ng=ng, coord=coord)
         simul.update(np.floor(time))
         u = linear(u,u2,alpha_time)
         v = linear(v,v2,alpha_time)
