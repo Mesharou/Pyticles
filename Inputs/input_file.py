@@ -61,8 +61,8 @@ simul = load(simul = parameters, floattype=np.float64)
 # Particles Dynamcis
 ##############################################################################
 # 3D advection
-adv3d = True
-advzavg = False
+adv3d = False
+advzavg = True
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth
@@ -89,6 +89,9 @@ w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
 write_lonlat = True
 write_depth = True
 write_topo = True
+if advzavg: 
+    write_topo = True # Needed to keep track when water column intersects with
+                      # bathymetry (topo > |advdepth| - z_thick/2)
 write_uv = True
 write_ts = True
 write_uvw = True
@@ -100,7 +103,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Crash_w_AGAIN'
+config = 'Zavg_v2.0'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -115,7 +118,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic, jc] = [900, 1100] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic, jc] = [700, 1100] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 

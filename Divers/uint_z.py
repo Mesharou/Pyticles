@@ -18,6 +18,8 @@ sys.path.append('../Inputs/')
 sys.path.append('../Modules/')
 from input_file import *
 import pyticles_3d_sig_sa as partF
+import pyticles_sig_sa as part
+import visual_tools as vt 
 
 ##############################################################################
 
@@ -295,14 +297,14 @@ z_thick = 50
 u_ana = 0*np.ndarray(var0.shape) + 1
 varname = 'u'
 coordz = copy(coord)
-    if varname=='u':
-        imin = 1
-        jmin = 0
-        coordz[3] += 1
-    elif varname=='v':
-        imin = 0
-        jmin = 1
-        coordz[1] += 1
+if varname=='u':
+    imin = 1
+    jmin = 0
+    coordz[3] += 1
+elif varname=='v':
+    imin = 0
+    jmin = 1
+    coordz[1] += 1
 
 [z_r, z_w] = get_depths(simul, coord=coordz)
 if varname == 'u':
@@ -388,6 +390,94 @@ plt.colorbar()
 
 plt.show()
 plt.close('all')
+
+###########################################################################
+'''
+Checking whether it works or not...
+
+We used a simulation with advdepth = -200.; z_thick = 100.
+
+particles were seeded close to -200 m bathymetric contour in order to have 
+some in middle of water column
+
+'''
+
+################################################################################
+# ROMS INPUTS
+################################################################################
+
+# if meanflow = True Roms data are not updated (used for climatology)
+meanflow = False
+# in case of periodic channel
+x_periodic = False
+y_periodic = False
+
+# dfile is frequency for the use of the ROMS outputs
+# (default is 1 = using all outputs files)
+dfile = 1
+start_file = 1510
+end_file = 1535
+
+###### Restart from a Pyticles output file
+# user should not change start_file
+# restart_time : number of time step since start_file
+restart = False
+restart_time = 7 #nb of time steps in the restart_file
+restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
+               +'/Linear_interp/Case_1_Linear_interp_6_1510.nc'
+
+if not restart:
+    restart_time = 0
+else:
+    start_file += restart_time
+
+# Load simulation
+# parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
+my_simul = 'Case_1'
+parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
+simul = load(simul = parameters, floattype=np.float64)
+##############################################################################
+py_file = '/home/jeremy/Bureau/Data/Pyticles/Zavg_v2.0/Case_1_Zavg_v2.0_adv200.0m_1_1510.nc'
+roms_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_his.1510.nc'
+
+pu = vt.get_var('pu', py_file, itime=0).data
+pv = vt.get_var('pv', py_file, itime=0).data
+px = vt.get_var('px', py_file, itime=0).data
+py = vt.get_var('py', py_file, itime=0).data
+pz = vt.get_var('pz', py_file, itime=0).data
+ptopo = vt.get_var('ptopo', py_file, itime=0)
+
+u = vt.get_var('u', roms_file, itime=0, ndims=4).data 
+v = vt.get_var('v', roms_file, itime=0, ndims=4)
+
+
+indx = ptopo < -advdepth - z_thick/2
+
+[z_r, z_w] = get_depths(simul, coord=simul.coord)
+
+####################################################
+ip = -9
+px0 = px[ip]
+py0 = py[ip]
+
+xu = np.int(np.floor(px0))
+yu = np.int(np.floor(py0))
+
+pu_test = pu[ip]
+
+plt.figure
+plt.plot(z_r[xu, yu, :], u[:, yu, xu]-pu_test)
+plt.plot(z_r[xu, yu+1, :], u[:, yu+1, xu]-pu_test)
+
+plt.show()
+
+
+
+
+
+
+
+
 
 
 
