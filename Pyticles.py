@@ -360,8 +360,8 @@ if not restart:
     topolim=0
 
     if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
-    #elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick])
-    elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick])
+    #elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick/2])
+    elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick/2])
 
     # initializing px0, py0, pz0
     if initial_cond:
