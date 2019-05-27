@@ -115,9 +115,9 @@ from R_tools import rho1_eos
 from input_file import *
 
 
-##################################################################################
+################################################################################
 # Parameters for multiprocessing
-##################################################################################
+################################################################################
 
 if len(sys.argv)<=1:
     #no proc number has been specified as argv... choose 0
@@ -140,44 +140,28 @@ print(nproc, ' processors will be used')
 
 print('-----------------------------------')
 
-###################################################################################
-###################################################################################
+################################################################################
+################################################################################
 # THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
 # MOST OF PARAMTERS ARE DEFINED IN INPUTS/INPUT_FILE
-###################################################################################
-###################################################################################
+################################################################################
+################################################################################
 
 
-###################################################################################
+################################################################################
 # Define location of outputs
-##################################################################################
+################################################################################
 
 if not os.path.exists(folderout):
     os.makedirs(folderout)
 
-###################################################################################
+################################################################################
 # Load simulations parameters (date, subsection, static fields, files path ...etc..)
 # [you can check "dir(simul)" to see what has been loaded]
-###################################################################################
+################################################################################
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
-nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
 
-ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
-#############
-
-#if len(sys.argv)>=3:
-#    advdepth = np.int(sys.argv[2]) 
-#else:
-#    advdepth = 0 
-'''
-        NOTE that advdepths is used as follows:
-
-        advdepth <= 0 means depths in meters
-        advdepth = 0 means surface
-        advdepth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
-                             ..., Nz = surface [Nz-1 in netcdf file])
-'''
-#############    python Pyticles.py 14 $depth > output_case1
+#############    
 
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
@@ -190,9 +174,9 @@ elif (not adv3d) and (advdepth <= 0):
     w_sed0 = 0. # JC no sedimentation for 2D advection
     write_depth = False
 
-###################################################################################
+################################################################################
 # ROMS outputs
-###################################################################################
+################################################################################
 
 simulname = simul.simul +  simulname
 simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
@@ -216,12 +200,12 @@ timerange = np.round(np.arange(start_file,end_file,dfile),3)
 #for timing purpose
 tstart = tm.time()
 #Time all subparts of the code 
-timing=True
+timing = True
 
 
-###################################################################################
+################################################################################
 # Define Particle seeding
-###################################################################################
+################################################################################
 
 # Number of time steps between frames
 subtstep = np.int(nsub_steps * np.abs(dfile))
@@ -254,16 +238,17 @@ if continuous_injection:
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
 
-###################################################################################
-###################################################################################
+################################################################################
+################################################################################
 # THE FOLLOWING SHOULD NOT BE EDITED BY USER
-###################################################################################
-###################################################################################
+################################################################################
+################################################################################
 
 
-def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
+def shared_array(nx, ny=1, nz=1, nt=1, prec='double', value=np.nan):
     '''
-    Function used to create shared variables compatible with numpy and fortran ordered
+    Function used to create shared variables compatible with numpy and fortran
+    ordered
     '''
     if prec=='float':
         shared_array_base = mp.Array(ctypes.c_float, nx*ny*nz*nt )
@@ -295,13 +280,13 @@ def shared_array(nx,ny=1,nz=1,nt=1,prec='double',value=np.nan):
     
     return var
 
-###################################################################################
-###################################################################################
+################################################################################
+################################################################################
 # INITIALIZATION
-###################################################################################
+################################################################################
 # Note that px,py,pz are ZERO-BASED !!!
 # px,py,pz directly correspond to the indices of a python array (var[px,py,pz])
-###################################################################################
+################################################################################
 
 if not restart:
     ###########################################################################
@@ -310,7 +295,6 @@ if not restart:
     ###########################################################################
     # isosurface
     if initial_surf:
-        #rho0 = [-1.5]
         lev1 = len(rho0) - 1
 
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
@@ -328,15 +312,13 @@ if not restart:
     # Release particles on iso-surfaces of a variable
     # Typically isopycnals
     if initial_surf:
-        from R_tools import rho1_eos
         [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
                                       y_periodic = y_periodic, ng=ng)
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
                                      y_periodic=y_periodic, ng=ng)
-        #rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
         roms_rho0 = simul.rho0
         rho = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
-        ## temporary box used for sigma-interpolation onto surf0 vector
+        ## temporary box used for sigma-interpolation onto surf0 
         lev1 = rho.shape[2] #  Needed to get all levels
         z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                     lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
@@ -349,12 +331,13 @@ if not restart:
 
     nq = np.min([len(x.reshape(-1)),nqmx])
     
-    ###################################################################################
+    ############################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
     # ipmx : count seeding partciles
     # px0, py0, pz0 : initial position for seeding
-    # topolim : used in ADV_2D to prevent particles from being seeded below seafloor
+    # topolim : used in ADV_2D to prevent particles from being seeded below
+    #           seafloor
     
     ipmx = 0; px0,py0,pz0 = [],[],[]
     topolim=0
@@ -365,7 +348,7 @@ if not restart:
 
     # initializing px0, py0, pz0
     if initial_cond:
-        # only true for rho variables
+        # only true for variables at rho-points
         # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
         # the subdomain for cond (see above)
         i0, j0, k0 = 0, 0, 0
@@ -390,14 +373,13 @@ if not restart:
                                    z_w, ng, nq, i0, j0, k0)
         #########################
         # boolean condition
-        rho_min = 1026
-        rho_max = 1027
-        prho = seeding_part.prho1(ptemp = ptemp, psalt = psalt, pdepth = pdepth)
-        pcond = (prho > rho_min) & (prho < rho_max)
+        rho_min = -2.5
+        rho_max = -0.5
+        prho1 = rho1_eos(ptemp, psalt, pdepth, pdepth, simul.rho0)
+        pcond = (prho1 > rho_min) & (prho1 < rho_max)
         #########################
         # Remove partciles that does not match condition
-        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
-                ng=ng, pcond=pcond)
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,                                         nq, ng=ng, pcond=pcond)
     else:
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
@@ -407,16 +389,17 @@ if not restart:
 
     nq = ipmx
     print('nq = {nq}')
-    ###################################################################################
+    ############################################################################
 
     if continuous_injection:
         '''
-        we'll multiply nq by the number of injections (still in the limit of nqmx)
-        and leave nan for future pyticles which will be released at the same positions every time step
+        we'll multiply nq by the number of injections (still in the limit of
+        nqmx) and leave nan for future pyticles which will be released at
+        the same positions every time step
         '''
         nq_injection = nq
         nq = np.nanmin([nq_injection*(N_injection+1),nqmx])
-        print('it would take', nq_injection*N_injection - nqmx, ' more pyticles')
+        print('it would take', nq_injection*N_injection-nqmx, ' more pyticles')
         print('to be able to release through all the simulation')
         nq_1 = nq_injection
         nq_0 = 0
@@ -428,7 +411,7 @@ if not restart:
     else:
         nq_1 = -1  
 
-    ###################################################################################
+    ############################################################################
     # nq: total number of particles
     
     px = shared_array(nq,prec='double')
@@ -447,7 +430,7 @@ if not restart:
         del px0,py0,pz0
 
 
-    ###################################################################################
+    ############################################################################
 # restart = True
 else: 
 
@@ -456,9 +439,9 @@ else:
         print('#################################################')
         print(f'restart_file is {restart_file}')
         nc = Dataset(restart_file, 'r')
-        px0 = nc.variables['px'][restart_time,:]
-        py0 = nc.variables['py'][restart_time,:]
-        pz0 = nc.variables['pz'][restart_time,:]
+        px0 = nc.variables['px'][restart_time, :]
+        py0 = nc.variables['py'][restart_time, :]
+        pz0 = nc.variables['pz'][restart_time, :]
         nc.close()
 
         nq = len(px0)
@@ -467,15 +450,17 @@ else:
         py = shared_array(nq,prec='double')
         pz = shared_array(nq,prec='double')
 
-        px[:]=px0; py[:]=py0; pz[:]=pz0
-        del px0,py0,pz0
+        px[:]=px0
+        py[:]=py0
+        pz[:]=pz0
+        del px0, py0, pz0
         
     else:
         # load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
-        px0 = nc.variables['px'][restart_time,:]
-        py0 = nc.variables['py'][restart_time,:]
-        pz0 = nc.variables['pz'][restart_time,:]
+        px0 = nc.variables['px'][restart_time, :]
+        py0 = nc.variables['py'][restart_time, :]
+        pz0 = nc.variables['pz'][restart_time, :]
 
         nq = len(px0)
         
@@ -483,18 +468,20 @@ else:
         py = shared_array(nq,prec='double')
         pz = shared_array(nq,prec='double')
 
-        px[:]=px0; py[:]=py0; pz[:]=pz0
+        px[:]=px0
+        py[:]=py0
+        pz[:]=pz0
         del px0,py0,pz0
 
         ##################################
         # determine px0,py0,pz0,nq_injection
         # JC not True in case of initital_cond and continuous injection
         # because px0, py0, pz0 may vary upon time
-        nq_injection = np.argmax(np.isnan(nc.variables['px'][0,:]))
+        nq_injection = np.argmax(np.isnan(nc.variables['px'][0, :]))
 
-        px0 = nc.variables['px'][0,:nq_injection]
-        py0 = nc.variables['py'][0,:nq_injection]
-        pz0 = nc.variables['pz'][0,:nq_injection]
+        px0 = nc.variables['px'][0, :nq_injection]
+        py0 = nc.variables['py'][0, :nq_injection]
+        pz0 = nc.variables['pz'][0, :nq_injection]
         nc.close()
         
         nq_1 = np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
@@ -508,10 +495,10 @@ else:
             if adv3d: pz[nq_0:nq_1]=pz0[:nq_1-nq_0]
         '''
 
-###################################################################################
+################################################################################
 
 # Time between 2 frames (in seconds)
-delt   = shared_array(2,value=simul.dt*np.abs(dfile)) # Expected time between frames
+delt   = shared_array(2,value=simul.dt*np.abs(dfile)) 
 
 maxvel = shared_array(2,prec='double',value=maxvel0)
 
@@ -519,11 +506,12 @@ maxvel = shared_array(2,prec='double',value=maxvel0)
 istep = shared_array(1,prec='int',value=-1)
 
 # Index of the  previous (itim[0]) and next(itim[1]) time-step for u,v,w,dz
-itim = shared_array(2,prec='int')
-itim[:] = [0,1]
+itim = shared_array(2, prec='int')
+itim[:] = [0, 1]
 
-###################################################################################
-#If using a Adams-Bashforth method we need to have access to previous vel. values
+################################################################################
+#If using a Adams-Bashforth method we need to have access to previous velocity
+# values
 # So we create some shared arrays contaning dpx, dpy, dpz for the previous (ab_order-1) time-steps
 
 if timestep[:2]=='AB':
@@ -535,10 +523,9 @@ if timestep[:2]=='AB':
     iab[:]=range(ab_order) # init values of iab
 
 
-
-###################################################################################
+################################################################################
 # Call a function as a subprocess
-###################################################################################
+################################################################################
 
 
 def run_process(my_func):
@@ -549,95 +536,95 @@ def run_process(my_func):
     can be modified by the subroutine...
     '''
     results = mp.Queue(); i=0
-    proc=mp.Process(target=my_func, args=())
+    proc = mp.Process(target=my_func, args=())
     proc.start(); proc.join()
     
     
     return results
 
 
-###################################################################################
+################################################################################
 # Update px,py,px
-###################################################################################
+################################################################################
 
 def update_xyz():
      exec(compile(open('Pyticles_subroutines/update_xyz_largemem.py').read(),\
              'Pyticles_subroutines/update_xyz_largemem.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Compte T,S at each pyticles positions -> ptemp,psalt
-###################################################################################
+################################################################################
 
 def update_ts():   
     exec(compile(open('Pyticles_subroutines/update_ts.py').read(),\
             'Pyticles_subroutines/update_ts.py', 'exec'))
     
-###################################################################################
+################################################################################
 # Compte T at each pyticles positions -> ptemp
-###################################################################################
+################################################################################
 
 def update_t():   
 
     exec(compile(open('Pyticles_subroutines/update_t.py').read(), \
             'Pyticles_subroutines/update_t.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Compte T at each pyticles positions -> ptemp
-###################################################################################
+################################################################################
 
 def update_depth():   
 
     exec(compile(open('Pyticles_subroutines/update_depth.py').read(), \
             'Pyticles_subroutines/update_depth.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Compte T at each pyticles positions -> ptemp
-###################################################################################
+################################################################################
 
 def update_lonlat():   
     exec(compile(open('Pyticles_subroutines/update_lonlat.py').read(), \
             'Pyticles_subroutines/update_lonlat.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Compte T at each pyticles positions -> ptemp
-###################################################################################
+################################################################################
 
 def update_topo():   
     exec(compile(open('Pyticles_subroutines/update_topo.py').read(), \
             'Pyticles_subroutines/update_topo.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Compte u,v at each pyticles positions -> pu,pv
-###################################################################################
+################################################################################
 
 def update_uv_2d():   
     exec(compile(open('Pyticles_subroutines/update_uv_2d.py').read(), \
             'Pyticles_subroutines/update_uv_2d.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Compte u,v at each pyticles positions -> pu,pv
-###################################################################################
+################################################################################
 
 def update_uvw_3d():
     exec(compile(open('Pyticles_subroutines/update_uvw_3d.py').read(), \
             'Pyticles_subroutines/update_uvw_3d.py', 'exec'))
 
-###################################################################################
+################################################################################
 # Create output file and write time, px,py,pz ( and ptemp,psalt)
-###################################################################################
+################################################################################
 
 def write_output():   
     exec(compile(open('Pyticles_subroutines/write_output.py').read(), \
             'Pyticles_subroutines/write_output.py', 'exec'))
     
-###################################################################################
+################################################################################
 
 def linear(var1,var2,alpha):
     return alpha * var2 + (1.-alpha) * var1
     
-###################################################################################
+################################################################################
 # Plot pyticles on a SST map (is done at each time-step)
-###################################################################################
+################################################################################
 
 subtightcoord_saves=[]; subcoord_saves=[];  subsubrange_saves=[]
 
@@ -646,7 +633,7 @@ def plot_rect(rect,line='k'):
     plt.plot([rect[2],rect[2],rect[3],rect[3],rect[2]],\
              [rect[0],rect[1],rect[1],rect[0],rect[0]],line, linewidth=2)
     
-###################################################################################
+################################################################################
 
 
 def plot_selection(alldomain=True):
@@ -715,7 +702,7 @@ def plot_selection(alldomain=True):
     
 
 
-###################################################################################
+################################################################################
 
 def plot_selection_sub(alldomain=True):
     
@@ -743,9 +730,9 @@ def plot_selection_sub(alldomain=True):
         plt.title(format(np.sum(px>0)) + ' pyticles ' )
         plt.savefig(folderout + simulname + '_sub_ '+ format(sub) +'_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
 
-###################################################################################
+################################################################################
 # Create output netcdf file for pyticles
-###################################################################################
+################################################################################
 
 #File name
 if not restart:
@@ -755,12 +742,12 @@ else:
 
 print('newfile', newfile)
 
-###################################################################################
+################################################################################
 #START OF THE TIME LOOP
-###################################################################################
+################################################################################
 if (nq / nproc) < 10:
     print('----------------------------------------------------')
-    print(f'WARNING : Multithreading Issue')
+    print(f'WARNING : Multiprocessing Issue')
     print('number of particles too small relatively to nprocs')
     print(f'in subranges')
     print('use less procs')
@@ -772,17 +759,14 @@ tstart = tm.time()
 
 ###############################
 time = timerange[0]-dfile;
-coord= part.subsection(px,py,nx=nx,ny=ny,offset=50)
+coord= part.subsection(px, py, nx=nx, ny=ny, offset=50)
 run_process(plot_selection)
 ###############################
 
-
-
-
 #Initialization
-pm_s=np.array([]); 
+pm_s = np.array([]); 
 
-itime=restart_time
+itime = restart_time
 
 for time in timerange:
 
@@ -790,17 +774,19 @@ for time in timerange:
 
     alpha_time = time - np.floor(time)
 
-    ###################################################################################
+    ############################################################################
     # Define domainstimerange
-    # (Find index range (zero based) in which the particles are expected to stay until the next frame)
-    ###################################################################################
+    # (Find index range (zero based) in which the particles are expected
+    # to stay until the next frame)
+    ############################################################################
     if debug: print('max. vel. is ',  maxvel)
 
-    tightcoord= part.subsection(px,py,dx,dy,maxvel*0.,delt[0],nx,ny,ng)
-    coord= part.subsection(px,py,dx,dy,maxvel,delt[0],nx,ny,ng, nadv= nadv)
+    tightcoord= part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
+    coord= part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
+                           nadv= nadv)
 
-    nx_s,ny_s = coord[3]-coord[2], coord[1]-coord[0]
-    i0=coord[2]; j0=coord[0]; 
+    nx_s, ny_s = coord[3]-coord[2], coord[1]-coord[0]
+    i0 = coord[2]; j0 = coord[0]; 
 
     print('coord is ', coord)
     
@@ -808,17 +794,18 @@ for time in timerange:
     tstart = tm.time()   
 
 
-
-    ###################################################################################
+    ############################################################################
     # Compute ptemp,psalt
     
-    # (we are calling a subprocess in order to keep a clean memory after computation)
-    ###################################################################################
+    # (we are calling a subprocess in order to keep a clean memory after
+    #  computation)
+    ############################################################################
 
 
     if write_ts:
         
-        ptemp = shared_array(nq,prec='double'); psalt = shared_array(nq,prec='double')
+        ptemp = shared_array(nq, prec='double')
+        psalt = shared_array(nq, prec='double')
         r = run_process(update_ts)
 
         print('get T,S..................................', tm.time()-tstart)
@@ -826,7 +813,7 @@ for time in timerange:
 
     elif write_t:
 
-        ptemp = shared_array(nq,prec='double')
+        ptemp = shared_array(nq, prec='double')
         r = run_process(update_t)
 
         print('get T....................................', tm.time()-tstart)
@@ -835,7 +822,8 @@ for time in timerange:
 
     if write_uv:
         
-        pu = shared_array(nq,prec='double'); pv = shared_array(nq,prec='double')
+        pu = shared_array(nq, prec='double')
+        pv = shared_array(nq, prec='double')
         r = run_process(update_uv_2d)
 
         print('get u,v..................................', tm.time()-tstart)
@@ -843,8 +831,9 @@ for time in timerange:
    
    
     if write_uvw:
-        pu = shared_array(nq,prec='double'); pv = shared_array(nq,prec='double')
-        pw = shared_array(nq,prec='double')
+        pu = shared_array(nq, prec='double')
+        pv = shared_array(nq, prec='double')
+        pw = shared_array(nq, prec='double')
         r = run_process(update_uvw_3d)
 
         print('get u,v,w..................................', tm.time()-tstart)
@@ -853,7 +842,8 @@ for time in timerange:
 
     if write_lonlat:
 
-        plon = shared_array(nq,prec='double'); plat = shared_array(nq,prec='double')
+        plon = shared_array(nq, prec='double')
+        plat = shared_array(nq, prec='double')
         r = run_process(update_lonlat)
 
         print('get lon,lat..............................', tm.time()-tstart)
@@ -862,7 +852,7 @@ for time in timerange:
 
     if write_depth:
 
-        pdepth = shared_array(nq,prec='double'); 
+        pdepth = shared_array(nq, prec='double'); 
         r = run_process(update_depth)
 
         print('get depth................................', tm.time()-tstart)
@@ -871,108 +861,115 @@ for time in timerange:
 
     if write_topo:
 
-        ptopo = shared_array(nq,prec='double');
+        ptopo = shared_array(nq, prec='double');
         r = run_process(update_topo)
 
         print('get topo................................', tm.time()-tstart)
         tstart = tm.time()   
 
 
-    ###################################################################################
+    ###########################################################################
     # Write in file
-    ###################################################################################   
+    ###########################################################################   
 
     r = run_process(write_output)
 
-    if write_ts: del ptemp,psalt
+    if write_ts: del ptemp, psalt
     elif write_t: del ptemp
 
-    if write_lonlat: del plon,plat
+    if write_lonlat: del plon, plat
     if write_depth: del pdepth
     if write_topo: del ptopo
 
-    if write_uv: del pu,pv
-    if write_uvw: del pu,pv,pw
+    if write_uv: del pu, pv
+    if write_uvw: del pu, pv, pw
 
     print('Write in file............................', tm.time()-tstart)
     tstart = tm.time()
 
     if debug: print('memory usage', \
             resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
-    
 
 
-    ###################################################################################
+    ###########################################################################
     # Update px,py,pz 
-    # (we are calling it as a subprocess in order to keep a clean memory after computation)
-    ###################################################################################
+    # (we are calling it as a subprocess in order to keep a clean memory after
+    # computation)
+    ###########################################################################
 
     if debug: print('memory usage',\
             resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
     
-    ###################################################################################
+    ############################################################################
     # Devide domain into subdomains to diminish use of ram
-    ###################################################################################
+    ############################################################################
     #Automatic division:
     
-    nsub_x = 1
-    nsub_y = 1
+    #nsub_x = 1
+    #nsub_y = 1
     nsub_x = 1 + (coord[3] - coord[2]) // 1000
     nsub_y = 1 + (coord[1] - coord[0]) // 1000
 
-    # if domain is periodic, don't divide into subdomains because code cannot handle it yet!
-    if x_periodic or y_periodic: nsub_x,nsub_y = 1,1 
+    # if domain is periodic, don't divide into subdomains because
+    # code cannot handle it yet!
+    if x_periodic or y_periodic: nsub_x, nsub_y = 1, 1 
 
     #no need for 2d advection
-    if not adv3d: nsub_x,nsub_y = 1,1 
-    ###################################################################################
+    if not adv3d: nsub_x,nsub_y = 1, 1 
+    ############################################################################
     # the subtightcoord def needs to be checked to see if ng is needed)
     subtightcoord_saves=[]; subcoord_saves=[];  subsubrange_saves=[]
 
-    if nsub_x*nsub_y==1:
+    if nsub_x*nsub_y == 1:
         subcoord = coord
         subsubrange = list(range(nq))
         r = run_process(update_xyz);
         
     else:
-        subtightcoord = [0,0,0,0]; subcoord = [0,0,0,0]; 
-        for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
+        subtightcoord = [0, 0, 0, 0]
+        subcoord = [0 ,0, 0, 0] 
+        for isub, jsub in product(list(range(nsub_x)), list(range(nsub_y))):
             
-            #subtightcoord will be used for test if particle should be advected or not
+            # subtightcoord will be used for test if particle should be advected
+            # or not
             subtightcoord[0] = max(0, tightcoord[0]
                              + jsub*(tightcoord[1] + 1 - tightcoord[0])//nsub_y)
             subtightcoord[1] = min(ny , tightcoord[0] 
-                             + (jsub+1) * (tightcoord[1] + 1 - tightcoord[0])//nsub_y)
+                       + (jsub+1) * (tightcoord[1] + 1 - tightcoord[0])//nsub_y)
             subtightcoord[2] = max(0, tightcoord[2] 
-                             + isub * (tightcoord[3] + 1 - tightcoord[2])//nsub_x)
+                          + isub * (tightcoord[3] + 1 - tightcoord[2])//nsub_x)
             subtightcoord[3] = min(nx , tightcoord[2] 
-                             + (isub+1) * (tightcoord[3] + 1 - tightcoord[2])//nsub_x)
+                       + (isub+1) * (tightcoord[3] + 1 - tightcoord[2])//nsub_x)
             subtightcoord_saves.append(copy(subtightcoord))
               
             #subcoord will be used to compute u,v,w (same than coord)
-            subcoord[0] = max(0, subtightcoord[0] - int(np.abs(maxvel[1]*delt[0]/dy)) )
-            subcoord[1] = min(ny ,subtightcoord[1] + int(np.abs(maxvel[1]*delt[0]/dy)) )
-            subcoord[2] = max(0, subtightcoord[2] - int(np.abs(maxvel[0]*delt[0]/dx)) )
-            subcoord[3] = min(nx ,subtightcoord[3] + int(np.abs(maxvel[0]*delt[0]/dx)) )
+            subcoord[0] = max(0,
+                        subtightcoord[0] - int(np.abs(maxvel[1]*delt[0]/dy)) )
+            subcoord[1] = min(ny, 
+                        subtightcoord[1] + int(np.abs(maxvel[1]*delt[0]/dy)) )
+            subcoord[2] = max(0,
+                          subtightcoord[2] - int(np.abs(maxvel[0]*delt[0]/dx)) )
+            subcoord[3] = min(nx,
+                          subtightcoord[3] + int(np.abs(maxvel[0]*delt[0]/dx)) )
             subcoord_saves.append(copy(subcoord))
             
             subsubrange=[]
             #select pyticles inside subtightcoord only
             for i in range(px.shape[0]):
-                if (subtightcoord[0]<=py[i]+0.5+ng<subtightcoord[1]) and\
-                (subtightcoord[2]<=px[i]+0.5+ng<subtightcoord[3]):
+                if (subtightcoord[0] <= py[i]+0.5+ng < subtightcoord[1]) \
+                and (subtightcoord[2] <= px[i]+0.5+ng < subtightcoord[3]):
                     subsubrange.append(i)
             
             subsubrange_saves.append(copy(subsubrange))
                     
         # run process for each subcoord and corresponding subsubrange of points
-        for isub,jsub in product(list(range(nsub_x)),list(range(nsub_y))):
-            subtightcoord = subtightcoord_saves[jsub+isub*nsub_y]
-            subcoord = subcoord_saves[jsub+isub*nsub_y]
-            subsubrange = subsubrange_saves[jsub+isub*nsub_y]
+        for isub, jsub in product(list(range(nsub_x)), list(range(nsub_y))):
+            subtightcoord = subtightcoord_saves[jsub + isub*nsub_y]
+            subcoord = subcoord_saves[jsub + isub*nsub_y]
+            subsubrange = subsubrange_saves[jsub + isub*nsub_y]
             r = run_process(update_xyz);
 
-    ###################################################################################
+    ############################################################################
 
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
     if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2):
@@ -981,27 +978,21 @@ for time in timerange:
     print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
         
-    if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
+    if debug: print('memory usage',
+                    resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
 
-    ###################################################################################
+    ###########################################################################
     # Realease new pyticles (if continuous injection)
-    ###################################################################################
+    ###########################################################################
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
         
         ###############################################
         # modify seeding patch center to barycenter of
         # previously released particules after a time_step of advection
-        if eddy_center:
-            pass
         if barycentric:
             [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
         ######################################
-        # CRACH MASK TEST
-        # 
-        #jc = jc + 50
-        #nq_0 = nq_1
-        #nq_1 = np.nanmin([nq_injection*((itime + 1)//dt_injection + 1), nqmx])
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                                         iwd=iwd, jwd=jwd, nx=nx, ny=ny,
                                         nnx=nnx, nny=nny, nnlev=nnlev)
@@ -1013,13 +1004,16 @@ for time in timerange:
             z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
                                        z_w, ng=ng)
         
-        ipmx = 0; px0,py0,pz0 = [],[],[]
+        ipmx = 0
+        px0 = []
+        py0 = []
+        pz0 = []
         ##############################
         # Release particles on iso-surfaces of a variable
         # Typically isopycnals
         if initial_surf:
             [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
-                                          y_periodic = y_periodic, ng=ng, coord=coord)
+                                    y_periodic = y_periodic, ng=ng, coord=coord)
             [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
                                      y_periodic=y_periodic, ng=ng, coord=coord)
             rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
@@ -1028,7 +1022,8 @@ for time in timerange:
             lev1 = rho.shape[2] #  Needed to get all levels
             z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                     lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
-            map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
+            map_rho = part.map_var(simul, rho, x_box.reshape(-1),
+                                   y_box.reshape(-1),
                     z_box.reshape(-1), ng=ng, coord=coord).reshape(x_box.shape)
 
             del z
@@ -1037,7 +1032,8 @@ for time in timerange:
 
         ################################
         # Add a boolean condition at rho points 
-        # Only particles stastying condition are released
+        # Only particles statisfying condition are released
+        # Should be consistent with initial release
         if initial_cond:
             temp = part.get_t_io(simul, x_periodic=x_periodic,
                                  y_periodic=y_periodic, ng=ng, coord=coord)
@@ -1045,12 +1041,11 @@ for time in timerange:
 
             pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                                     ini_cond, ng, nq, i0, j0, k0)
-            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq,
-                                            ng=ng, pcond=pcond)
-           # nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
+            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
+                                            pz0, nq, ng=ng, pcond=pcond)
         else:
-            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
-                                            nq, ng=ng)
+            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
+                                            pz0, nq, ng=ng)
 
         del x, y, z
         
@@ -1061,14 +1056,14 @@ for time in timerange:
         py[nq_0: nq_1] = py0
         if adv3d: pz[nq_0: nq_1] = pz0
         
-    ###################################################################################
+    ############################################################################
     # Plot particles position (+ SST)
         
     if (time+dfile)%1<np.abs(dfile)*1e-2: run_process(plot_selection)
     
-    ###################################################################################
+    ############################################################################
     itime += 1
-    ###################################################################################
+    ############################################################################
 
     #wait = raw_input("PRESS ENTER TO CONTINUE.")
 

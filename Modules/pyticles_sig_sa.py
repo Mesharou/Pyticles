@@ -249,53 +249,23 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
         print('no omega in file, computing')
         [z_r, z_w] = get_depths(simul, coord=coord, x_periodic=x_periodic,
                                y_periodic=y_periodic, ng=ng)
-        print(f'u = {np.shape(u)}')
-        print(f'v = {np.shape(v)}')
-        # print(f'w = {np.shape(w)}')
-        print(f'z_r = {np.shape(z_r)}')
-        print(f'z_w = {np.shape(z_w)}')
-        print(f'coord = {coord}')
-        print(f'nx1, nx2 {nx1, nx2} ; ny1, ny2 {ny1, ny2}')
-        ###################################################################
-        # GOT lost in indexes....
-        #...
-        # U in roms_file
-        # ny1-ns : ny2-2*ng+nn, nx1+iper-nw : nx2-1+iper-2*ng+ne])
-        #pm = simul.pm[nx1 : nx2, ny1 : ny2] 
-        #pn = simul.pn[nx1 : nx2, ny1 : ny2] 
-        #z_r = z_r[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
-        #z_w = z_w[ny1-ns : ny2-2*ng+nn+1, nx1+iper-nw:nx2-1+iper-2*ng+ne, :]
-        
-        #pm = np.zeros(nx2-nx1, ny2-ny1)
-        #pm = np.zeros(nx2-nx1, ny2-ny1)
         pm = periodize2d_fromvar(simul, simul.pm, coord, x_periodic=x_periodic, 
                                  y_periodic=y_periodic, ng=ng)
         pn = periodize2d_fromvar(simul, simul.pn, coord, x_periodic=x_periodic,
                                  y_periodic=y_periodic, ng=ng)                         
-        print(f'pm = {pm.shape}')
-        print(f'pn = {pn.shape}')
-
-        # coord in 
-        # u[ng-nw:nx2-nx1-1-ng+ne, ng-ns:ny2-ny1-ng+nn, :] =  partF.get_omega(u, v,
-        # coord out
-        # ['u'][simul.infiletime, :, ny1-ns:ny2-2*ng+nn,
-        #                   nx1+iper-nw:nx2-1+iper-2*ng+ne]
-        #w[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = partF.get_omega(u,                                                             v, z_r, z_w, pm, pn)
         w = partF.get_omega(u, v, z_r, z_w, pm, pn)
         w[np.isnan(w)] = 0.
         if x_periodic and nx1<ng and nx2>nx2tot-nx1tot+ng: 
-            w[0,:,:] = w[nx2tot,:,:]
-            w[-1,:,:] = w[nx1tot+2*ng-1,:,:]
-        if y_periodic and ny1<ng and ny2>ny2tot-ny1tot+ng: 
-            w[:,0,:] = w[:,ny2tot,:]
-            w[:,-1,:] = w[:,ny1tot+2*ng-1,:]
-        print(f'w shape = {np.shape(w)}')
+            w[0, :, :] = w[nx2tot, :, :]
+            w[-1, :, :] = w[nx1tot+2*ng-1, :, :]
+        if y_periodic and ny1<ng and ny2 > ny2tot-ny1tot+ng: 
+            w[:, 0, :] = w[:, ny2tot, :]
+            w[:, -1, :] = w[:, ny1tot+2*ng-1, :]
     nc.close()
     
     if timing: print('get w from file....', tm.time()-tstart2)
-    if timing: tstart2 = tm.time()    
 
-    return u,v,w
+    return u, v, w
 
 ###################################################################################
 '''
@@ -766,15 +736,8 @@ def periodize3d_fromnc(simul, variable, coord, x_periodic=False, y_periodic=Fals
     ne = min(ng, nx2tot - nx1tot + 2*ng - nx2)
     ns = min(ng, ny1)
     nn = min(ng, ny2tot - ny1tot + 2*ng - ny2)
-    debug_crash = True
-    if debug_crash:
-        print(f'ny1tot, ny2tot, nx1tot, nx2tot = {ny1tot, ny2tot, nx1tot, nx2tot}')
-        print(f'ny1, ny2, nx1, nx2 = {ny1, ny2, nx1, nx2}')
-        print(f'nw = {nw}; ne = {ne}; ns = {ns}; nn = {nn}')
     if variable=='omega':
-        print('We are here')
         myvar = np.zeros((nx2-nx1, ny2-ny1, nz+1)) * np.nan
-        print(f'my_var.shape = {my_var.shape}')
     else:
         myvar = np.zeros((nx2-nx1, ny2-ny1, nz))*np.nan
 
@@ -1128,8 +1091,8 @@ def map_var(simul,var0,px,py,pz,ng=0,**kwargs):
         
     [j0,j1,i0,i1]=coord; k0=0; nqmx=px.shape[0]
    
-    print(var0.shape)
-    print([i1-i0,j1-j0,len(simul.coordmax[4])])
+    
+    #print([i1-i0,j1-j0,len(simul.coordmax[4])])
    
     if var0.shape==(i1-i0,j1-j0,len(simul.coordmax[4])):
         pvar0 = partF.interp_3d(px,py,pz,var0,ng,nqmx,i0,j0,k0)
@@ -1147,9 +1110,6 @@ def map_var(simul,var0,px,py,pz,ng=0,**kwargs):
 
     return pvar0
 
-
-
-'''
 ###################################################################################
 # Compute a 3D variable at each particle position
 ###################################################################################
@@ -1583,9 +1543,7 @@ def vinterp(var, depths, z_r, z_w=None, mask=None,imin=0,jmin=0,kmin=1, floattyp
 import scipy.spatial as sp
 
 def find_points(x,y,lon,lat):
-    '''
-    return indices of the nearest points
-    '''
+    ''' returns indices of the nearest points'''
 
     if isinstance(lon,int) or isinstance(lon,float):
         lon=np.array([lon]); lat=np.array([lat])
@@ -1603,7 +1561,6 @@ def find_points(x,y,lon,lat):
     i,j = results/x.shape[1], results%x.shape[1]
 
     print(i,j)
-
     return i[0],j[0]
 
 #############################

@@ -137,9 +137,10 @@ nnlev = 1
 #########
 # define initial vertical position using:
 # - depth if initial_depth = True
-# - if initial_cond you have to define your condition manually in Pyticles.py
+# - if initial_cond you have to define your condition directly in Pyticles.py
 # - if initial_surf (seeding particles on isosurface of a variable) 
-
+#   Typically on isopycnal surface, define isopycnal initial value rho0
+#   surface is retrieved using potential density anomy with rho1_eos from ROMS 
 
 # Initialize seeding particles using a boolean condition ini_cond
 # Inside a box_grid as usual
@@ -176,6 +177,7 @@ timestep = 'RK4' # Choices are
 
 nsub_steps = 360 # Number of time steps between 2 roms time steps
 
+
 # Spatial interpolation
 # Default is linear
 # Avalaible : #define CUBIC_INTERPOLATION
@@ -185,6 +187,13 @@ nsub_steps = 360 # Number of time steps between 2 roms time steps
 # To define them, in Modules/interp_3d_for_pyticles.F 
 # Activate ccp keys : NEW_VERSION and chosen numerical scheme
 # Compile cpp keys use make command
+
+nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
+
+ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
+
+
+
 ##############################################################################
 
 
