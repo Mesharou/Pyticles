@@ -19,7 +19,6 @@ from R_files import load
 ##############################################################################
 
 debug = True # Increase verbosity to help debug
-debug_crash = True
 
 ################################################################################
 # ROMS INPUTS
@@ -28,14 +27,14 @@ debug_crash = True
 # if meanflow = True Roms data are not updated (used for climatology)
 meanflow = False
 # in case of periodic channel
-x_periodic = False
+x_periodic = True
 y_periodic = False
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1510
-end_file = 1535
+start_file = 1
+end_file = 100
 
 ###### Restart from a Pyticles output file
 # user should not change start_file
@@ -52,7 +51,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'Case_1'
+my_simul = 'x_periodic'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
@@ -99,7 +98,7 @@ if write_uvw:
     write_uv = False
 
 #Write only Temperature (for simulations with no S)
-write_t = False
+write_t = True
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
@@ -118,7 +117,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic, jc] = [700, 1100] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic, jc] = [520, 120] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
@@ -190,7 +189,9 @@ nsub_steps = 360 # Number of time steps between 2 roms time steps
 
 nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
 
-ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
+ng = -2 #number of Ghostpoints if ng>0 remove particles at open boundaries
+#        by setting px to NaN
+# if ng < 0 and periodic then particles re-enter at opposite periodic boundary
 
 
 

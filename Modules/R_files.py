@@ -2326,7 +2326,7 @@ class files(object):
             self.wind=folder + '/roms_his_Y10M2.nc'
             self.tfile=10
             self.tstart=0
-            self.tend=9
+            self.tend=100
             self.Ystart=10
             self.Mstart=2
 
