@@ -109,10 +109,11 @@ class load(object):
             elif self.ncname.digits==0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
         elif self.ncname.model == 'agrif_jc':
-            dsec = 30*24*3600 /self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec/ (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) / (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))/dsec
+            dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
+            month = (self.ncname.Mstart + self.time * dsec// (30*24*3600) - 1 )%12 + 1
+            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 \
+            * 3600 + self.time * dsec ) // (360*24*3600)
+            self.infiletime = (self.time * dsec % (30*24*3600))//dsec
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month) + self.ncname.fileformat
@@ -176,10 +177,11 @@ class load(object):
             elif self.ncname.digits==0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
         elif self.ncname.model == 'agrif_jc':
-            dsec = 30*24*3600 /self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec/ (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) / (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))/dsec
+            dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
+            month = (self.ncname.Mstart + self.time * dsec// (30*24*3600) - 1 )%12 + 1
+            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 \
+            * 3600 + self.time * dsec ) // (360*24*3600)
+            self.infiletime = (self.time * dsec % (30*24*3600))//dsec
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
@@ -2314,8 +2316,19 @@ class files(object):
             self.tfile=10
             self.tstart=0
             self.tend=1000
-
-            print('AACC ', self.grd)
+        
+        elif simul == 'x_periodic':
+            self.model = 'agrif_jc'
+            folder = '/home/jeremy/Bureau/Data/ROMS/X_periodic' 
+            self.his=folder + '/roms_his_'
+            self.grd=folder + '/roms_his_Y10M2.nc'
+            self.frc=folder + '/roms_his_Y10M2.nc'
+            self.wind=folder + '/roms_his_Y10M2.nc'
+            self.tfile=10
+            self.tstart=0
+            self.tend=9
+            self.Ystart=10
+            self.Mstart=2
 
 
         elif simul=='aacc_8k':

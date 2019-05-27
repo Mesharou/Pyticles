@@ -12,7 +12,7 @@ Outputs:
 '''
 
 
-###################################################################################
+################################################################################
 #@profile
 def interp_3d_t(subrange):
     
@@ -24,10 +24,11 @@ def interp_3d_t(subrange):
     pz_F = np.asfortranarray(pz[subrange])
     '''
 
-    ptemp[subrange]=partF.interp_3d(px[subrange],py[subrange],pz[subrange],temp,ng,nq,i0,j0,k0)
+    ptemp[subrange] = partF.interp_3d(px[subrange], py[subrange], pz[subrange],
+                                      temp, ng, nq, i0, j0, k0)
 
     
-###################################################################################
+################################################################################
 #create shared arrays
 temp = shared_array(nx_s,ny_s,nz)
 
@@ -45,12 +46,14 @@ if not meanflow and alpha_time != 0:
 # Get T,S at particles positions
 ###############################################################################
 
-
 nslice = nq//nproc + 1
 subranges=[]
-for i in range(nproc): subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
+procs = []
 
-procs = [mp.Process(target=interp_3d_t, args=([subranges[i]])) for i in range(nproc)]
+for i in range(nproc):
+    subranges.append(list(range(i*nslice, np.nanmin([(i+1)*nslice, nq]))))
+    procs.append(mp.Process(target=interp_3d_t, args=(subranges[i],)))
+#procs = [mp.Process(target=interp_3d_t, args=([subranges[i]])) for i in range(nproc)]
 
 for p in procs: p.start()
 for p in procs: p.join()   
