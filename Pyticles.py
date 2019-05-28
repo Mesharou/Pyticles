@@ -226,6 +226,8 @@ if not adv3d:
 if initial_depth:
     lev1 = lev0 + len(depths0) - 1
     nnlev = 1
+    write_uvw = False
+    write_uv = True
 #########
 # boolean matrix condition to define seeding patch
 if initial_cond:
@@ -921,6 +923,8 @@ for time in timerange:
     subtightcoord_saves=[]; subcoord_saves=[];  subsubrange_saves=[]
 
     if nsub_x*nsub_y == 1:
+        print('='  * 40)
+        print('Whaaaat !!!!!')
         subcoord = coord
         subsubrange = list(range(nq))
         r = run_process(update_xyz);

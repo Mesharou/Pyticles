@@ -61,7 +61,7 @@ simul = load(simul = parameters, floattype=np.float64)
 ##############################################################################
 # 3D advection
 adv3d = False
-advzavg = True
+advzavg = False
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth
@@ -102,7 +102,7 @@ write_t = True
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Zavg_v2.0'
+config = 'x_per_ng1_adv2D'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -117,7 +117,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic, jc] = [520, 120] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic, jc] = [560, 120] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
@@ -157,7 +157,7 @@ initial_surf = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-50]
+depths0 = [-200]
 rho0 = [-1.5]
 
 # if True release particles continuously
@@ -189,7 +189,7 @@ nsub_steps = 360 # Number of time steps between 2 roms time steps
 
 nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
 
-ng = -2 #number of Ghostpoints if ng>0 remove particles at open boundaries
+ng = 1 #number of Ghostpoints if ng>0 remove particles at open boundaries
 #        by setting px to NaN
 # if ng < 0 and periodic then particles re-enter at opposite periodic boundary
 

@@ -58,18 +58,22 @@ subtiming=False
 tim0 = simul.oceantime
 
 if np.isnan(pm_s[0,0]):
-    
+    #JC debug
+    print('*' * 40)
+    print('entering here')    
     pm_s[:] = part.periodize2d_fromvar(simul, simul.pm, coord=subcoord,
             x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
     pn_s[:] = part.periodize2d_fromvar(simul, simul.pn, coord=subcoord,
             x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
     mask_s[:] = part.periodize2d_fromvar(simul, maskrho, coord=subcoord,
             x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
-
+    print(f'mask = {mask_s}')
+    print(f'pm = {pm_s}')
+    print(f'pn = {pn_s}')
     if subtiming: print(('Get pm,pn .....................', tm.time()-tstart))
     if subtiming: tstart = tm.time()
     
-    ###################################################################################
+    ############################################################################
     # Load (u,v,w) on sigmal-levels at time-step t
     if adv3d:
 
@@ -91,9 +95,15 @@ if np.isnan(pm_s[0,0]):
                 coord=subcoord)
     ### JC
     else:
+        # JC debug
+        print('%' * 40)
+        print('also here')
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
-                y_periodic=y_periodic, ng=ng, advdepth = advdepth, coord=subcoord)
+                y_periodic=y_periodic, ng=ng, advdepth = advdepth,
+                coord=subcoord)
+        print(f'u = {u}')
+        print(f'v = {v}')
 
     if subtiming: print(('Computing velocity at t1.......', tm.time()-tstart))
     if subtiming: tstart = tm.time()
@@ -137,6 +147,9 @@ elif advzavg:
 ### JC
 
 else:
+    # JC debug
+    print('^' * 40)
+    print('okok')
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
                                       pn=pn_s, timing=subtiming,
                                       x_periodic=x_periodic, y_periodic=y_periodic,
@@ -300,7 +313,7 @@ def advance_2d(subrange,out,step):
     px_F = np.asfortranarray(px[subrange])
     py_F = np.asfortranarray(py[subrange])
     istep_F = istep[0]
-    subtime=tim0
+    subtime = tim0
 
     for it in range(subtstep):
         
@@ -318,13 +331,16 @@ def advance_2d(subrange,out,step):
         ########################  
         #Remove particles exiting the domain:
 
-        [px_F,py_F] = part.cull2d(px_F,py_F,nx,ny,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        [px_F, py_F] = part.cull2d(px_F, py_F, nx, ny, x_periodic=x_periodic,
+                                   y_periodic=y_periodic, ng=ng)
 
         subtime += dt
             
 
-    step.put(istep_F)     
-        
+    step.put(istep_F) 
+    print('=' * 60)
+    print('in update xyz')
+    print(f'{subrange}') 
     px[subrange],py[subrange]=px_F,py_F
 
 ###################################################################################
@@ -333,6 +349,9 @@ def advance_2d(subrange,out,step):
 
 nslice = len(subsubrange)//nproc+1; subranges=[]; nprocs=[]
 
+#JC debug
+print('===' * 20)
+print('Hello')
 
 for i in range(nproc): 
     subranges.append(subsubrange[i*nslice:np.nanmin([(i+1)*nslice,nq])])
@@ -344,21 +363,21 @@ for i in range(nproc):
 
 procs = []
 if len(nprocs)>0:
-    
     out = mp.Queue(); step = mp.Queue()
     for i in range(nproc):
         if adv3d:
             procs.append(mp.Process(target=advance_3d,
                          args=(subranges[i], out, step,)))
+            print('=' * 40)
+            print('Sould not be here : update_xyz')
         else:
             procs.append(mp.Process(target=advance_2d,
                          args=(subranges[i], out, step,)))
-
+            print('=' * 40)
+            print('eh Oh advance2D')
     for p in procs: p.start()
     for p in procs: p.join()   
-
     if timestep[:2]=='AB': iab[:] = out.get_nowait()
-
     try:
         istep[0] = step.get_nowait()
     except Queue.Empty:
