@@ -15,13 +15,10 @@
 
 
 
-!#undef NEW_VERSION
-!#defin LINEAR_INTERPOLATION
-!#define CUBIC_INTERPOLATION
 !----------------------------------------------------------------------------------------------
-#undef NEW_VERSION
-#define LINEAR_INTERPOLATION
-! #define CUBIC_INTERPOLATION
+#define NEW_VERSION
+#undef LINEAR_INTERPOLATION
+#define CUBIC_INTERPOLATION
 ! #define CRSPL_INTERPOLATION
 ! #define WENO_INTERPOLATION
 !----------------------------------------------------------------------------------------------

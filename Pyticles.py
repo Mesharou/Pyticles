@@ -221,13 +221,14 @@ if not adv3d:
     lev0 = -1
     lev1 = lev0
     depths0 = [advdepth]
+    write_uvw = False
+    write_uv = True
+
 #########
 # define initial vertical position using depth
 if initial_depth:
     lev1 = lev0 + len(depths0) - 1
     nnlev = 1
-    write_uvw = False
-    write_uv = True
 #########
 # boolean matrix condition to define seeding patch
 if initial_cond:
@@ -245,7 +246,23 @@ if continuous_injection:
 # THE FOLLOWING SHOULD NOT BE EDITED BY USER
 ################################################################################
 ################################################################################
+# PRINTING SIMULATION PARAMETERS
+print('=' * 60)
+print(f'MEANFLOW : {meanflow} ')
+print(f'x_periodic : {x_periodic}')
+print(f'y_periodic : {y_periodic}')
+print(f'dfile : {dfile}')
+print(f'adv3d : {adv3d}')
+print(f'advzavg : {advzavg}')
+if not adv3d: print(f' advdepth: {advdepth}')
+if advzavg: print(f'z_thick : {z_thick}')
+if sedimentation: print(f'w_sed0 : {w_sed0} (m/s)')
+print(f'initial_cond : {initial_cond}')
+if initial_surf: print(f'initial surface :  {rho0}')
+if initial_depth: print(f'initial depth :  {depths0}')
 
+
+##############################################################################
 
 def shared_array(nx, ny=1, nz=1, nt=1, prec='double', value=np.nan):
     '''
@@ -390,7 +407,7 @@ if not restart:
     # Else we need the grid box to compute px0, py0, pz0 at each injection time
 
     nq = ipmx
-    print('nq = {nq}')
+    print(f'nq = {nq}')
     ############################################################################
 
     if continuous_injection:
@@ -437,7 +454,7 @@ if not restart:
 else: 
 
     if not continuous_injection:
-        # just load px,py,pz from restart_file
+        # load px,py,pz from restart_file
         print('#################################################')
         print(f'restart_file is {restart_file}')
         nc = Dataset(restart_file, 'r')
@@ -923,8 +940,6 @@ for time in timerange:
     subtightcoord_saves=[]; subcoord_saves=[];  subsubrange_saves=[]
 
     if nsub_x*nsub_y == 1:
-        print('='  * 40)
-        print('Whaaaat !!!!!')
         subcoord = coord
         subsubrange = list(range(nq))
         r = run_process(update_xyz);
