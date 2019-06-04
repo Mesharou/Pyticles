@@ -5,11 +5,25 @@ Script with demo for use of visual_tools module
 - 2_depths : partciles initialized at 2 different depths
              Marker shape differs to indentify particles regarding depth
 
-animation.py : aborted, trying to perform online videos
-               Seems more efficient to create a video from a serie of picture
-               using ffmpeg or avconv
-anim_from_pic : generate a series of plot 
-                movie made using ffmpeg
+- animation.py : aborted, trying to perform online videos
+                 Seems more efficient to create a video from a serie of picture
+                 using ffmpeg or avconv
+
+- anim_from_pic : generate a series of plot 
+                  movie made using ffmpeg
 
                 - anim_2_depths.py 
-                case test with 2 different depths
+                  case test with 2 different depths
+
+
+                - anim_barycentric.py
+                  example were particles at t(i+1) are released at the
+                  barycenter of previous of particles released at t(i)
+                  after 1 * dt of advection
+                  
+                  topography is displayed as a background map
+                  particles age in color
+
+                - isopycnal_seeding.py
+                  Example with particles released at isopycnal surface
+

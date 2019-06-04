@@ -2,10 +2,18 @@
 JCollin 05-2019
 Generates a series of images using a loop
 
-another bash script is used to generate a video
-ffmpeg -framerate 1 -i fig_%d.png output.mp4
+anim_barycentric.py
+   example were particles at t(i+1) are released at the 
+   barycenter of previous of particles released at t(i)
+   after 1 * dt of advection
+                  
+   topography is displayed as a background map
+   particles age in color
+
+
 '''
 ##############################################################################
+# Importing python library
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as gridspec
@@ -15,12 +23,18 @@ from importlib import reload
 import time as tm
 
 import sys
+
+# import local library
 sys.path.append('../../Modules/')
 sys.path.append('home/jeremy/Bureau/Project/Pyticles/')
 from R_files import load
 import visual_tools as vt
 ##############################################################################
 # INPUT PARAMETERS
+# start_file, end_file: int, file indexes
+# my_simul : same as the one used in R_files (used to retrieve ROMS outputs)
+# save_dir : directory to save figures
+# gen_name : generic figures name
 ##############################################################################
 start_file = 1510
 end_file = 1535
@@ -76,17 +90,6 @@ ti = 5
 age = np.sum(indx[:ti,:], axis=0)
 
 ##############################################################################
-'''
-Todo: 
-
-Using barycentric configuration
-
-plot particles age as a scatter color
-
-sst in pcolor
-
-'''
-##################################
 # Pdepth
 roms_path = '/home/jeremy/Bureau/Data/Pyticles/'
 npts = 5
@@ -146,17 +149,4 @@ for itime in range(px.shape[0]):
         fname = save_dir + gen_name + str(itime) + fmt
         plt.savefig(fname)
     plt.close('all')
-
-
-
-
-
-
-
-
-
-
-
-
-
 

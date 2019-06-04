@@ -4,7 +4,6 @@ isopycnal release
 
 - scatter depth & topo as background contour
 
-- scatter rho1_eos & topo
 
 '''
 ##############################################################################
@@ -97,7 +96,6 @@ for itime in range(px.shape[0]):
     # mask land
     vt.mask_contour(ax1, topo, advdepth=advdepth)
     # map_var
-    #map_var = topo[xmin:xmax, ymin:xmax]
     map_var = topo
     quad1 = ax1.contourf(np.ma.masked_invalid(map_var.T), cmap='Greys',
                          zorder=1)
@@ -120,44 +118,4 @@ for itime in range(px.shape[0]):
         fname = save_dir + gen_name + str(itime) + fmt
         plt.savefig(fname)
     plt.close(fig)
-
-##########################################
-'''
-just checking on pdepth(t), strange feeling there is barely any vertical 
-movement
-
-'''
-
-fig = plt.figure()
-ax = plt.subplot(111)
-ax.plot(pdepth)
-plt.show()
-plt.close(fig)
-
-
-###########################################
-# WORKING on integral of akv along particle path vs Drho/Dt
-# take abs(akv)
-prho1_eos = np.squeeze(rho1_eos(pt, ps, pz, pz, simul.rho0))
-ng = 1
-
-fig = plt.figure()
-ax = plt.subplot(111)
-ax.plot(prho1_eos)
-plt.show()
-plt.close(fig)
-advdepth = -1
-for itime in range(px.shape[0]):
-    roms_file = roms_path + 'chaba_his.' + str(start_file + (itime//5)*5) +'.nc'
-    akv = vt.get_var('AKv', roms_file, itime = itime//5)
-    pakv[itime, :] = part.map_var(simul, akv, px[itime,:].reshape(-1), 
-                                  py[itime,:].reshape(-1), pz[itime,:].reshape(-1),
-                                  ng=ng).reshape(px.shape)
-
-
-
-
-
-
-
 
