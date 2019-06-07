@@ -36,10 +36,11 @@ dfile = 1
 start_file = 1510
 end_file = 1535
 
+
 ###### Restart from a Pyticles output file
 # user should not change start_file
 # restart_time : number of time step since start_file
-restart = True
+restart = False
 restart_time = 7 #nb of time steps in the restart_file
 restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
                +'/Cubic_adv/Case_1_Cubic_adv_4_1510.nc'
@@ -98,11 +99,11 @@ if write_uvw:
     write_uv = False
 
 #Write only Temperature (for simulations with no S)
-write_t = True
+write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Cubic_adv'
+config = 'Cubic_adv_salt'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -187,10 +188,10 @@ nsub_steps = 360 # Number of time steps between 2 roms time steps
 # Activate ccp keys : NEW_VERSION and chosen numerical scheme
 # Compile cpp keys use make command
 
-nadv = 1 # number of extra-points needed for interpolation, 0 for linear, 1 for higher order, etc.
+nadv = 1 # depreacated 
 
-ng = 2 # -ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
-
+# number of ghost points for 
+ng = 2 
 
 
 ##############################################################################

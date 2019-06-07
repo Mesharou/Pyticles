@@ -42,9 +42,6 @@
 
 
 
-!#undef NEW_VERSION
-!#defin LINEAR_INTERPOLATION
-!#define CUBIC_INTERPOLATION
 !----------------------------------------------------------------------------------------------
 
 
@@ -123,7 +120,7 @@
            i = floor(px+ng-i0+0.5); pxl = px+ng-i0-i+0.5 !! In x-dir rho grid starts at -0.5
            j = floor(py+ng-j0+0.5); pyl = py+ng-j0-j+0.5 !! In y-dir rho grid starts at -0.5
            k = floor(pz-k0+0.5); pzl = pz-k0-k+0.5 !!
-# 109 "interp_3d_for_pyticles.F"
+# 106 "interp_3d_for_pyticles.F"
            !! for now, we do slip conditions near the bottom and
            !! extrapolation near the top.
            if (k .eq. 0) then
@@ -232,7 +229,7 @@
 !----------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------
-# 246 "interp_3d_for_pyticles.F"
+# 243 "interp_3d_for_pyticles.F"
 !----------------------------------------------------------------------------------------------
 
        subroutine interp3(f,x,y,z,fi)
@@ -283,7 +280,7 @@
 
        end
 !----------------------------------------------------------------------------------------------
-# 576 "interp_3d_for_pyticles.F"
+# 573 "interp_3d_for_pyticles.F"
 !---------------------------------------------------------------------!
 ! Compute 2d displacement given u,v at particule position
 ! with linear interpolation in space and time
@@ -341,7 +338,7 @@
 
            fcx_u = px+1+ng - i_u - i0;
            fcy_v = py+1+ng - j_v - j0;
-# 649 "interp_3d_for_pyticles.F"
+# 646 "interp_3d_for_pyticles.F"
            fctl = fct
            if (itim(0).eq.1) fctl = 1-fct
 
