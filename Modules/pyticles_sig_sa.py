@@ -522,9 +522,6 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
     get horizontal velocities at depth advdepth (default = surface)
 
     '''
-    #JC debug
-    print('==' * 40 )
-    print('in get_vel_io_2d')
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
     else: 
@@ -546,15 +543,9 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
 
     u = np.zeros((nx2-nx1-1,ny2-ny1))*np.nan
     v = np.zeros((nx2-nx1,ny2-ny1-1))*np.nan
-    # JC debug
-    print('-' * 60)
-    print('all good for now')
     ################################
 
     def interp(simul, varname, coord=coord, advdepth=advdepth):
-        #JC debug
-        print('entering interp')
-        print(f'advdepth = {advdepth}')
 
         coordz = copy(coord)
 
@@ -567,21 +558,11 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
                  nc.variables[varname][simul.infiletime, -1, coord[0]:coord[1],
                  coord[2]:coord[3]]))
         else:
-            print('still ok')
             [z_r, z_w] = get_depths(simul,coord=coordz)
-            print(f'z_r = {z_r}')
-            print(f'z_w = {z_w}')
             var0  = simul.Forder(np.squeeze(
                                   nc.variables[varname][simul.infiletime, :,
                                   coord[0] : coord[1], coord[2] : coord[3]]))
-            print(f'var0 = {var0}')
-            print('=' * 40)
-            print(f'Shapes of : (var0, [advdepth], z_r, z_w) {var0.shape}')
-            print(f'{[advdepth]}, {z_r.shape}, {z_w.shape} ')
-            print(f'imin, jmin  = {imin, jmin}')
             varz = vinterp(var0, [advdepth], z_r, z_w, imin=imin, jmin=jmin)[:,:,0]
-            print(f'varz shape = {varz.shape}')
-            print(f'varz = {varz}')
         return varz
 
     ################################
@@ -592,35 +573,23 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    print(f'iper = {iper}')
-    '''    u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = simul.Forder(
-      np.squeeze(nc.variables['u'][simul.infiletime, :, ny1-ns : ny2-2*ng+nn,
-                           nx1+iper-nw : nx2-1+iper-2*ng+ne]))
-    ''' 
     u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn] = interp(simul, 'u',
             coord=[ny1-ns, ny2-2*ng+nn, nx1+iper-nw, nx2-1+iper-2*ng+ne],
             advdepth=advdepth)
-    print(f'u = {u}')    
     
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
-    print(f'u = {u}')
     
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    print(f'jper = {jper}')
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
 
-    print(f'v = {v}')
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
-
-    print(f'v = {v}')
     ################################
     # Filling Ghost points
     ################################
 
     if nw<ng and x_periodic:
-        print('nw<ng and x_periodic')
         u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = interp(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot,nx1tot+1])
         for i in range(1,ng):
             u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = interp(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx2tot-i,nx2tot-i+1])
@@ -629,7 +598,6 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
         nw=ng 
 
     if ne<ng and x_periodic:
-        print('ne<ng and x_periodic')
         for i in range(ng):
             u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = interp(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot+i,nx1tot+i+1])
         for i in range(ng):
@@ -637,7 +605,6 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
         ne=ng
 
     if ns<ng and y_periodic:
-        print('ns<ng and y_periodic')
         v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = interp(simul,'v',coord=[ny1tot,ny1tot+1,nx1-nw,nx2-2*ng+ne])
         for i in range(1,ng):
             v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = interp(simul,'v',coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])

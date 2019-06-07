@@ -216,6 +216,46 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     return z
 
 ##############################################################################
+def ini_trap_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
+    '''
+    retrieve pz from px, py (sigman coordinate), and depths0 in meter being vectors
+    '''
+    z_part = np.arange(len(simul.coord[4])+1, dtype='float')
+    for ip in range(len(x)):
+        ix = np.int(np.floor(x[ip])) + ng
+        iy = np.int(np.floor(y[ip])) + ng
+        if maskrho[ix,iy]==1:
+            cfx = x[ip] - ix + 0.5 + ng
+            cfy = y[ip] - iy + 0.5 + ng
+
+            zxp = z_w[ix+1, iy]
+            zyp = z_w[ix, iy+1]
+            zxyp = z_w[ix+1, iy+1]
+
+            z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
+               + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
+
+            f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
+            try:
+                z[ip] = f(depths0)
+            except ValueError:
+                z[ip] = -1.
+            '''
+            Need to handle exeption where 
+                 
+            raise ValueError("A value in x_new is below the interpolation "
+            ValueError: A value in x_new is below the interpolation range.
+                
+            just need to put z=0
+            '''
+        else:
+            z[ip] = 0.
+
+    return z
+
+
+
+##############################################################################
 def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                 pcond=np.array(False)):
     '''
@@ -276,4 +316,7 @@ def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                     print(f'pmask[ip] {pmask[ip]}')
     return ipcount
 ##############################################################################
-
+#def from_nc(ncname, itime)
+#    '''
+#    
+#    '''

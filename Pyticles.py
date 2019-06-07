@@ -167,7 +167,7 @@ nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 simulname = '_' + config
 if (not adv3d) and (advdepth > 0):
     simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
-    write_depth = False
+#    write_depth = False
 elif (not adv3d) and (advdepth <= 0):     
     simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
     sedimentaion = False
@@ -399,6 +399,16 @@ if not restart:
         #########################
         # Remove partciles that does not match condition
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,                                         nq, ng=ng, pcond=pcond)
+    if part_trap:
+        '''
+        Particles are released using position of a forward simulation
+        Then advected backwards
+        '''
+        trap_file = '/home/jeremy/Bureau/Data/Pyticles/Zavg_v2.0/' \
+                    + 'Case_1_Zavg_v2.0_adv200.0m_1_1510.nc'
+        nc = Dataset(trap_file, 'r')
+        ipmx = len(nc.variables['px'][-1, :])
+        nc.close()
     else:
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
@@ -416,6 +426,7 @@ if not restart:
         nqmx) and leave nan for future pyticles which will be released at
         the same positions every time step
         '''
+            
         nq_injection = nq
         nq = np.nanmin([nq_injection*(N_injection+1),nqmx])
         print('it would take', nq_injection*N_injection-nqmx, ' more pyticles')
@@ -438,9 +449,27 @@ if not restart:
     pz = shared_array(nq,prec='double')
 
     if continuous_injection:
-        px[:nq_1] = px0
-        py[:nq_1] = py0
-        pz[:nq_1] = pz0
+        if part_trap:
+            depths0 = [-200]
+            nc = Dataset(trap_file, 'r')
+            px[:nq_1] = nc.variables['px'][-1, :]
+            py[:nq_1] = nc.variables['py'][-1, :]
+            px[:nq_1] = px[~np.isnan(px[:nq_1])]
+            py[:nq_1] = py[~np.isnan(py)]
+            nq_1 = len(px)
+
+            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng)
+            z = np.arange(len(px[:nq_1]))
+            z = seeding_part.ini_trap_depth(maskrho, simul, depths0, px[:nq_1],
+                                                        py[nq_1], z, z_w, ng=ng)
+
+            pz[:nq_1] = z
+            nc.close()
+        else:
+            px[:nq_1] = px0
+            py[:nq_1] = py0
+            pz[:nq_1] = pz0
 
     else: 
         px[:] = px0
@@ -1062,6 +1091,13 @@ for time in timerange:
                                     ini_cond, ng, nq, i0, j0, k0)
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng, pcond=pcond)
+        if part_trap:
+            nc = Dataset(trap_file, 'r')
+            ipmx = len(nc.variables['px'][time, :])
+            px0 = nc.variables['px'][time, :]
+            py0 = nc.variables['py'][time, :]
+            pz0 = nc.variables['pz'][time, :]
+            nc.close()
         else:
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng)

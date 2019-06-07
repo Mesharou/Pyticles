@@ -32,9 +32,9 @@ y_periodic = False
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
-dfile = 1
-start_file = 1510
-end_file = 1535
+dfile = -1
+start_file = 1514
+end_file = 1510
 
 
 ###### Restart from a Pyticles output file
@@ -78,8 +78,8 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = False
-w_sed0 = -0 # vertical velocity for particles sedimentation (m/s)
+sedimentation = True
+w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
 
 ##############################################################################
 # Pyticles Outputs
@@ -103,7 +103,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Cubic_adv_salt'
+config = 'Trap'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 
@@ -152,8 +152,9 @@ nnlev = 1
 # Therefore if ini_cond = True: initial_depth = False
 
 initial_cond = False # 1036 in Pyticles.py
-initial_depth = True
+initial_depth = False
 initial_surf = False
+part_trap = True
 
 if initial_cond:
    initial_depth = False
@@ -163,7 +164,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = False
+continuous_injection = True
 
 ##############################################################################
 # Pyticles numerical schemes
