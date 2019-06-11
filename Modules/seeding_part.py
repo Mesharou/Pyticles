@@ -239,6 +239,9 @@ def ini_trap_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
             try:
                 z[ip] = f(depths0)
             except ValueError:
+                print('')
+                print(np.min(z_part))
+                print(np.max(z_part))
                 z[ip] = -1.
             '''
             Need to handle exeption where 

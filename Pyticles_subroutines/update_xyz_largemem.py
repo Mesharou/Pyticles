@@ -70,6 +70,8 @@ if np.isnan(pm_s[0,0]):
     ############################################################################
     # Load (u,v,w) on sigmal-levels at time-step t
     if adv3d:
+        #JC DEBUG
+        print('getting u')
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
@@ -116,6 +118,8 @@ if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
+    # JC DEBUG
+    print('u after')
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
             coord=subcoord)

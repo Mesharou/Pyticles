@@ -33,7 +33,7 @@ y_periodic = False
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = -1
-start_file = 1514
+start_file = 1535
 end_file = 1510
 
 
@@ -191,8 +191,9 @@ nsub_steps = 360 # Number of time steps between 2 roms time steps
 
 nadv = 1 # depreacated 
 
-# number of ghost points for 
-ng = 2 
+# number of ghost points for numerical interpolation scheme
+# 1 for linear... 2 for cubic
+ng = 1 
 
 
 ##############################################################################

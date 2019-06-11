@@ -362,7 +362,6 @@ if not restart:
     topolim=0
 
     if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
-    #elif advzavg: topolim = np.nanmax([topolim, -advdepth+z_thick/2])
     elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick/2])
 
     # initializing px0, py0, pz0
@@ -403,12 +402,30 @@ if not restart:
         '''
         Particles are released using position of a forward simulation
         Then advected backwards
+         
+        Here ipmx is used using all particles at it, including nan
+
+        Need to define a time index corresponding to start of backward
+        simulation
+
         '''
-        trap_file = '/home/jeremy/Bureau/Data/Pyticles/Zavg_v2.0/' \
-                    + 'Case_1_Zavg_v2.0_adv200.0m_1_1510.nc'
+        trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
+                    + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
         nc = Dataset(trap_file, 'r')
         ipmx = len(nc.variables['px'][-1, :])
+        depths0 = [getattr(nc, 'depth')]
+        indx = ~np.isnan(nc.variables['px'][-1, :])
+        indy = ~np.isnan(nc.variables['py'][-1, :])
+        px0 = nc.variables['px'][-1, indx]
+        py0 = nc.variables['py'][-1, indx]
+        pz0 = 0 * px0
         nc.close()
+        
+        z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng)
+        pz0 = seeding_part.ini_trap_depth(maskrho, simul, depths0, px0, py0,
+                                           pz0, z_w, ng=ng)
+        nq_1save = len(pz0) 
     else:
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
@@ -449,28 +466,10 @@ if not restart:
     pz = shared_array(nq,prec='double')
 
     if continuous_injection:
-        if part_trap:
-            depths0 = [-200]
-            nc = Dataset(trap_file, 'r')
-            px[:nq_1] = nc.variables['px'][-1, :]
-            py[:nq_1] = nc.variables['py'][-1, :]
-            px[:nq_1] = px[~np.isnan(px[:nq_1])]
-            py[:nq_1] = py[~np.isnan(py)]
-            nq_1 = len(px)
-
-            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
-                                     y_periodic=y_periodic, ng=ng)
-            z = np.arange(len(px[:nq_1]))
-            z = seeding_part.ini_trap_depth(maskrho, simul, depths0, px[:nq_1],
-                                                        py[nq_1], z, z_w, ng=ng)
-
-            pz[:nq_1] = z
-            nc.close()
-        else:
-            px[:nq_1] = px0
-            py[:nq_1] = py0
-            pz[:nq_1] = pz0
-
+        if part_trap: nq_1 = nq_1save
+        px[:nq_1] = px0
+        py[:nq_1] = py0
+        pz[:nq_1] = pz0
     else: 
         px[:] = px0
         py[:] = py0
@@ -953,8 +952,6 @@ for time in timerange:
     ############################################################################
     #Automatic division:
     
-    #nsub_x = 1
-    #nsub_y = 1
     nsub_x = 1 + (coord[3] - coord[2]) // 1000
     nsub_y = 1 + (coord[1] - coord[0]) // 1000
 
@@ -1092,13 +1089,34 @@ for time in timerange:
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng, pcond=pcond)
         if part_trap:
+            '''
+            Particles are released using position of a forward simulation
+            Then advected backwards
+         
+            Here ipmx is used using all particles at it, including nan
+
+            Need to define a time index corresponding to start of backward
+            simulation
+
+            '''
+            ipmx, px0, py0, pz0 = seeding_part.ini_trap
+            trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
+                    + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
             nc = Dataset(trap_file, 'r')
-            ipmx = len(nc.variables['px'][time, :])
-            px0 = nc.variables['px'][time, :]
-            py0 = nc.variables['py'][time, :]
-            pz0 = nc.variables['pz'][time, :]
+            depths0 = [getattr(nc, 'depth')]
+            indx = ~np.isnan(nc.variables['px'][-1-itime, :])
+            indy = ~np.isnan(nc.variables['py'][-1-itime, :])
+            px0 = nc.variables['px'][-1-itime, indx]
+            py0 = nc.variables['py'][-1-itime, indx]
+            pz0 = 0 * px0
             nc.close()
-        else:
+
+            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng)
+            pz0 = seeding_part.ini_trap_depth(maskrho, simul, depths0, px0, py0,
+                                           pz0, z_w, ng=ng)
+            ipmx = len(pz0)
+        else:    
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng)
 

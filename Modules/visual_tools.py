@@ -49,7 +49,7 @@ def get_var(var, ncfile, **kwargs):
     return py_var
 
 #############################################################################
-def get_attr(attr, ncfile, it=0):
+def get_attr(attr, ncfile):
     '''
     Returns the netcdf attribute 'attr' from ncfile
     attr is a string : name of pyticilesgolabal attribute
