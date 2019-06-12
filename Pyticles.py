@@ -1104,6 +1104,7 @@ for time in timerange:
             Then advected backwards
          
             Here ipmx is used using all particles at it, including nan
+            ipmx has to be changed to nq_1save
 
             Need to define a time index corresponding to start of backward
             simulation
