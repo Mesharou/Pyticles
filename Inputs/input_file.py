@@ -103,7 +103,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Trap'
+config = 'Trap_bis'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 

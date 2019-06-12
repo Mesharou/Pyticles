@@ -13,6 +13,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
 from copy import *
+from netCDF4 import Dataset
 
 
 ##############################################################################
@@ -259,6 +260,38 @@ def ini_trap_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
 
 
 ##############################################################################
+def ini_trap(trap_file, simul, maskrho, x_periodic=False, y_periodic=False,
+             ng=0):
+    '''
+    Release particles from netcdf pyticles file 'trap_file'
+    returns nq_1save, ipmx, px0, py0, pz0
+
+    retrieve particles position from trap_file
+    filter NANs
+    
+    keep number of particles at itime (including NANs) in order to allocate
+    sufficient memory for px, py, pz
+
+    retrieve sigma level pz0 corresponding to advection depth form trap_file
+    '''
+    ######
+    nc = Dataset(trap_file, 'r')
+    ipmx = len(nc.variables['px'][-1, :])
+    depths0 = [getattr(nc, 'depth')]
+    indx = ~np.isnan(nc.variables['px'][-1, :])
+    indy = ~np.isnan(nc.variables['py'][-1, :])
+    px0 = nc.variables['px'][-1, indx]
+    py0 = nc.variables['py'][-1, indx]
+    pz0 = 0 * px0
+    nc.close()
+    ######
+    #maskrho = simul.maskrho
+    z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                            y_periodic=y_periodic, ng=ng)
+    pz0 = ini_trap_depth(maskrho, simul, depths0, px0, py0, pz0, z_w, ng=ng)
+    nq_1save = len(pz0)
+    return nq_1save, ipmx, px0, py0, pz0
+##############################################################################
 def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                 pcond=np.array(False)):
     '''
@@ -273,8 +306,6 @@ def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
     Therefore we introduce eps to fiw this numerical issue
     
     '''
-    # Recomputing some data to help readablility (less argument to remove_mask)
-    # Carefull of Side Effects
     
     eps = 1e-8
 

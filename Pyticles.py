@@ -70,7 +70,6 @@ import multiprocessing as mp
 import ctypes 
 import queue
 import resource
-import numpy.ma as ma
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 #For nested loop
@@ -107,7 +106,7 @@ from R_files import load
 
 #For nested loop
 from itertools import product
-from copy import *
+#from copy import *
 
 from scipy.interpolate import interp1d
 import seeding_part
@@ -378,8 +377,8 @@ if not restart:
         '''
         #########################
         # Data to compute condition
-        [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
-                                      y_periodic = y_periodic, ng=ng)
+        [temp, salt] = part.get_ts_io(simul, x_periodic=x_periodic,
+                                      y_periodic=y_periodic, ng=ng)
         ptemp = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                                 temp, ng, nq, i0, j0, k0)
         psalt = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
@@ -411,6 +410,8 @@ if not restart:
         '''
         trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
                     + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
+        # OLD TO CHECK
+        '''
         nc = Dataset(trap_file, 'r')
         ipmx = len(nc.variables['px'][-1, :])
         depths0 = [getattr(nc, 'depth')]
@@ -426,7 +427,15 @@ if not restart:
         pz0 = seeding_part.ini_trap_depth(maskrho, simul, depths0, px0, py0,
                                            pz0, z_w, ng=ng)
         nq_1save = len(pz0) 
+        '''
+        nq_1save_f, ipmx_f, px0_f, py0_f, pz0_f = seeding_part.ini_trap(trap_file, simul,
+                               maskrho, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
+
+        toto
     else:
+        '''
+        Retunrs px0.... not in args
+        '''
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
 
@@ -1099,7 +1108,10 @@ for time in timerange:
             simulation
 
             '''
-            ipmx, px0, py0, pz0 = seeding_part.ini_trap
+            ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file, simul,
+                    x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
+
+
             trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
                     + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
             nc = Dataset(trap_file, 'r')
