@@ -260,12 +260,19 @@ def ini_trap_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
 
 
 ##############################################################################
-def ini_trap(trap_file, simul, maskrho, x_periodic=False, y_periodic=False,
-             ng=0):
+def ini_trap(trap_file, simul, maskrho, itime_fwd=0, x_periodic=False,
+             y_periodic=False, ng=0):
     '''
     Release particles from netcdf pyticles file 'trap_file'
     returns nq_1save, ipmx, px0, py0, pz0
 
+    parameters: trap_file: netcdf file with particles position
+                simul: simulname
+                maskrho: mask land at rho points
+                itime_fwd : time index to start in trap_file
+                ng: number of ghost points for linear interpolation
+                    see input_file
+    
     retrieve particles position from trap_file
     filter NANs
     
@@ -276,12 +283,12 @@ def ini_trap(trap_file, simul, maskrho, x_periodic=False, y_periodic=False,
     '''
     ######
     nc = Dataset(trap_file, 'r')
-    ipmx = len(nc.variables['px'][-1, :])
+    ipmx = len(nc.variables['px'][itime_fwd, :])
     depths0 = [getattr(nc, 'depth')]
-    indx = ~np.isnan(nc.variables['px'][-1, :])
-    indy = ~np.isnan(nc.variables['py'][-1, :])
-    px0 = nc.variables['px'][-1, indx]
-    py0 = nc.variables['py'][-1, indx]
+    indx = ~np.isnan(nc.variables['px'][itime_fwd, :])
+    indy = ~np.isnan(nc.variables['py'][itime_fwd, :])
+    px0 = nc.variables['px'][itime_fwd, indx]
+    py0 = nc.variables['py'][itime_fwd, indx]
     pz0 = 0 * px0
     nc.close()
     ######

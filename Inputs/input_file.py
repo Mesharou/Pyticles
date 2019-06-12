@@ -33,9 +33,15 @@ y_periodic = False
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = -1
-start_file = 1535
+start_file = 1525
 end_file = 1510
 
+######
+# only if part_trap=True, time index in trap_file to start backward simulation
+# itime_trap = -1 : last time index in forward simulation
+itime_trap = -11 
+trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
+                    + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
 
 ###### Restart from a Pyticles output file
 # user should not change start_file
@@ -103,7 +109,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Trap_bis'
+config = 'Trap_any_time'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 
 

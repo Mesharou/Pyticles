@@ -408,8 +408,8 @@ if not restart:
         simulation
 
         '''
-        trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
-                    + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
+       # trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
+       #             + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
         # OLD TO CHECK
         '''
         nc = Dataset(trap_file, 'r')
@@ -428,10 +428,11 @@ if not restart:
                                            pz0, z_w, ng=ng)
         nq_1save = len(pz0) 
         '''
-        nq_1save_f, ipmx_f, px0_f, py0_f, pz0_f = seeding_part.ini_trap(trap_file, simul,
-                               maskrho, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
+        nq_1save, ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file,
+                                simul, maskrho, itime_fwd=itime_trap,
+                               x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
 
-        toto
+        
     else:
         '''
         Retunrs px0.... not in args
@@ -1108,26 +1109,12 @@ for time in timerange:
             simulation
 
             '''
-            ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file, simul,
-                    x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
 
+            nq_1save, ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file,
+                        simul, maskrho, itime_fwd=itime_trap-itime,
+                        x_periodic=False, y_periodic=False, ng=ng)
+            ipmx = nq_1save
 
-            trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
-                    + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
-            nc = Dataset(trap_file, 'r')
-            depths0 = [getattr(nc, 'depth')]
-            indx = ~np.isnan(nc.variables['px'][-1-itime, :])
-            indy = ~np.isnan(nc.variables['py'][-1-itime, :])
-            px0 = nc.variables['px'][-1-itime, indx]
-            py0 = nc.variables['py'][-1-itime, indx]
-            pz0 = 0 * px0
-            nc.close()
-
-            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
-                                     y_periodic=y_periodic, ng=ng)
-            pz0 = seeding_part.ini_trap_depth(maskrho, simul, depths0, px0, py0,
-                                           pz0, z_w, ng=ng)
-            ipmx = len(pz0)
         else:    
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng)
