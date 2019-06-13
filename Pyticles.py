@@ -408,26 +408,6 @@ if not restart:
         simulation
 
         '''
-       # trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
-       #             + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
-        # OLD TO CHECK
-        '''
-        nc = Dataset(trap_file, 'r')
-        ipmx = len(nc.variables['px'][-1, :])
-        depths0 = [getattr(nc, 'depth')]
-        indx = ~np.isnan(nc.variables['px'][-1, :])
-        indy = ~np.isnan(nc.variables['py'][-1, :])
-        px0 = nc.variables['px'][-1, indx]
-        py0 = nc.variables['py'][-1, indx]
-        pz0 = 0 * px0
-        nc.close()
-        
-        z_w = part.get_depths_w(simul, x_periodic=x_periodic,
-                                     y_periodic=y_periodic, ng=ng)
-        pz0 = seeding_part.ini_trap_depth(maskrho, simul, depths0, px0, py0,
-                                           pz0, z_w, ng=ng)
-        nq_1save = len(pz0) 
-        '''
         nq_1save, ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file,
                                 simul, maskrho, itime_fwd=itime_trap,
                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
@@ -1058,7 +1038,6 @@ for time in timerange:
                                     y_periodic=y_periodic, ng=ng)
             z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
                                        z_w, ng=ng)
-        
         ipmx = 0
         px0 = []
         py0 = []
