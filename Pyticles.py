@@ -14,6 +14,9 @@ python Pyticles.py -1
 or
 ./Pyticles.py -1
 
+or in interactive 
+python -i Pyticles.py nprocs
+nprocs : numbers of processors 
 
 !---------------------------------------------------------------------------------------------
 ! 18/05/18:
@@ -76,41 +79,25 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from itertools import product
 from copy import *
 from netCDF4 import Dataset
+#from scipy.interpolate import interp1d
 
-#Specific modules needed for pyticles
-#add the Modules folder in your python PATH
-#sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
+# Specific modules needed for pyticles
+# add the Modules folder in your python PATH
+# sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
 sys.path.append("./Modules/") 
 sys.path.append("./Inputs/")
 
-#Specific modules needed for pyticles
-#import pyticles_sig_sa as part
-#import pyticles_3d_sig_sa as partF
-
-#Simulations (path, data...)
-#import matplotlib
-#matplotlib.use('Agg')
-#import matplotlib.pyplot as plt
-
-#import numpy.ma as ma
-
-#from scipy.interpolate import interp1d
-
-#Specific modules needed for pyticles
+# Specific modules needed for pyticles
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
-#import seeding_part
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from R_files import load
-
 #For nested loop
 from itertools import product
-#from copy import *
 
-from scipy.interpolate import interp1d
 import seeding_part
 from R_tools import rho1_eos
+# Input file with Pyticles parameters
 from input_file import *
 
 
