@@ -19,6 +19,43 @@ python -i Pyticles.py nprocs
 nprocs : numbers of processors 
 
 !---------------------------------------------------------------------------------------------
+! 2019-06-12 [jeremy collin]:
+!      - add capacity to seed particles from pyticles netcdf output file trap_file
+!        starting from time index itime_trap
+!        Purpose is to run a forward 2D simulation with output: trap_file
+!        Then a backward 3D simulation to identify origin of sediment found in
+!        trap_file
+! 2019-05-27 [jeremy collin]:
+!     - add correction for 3D xy_periodic (2D still unstable)
+! 2019-05-23 [jeremy collin]:
+!     - add possibilty for vertically averaged zonal velocity for advection
+!       (advzavg) pu being <u>(z=advdepth +/- z_thick)
+!     - add possibility for bathymetric intersection in advzavg
+! 2019-04-24 [jeremy collin]:
+!     - add possibility for seeded particles to be released at barycenter of
+!       previously released particiles after being advected for one time_step
+!       barycentric = True in input_file
+! 2019-04-24 [jeremy collin]:
+!     - add possibilty to release particles on isopycanl surface
+!       More generally any iso-surface since varaible is defined at-rho points
+!       initial_surf = True in input_file
+!       USER have to define rho-matrix for surface in Pyticles.py (for now...)
+! 2019-04-15 [jeremy collin]:
+!     - add input_file: contains all Pyticles parameters
+! 2019-04-12 [jeremy collin]:
+!     - converted R_tools in python 3
+! 2019-04-09 [jeremy collin]:
+!     - Writes more output for reusability
+! 2019-04-01 [jeremy collin]:
+!     - fixed initial depth numerical depth interpolation issue
+!       seeding_part.ini_depth
+! 2019-03-14 [jeremy collin]:
+!     - New module for particle seeding
+!       seeding_part.py
+! 2019-03-25 [jeremy collin]:
+!     - writes pw
+! 2019-03-06 [jeremy collin]:
+!     - converted Pyticles project to Python 3
 ! 18/05/18:
 !     - add online computation of lon,lat,depth,topo
 ! 27/04/17:
