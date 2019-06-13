@@ -53,7 +53,7 @@ nprocs : numbers of processors
 !     - New module for particle seeding
 !       seeding_part.py
 ! 2019-03-25 [jeremy collin]:
-!     - writes pw
+!     - writes pw (write_uvw = True)
 ! 2019-03-06 [jeremy collin]:
 !     - converted Pyticles project to Python 3
 ! 18/05/18:
@@ -174,18 +174,18 @@ print('-----------------------------------')
 ################################################################################
 # Define location of outputs
 ################################################################################
-
+'''
 if not os.path.exists(folderout):
     os.makedirs(folderout)
-
+'''
 ################################################################################
 # Load simulations parameters (date, subsection, static fields, files path ...etc..)
 # [you can check "dir(simul)" to see what has been loaded]
 ################################################################################
-nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
+'nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically'
 
 #############    
-
+'''
 #name of the simulation (used for naming plots and output files)
 simulname = '_' + config
 if (not adv3d) and (advdepth > 0):
@@ -196,11 +196,11 @@ elif (not adv3d) and (advdepth <= 0):
     sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
     write_depth = False
-
+'''
 ################################################################################
 # ROMS outputs
 ################################################################################
-
+'''
 simulname = simul.simul +  simulname
 simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
 # Resolution (dx,dy)
@@ -224,12 +224,12 @@ timerange = np.round(np.arange(start_file,end_file,dfile),3)
 tstart = tm.time()
 #Time all subparts of the code 
 timing = True
-
+'''
 
 ################################################################################
 # Define Particle seeding
 ################################################################################
-
+'''
 # Number of time steps between frames
 subtstep = np.int(nsub_steps * np.abs(dfile))
 
@@ -263,7 +263,7 @@ if continuous_injection:
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
-
+'''
 ################################################################################
 ################################################################################
 # THE FOLLOWING SHOULD NOT BE EDITED BY USER

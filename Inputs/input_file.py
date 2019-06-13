@@ -10,6 +10,7 @@ THE FOLLOWING CONTAINS ROMS AND PARTICLES SETTINGS TO BE EDITED BY USER
 # Import some libraries
 ##############################################################################
 import sys
+import os
 import numpy as np
 
 sys.path.append("../Modules/")
@@ -86,7 +87,9 @@ if not adv3d:
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
 w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
-
+if not adv3d:
+    sedimentaion = False
+    w_sed0 = 0. # JC no sedimentation for 2D advection
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
@@ -111,10 +114,50 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 config = 'Trap_any_time'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
+# create folder if does not exist
+if not os.path.exists(folderout):
+    os.makedirs(folderout)
+#################################################################
+# This section should not be edited by users
+#################################################################
+#name of the simulation (used for naming plots and output files)
+simulname = '_' + config
+if (not adv3d) and (advdepth > 0):
+    simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
+elif (not adv3d) and (advdepth <= 0):
+    simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
+    write_depth = False
+
+####
+simulname = simul.simul +  simulname
+simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
+# Resolution (dx,dy)
+dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
+# Total size of the domain (nx,ny,nz)
+(nx, ny) = simul.pm.shape
+nx += 2*ng; ny += 2*ng # add ghost points to array size
+depths = simul.coord[4]
+nz = len(depths)
+k0 = 0
+mask = simul.mask
+maskrho = copy(mask)
+maskrho[np.isnan(maskrho)] = 0.
+nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
+
+if not adv3d: maskrho[simul.topo<-advdepth] = 0.
+
+topo = simul.topo
+filetime = simul.filetime
+timerange = np.round(np.arange(start_file,end_file,dfile),3)
+#for timing purpose
+tstart = tm.time()
+#Time all subparts of the code 
+timing = True
+subtstep = np.int(nsub_steps * np.abs(dfile))
 
 
 ################################################################################
-# Define Particle seeding
+# Define Particle seeding (to be edited)
 ################################################################################
 
 #Initial Particle release
@@ -171,9 +214,39 @@ rho0 = [-1.5]
 # if True release particles continuously
 # if False only one release at initial time-step
 continuous_injection = True
+if continuous_injection:
+    dt_injection = 1 #(1 = injection every time step,
+                     # 10 = injection every 10 time steps)
+    N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
+#########################################
+# NOT TO BE EDITED
+#########################################
+# bottom at top vertical levels in sigma coordinate 
+lev0= 0
+lev1= len(depths)
+##########
+# 2D advection at advdepth 
+if not adv3d:
+    initial_depth = True
+    lev0 = -1
+    lev1 = lev0
+    depths0 = [advdepth]
+    write_uvw = False
+    write_uv = True
+
+#########
+# define initial vertical position using depth
+if initial_depth:
+    lev1 = lev0 + len(depths0) - 1
+    nnlev = 1
+#########
+# boolean matrix condition to define seeding patch
+if initial_cond:
+    lev1 = len(depths)
+    nnlev = 1
 
 ##############################################################################
-# Pyticles numerical schemes
+# Pyticles numerical schemes (TO BE EDITED)
 # 
 #time-stepping Default is RK4
 timestep = 'RK4' # Choices are 
