@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 
-Version 2.0 of pyticles script
+Version 3.0 of pyticles script
 
 - Run on sigma levels
 - New Horiz Interpolation options 
