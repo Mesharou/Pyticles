@@ -30,6 +30,8 @@ meanflow = False
 # in case of periodic channel
 x_periodic = False
 y_periodic = False
+ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
+
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
