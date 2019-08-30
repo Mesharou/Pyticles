@@ -10,7 +10,7 @@
 
 
       subroutine get_u_prsgrd (Lm,Mm,N,T,S, z_r,z_w,rho0,pm,pn
-     &  ,bpt)    
+     &  ,ru)    
 
 
 
@@ -34,7 +34,7 @@
 
 
       real*8 P(0:Lm+1,0:Mm+1,N),
-     &      ru(1:Lm+1,0:Mm+1,N), rv(0:Lm+1,1:Mm+1m),
+     &      ru(1:Lm+1,0:Mm+1,N), rv(0:Lm+1,1:Mm+1),
      &      rho(0:Lm+1,0:Mm+1,N), dpth,
      &      dR(0:Lm+1,N), dZ(0:Lm+1,N),
      &      FC(0:Lm+2,0:Mm+2), dZx(0:Lm+1,0:Mm+1),
@@ -64,7 +64,7 @@
 
 
 Cf2py intent(in) Lm,Mm,N, T,S,z_r,z_w,rho0,pm,pn
-Cf2py intent(out) bpt
+Cf2py intent(out) ru
 
 
 
@@ -331,8 +331,8 @@ Cf2py intent(out) bpt
           enddo               !--> discard FC, rx
 
           do i=istrU,iend
-
-            ru(i,j,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*2./(pn(i,j)+pn(i-1,j))*(
+            ru(i,j,k)=
+     &         0.5*(Hz(i,j,k)+Hz(i-1,j,k))*2./(pn(i,j)+pn(i-1,j))*(
      &                              P(i-1,j,k)-P(i,j,k)-HalfGRho*(
 
      &            (rho(i,j,k)+rho(i-1,j,k))*(z_r(i,j,k)-z_r(i-1,j,k))
@@ -436,10 +436,12 @@ c**  &          (rx(i,j).lt.0. .and. rx(i,j+1).lt.0.)) then
 
        do j=jmin+1,jmax-1
           do i=imin+1,imax-1
+            do k=1,N
+            ru(i,j,k) = ru(i,j,k)*0.5*(pn(i,j)+pn(i-1,j))
+     &                       *(pm(i,j)+pm(i-1,j))
+     &                       /(Hz(i,j,k)+Hz(i-1,j,k))
+            enddo
 
-
-            ru(i,j,1) = ru(i,j,1)*0.5*(pn(i,j)+pn(i-1,j))
-     &                       *0.5*(pm(i,j)+pm(i-1,j))
 
 
             rv(i,j) = rv(i,j)*0.5*(pm(i,j)+pm(i,j-1))
