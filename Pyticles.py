@@ -335,13 +335,16 @@ if not restart:
     # Define initial px,py,pz pyticles position 
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
-    # isosurface
-    if initial_surf:
-        lev1 = len(rho0) - 1
 
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
             lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
             nnlev=nnlev)
+
+    ##############################
+    # isosurface
+    if initial_surf:
+        lev1 = len(rho0) - 1
+
     ##############################
     # initial vertical position = depths0
     if initial_depth: 
@@ -371,12 +374,13 @@ if not restart:
         z = np.ndarray(x.shape)
         z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
 
+
     nq = np.min([len(x.reshape(-1)),nqmx])
     
     ############################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
-    # ipmx : count seeding partciles
+    # ipmx : count seeding particles
     # px0, py0, pz0 : initial position for seeding
     # topolim : used in ADV_2D to prevent particles from being seeded below
     #           seafloor
@@ -395,7 +399,7 @@ if not restart:
         i0, j0, k0 = 0, 0, 0
         '''
         A matter of functionality... We take temp, salt, z_w from simulation 
-        Then interpolate each varialbe on px0,py0,pz0
+        Then interpolate each variable on px0,py0,pz0
         Finally we compute potential density
 
         '''
@@ -419,13 +423,14 @@ if not restart:
         prho1 = rho1_eos(ptemp, psalt, pdepth, pdepth, simul.rho0)
         pcond = (prho1 > rho_min) & (prho1 < rho_max)
         #########################
-        # Remove partciles that does not match condition
+        # Remove particles that do not match condition
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,                                         nq, ng=ng, pcond=pcond)
-    if part_trap:
+    
+    elif part_trap:
         '''
         Particles are released using position of a forward simulation
         Then advected backwards
-         
+        
         Here ipmx is used using all particles at it, including nan
 
         Need to define a time index corresponding to start of backward
@@ -436,11 +441,11 @@ if not restart:
                                 simul, maskrho, itime_fwd=itime_trap,
                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
 
-        
     else:
         '''
-        Retunrs px0.... not in args
+        Returns px0.... not in args
         '''
+        
         ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
                 nq, ng=ng)
 
@@ -449,6 +454,7 @@ if not restart:
 
     nq = ipmx
     print(f'nq = {nq}')
+
     ############################################################################
 
     if continuous_injection:

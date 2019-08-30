@@ -299,6 +299,7 @@ def ini_trap(trap_file, simul, maskrho, itime_fwd=0, x_periodic=False,
     nq_1save = len(pz0)
     return nq_1save, ipmx, px0, py0, pz0
 ##############################################################################
+
 def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                 pcond=np.array(False)):
     '''
@@ -356,6 +357,7 @@ def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                     print(f'ptopo[ip] {ptopo[ip]}')
                     print(f'pmask[ip] {pmask[ip]}')
     return ipcount
+
 ##############################################################################
 #def from_nc(ncname, itime)
 #    '''
