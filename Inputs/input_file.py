@@ -18,7 +18,6 @@ import time as tm
 sys.path.append("../Modules/")
 from R_files import load
 
-
 ##############################################################################
 
 debug = True # Increase verbosity to help debug
@@ -26,12 +25,12 @@ debug = True # Increase verbosity to help debug
 ################################################################################
 # ROMS INPUTS
 ################################################################################
-
 # if meanflow = True Roms data are not updated (used for climatology)
 meanflow = False
 # in case of periodic channel
 x_periodic = False
 y_periodic = False
+ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
@@ -65,19 +64,45 @@ my_simul = 'Case_1'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
+##############################################################################
+# Pyticles numerical schemes (TO BE EDITED)
+#
+#time-stepping Default is RK4
+timestep = 'RK4' # Choices are
+               # FE (forward-Euler)
+               # RK2, RK4 (Runge-Kutta 2nd and 4th order)
+               # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
+               # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
+
+nsub_steps = 360 # Number of time steps between 2 roms time steps
+
+# Spatial interpolation
+# Default is linear
+# Available : #define CUBIC_INTERPOLATION
+#             #define CRSPL_INTERPOLATION
+#             #define WENO_INTERPOLATION
+# Beware these higher order schemes have not been rigorously tested
+# To define them, in Modules/interp_3d_for_pyticles.F
+# Activate ccp keys : NEW_VERSION and chosen numerical scheme
+# Compile cpp keys use make command
+
+nadv = 1 # deprecated
+
 
 ##############################################################################
-# Particles Dynamcis
+# Particles Dynamics
 ##############################################################################
 # 3D advection
 adv3d = True
 advzavg = False
+
 if advzavg:
     z_thick = 100. # water column thickness to average 2D velocity field around
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
     advdepth = -200.
+
 '''
         NOTE that advdepths is used as follows:
 
@@ -87,41 +112,12 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = True
+sedimentation = False
 w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
+
 if not adv3d:
-    sedimentaion = False
+    sedimentation = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
-
-##############################################################################
-# Pyticles numerical schemes (TO BE EDITED)
-# 
-#time-stepping Default is RK4
-timestep = 'RK4' # Choices are 
-               # FE (forward-Euler)
-               # RK2, RK4 (Runge-Kutta 2nd and 4th order)
-               # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
-               # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
-
-nsub_steps = 360 # Number of time steps between 2 roms time steps
-
-
-# Spatial interpolation
-# Default is linear
-# Avalaible : #define CUBIC_INTERPOLATION
-#             #define CRSPL_INTERPOLATION
-#             #define WENO_INTERPOLATION
-# Beware these higher order schemes have not been rigorously tested
-# To define them, in Modules/interp_3d_for_pyticles.F 
-# Activate ccp keys : NEW_VERSION and chosen numerical scheme
-# Compile cpp keys use make command
-
-nadv = 1 # depreacated 
-
-# number of ghost points for numerical interpolation scheme
-# 1 for linear... 2 for cubic
-ng = 1
-
 
 ##############################################################################
 # Pyticles Outputs
@@ -145,11 +141,12 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'fwd_3D_inidepth'
+config = 'tmp_debug_test'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
+
 #################################################################
 # This section should not be edited by users
 #################################################################
@@ -173,7 +170,7 @@ depths = simul.coord[4]
 nz = len(depths)
 k0 = 0
 mask = simul.mask
-maskrho = copy(mask)
+maskrho = np.copy(mask)
 maskrho[np.isnan(maskrho)] = 0.
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 
@@ -188,32 +185,31 @@ tstart = tm.time()
 timing = True
 subtstep = np.int(nsub_steps * np.abs(dfile))
 
-
 ################################################################################
 # Define Particle seeding (to be edited)
 ################################################################################
 
 #Initial Particle release
-nqmx = 25000   # maximum number of particles
+nqmx = 100000  # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic, jc] = [600, 800] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic, jc] = [361, 168] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 
-dx_m = 1000. # distance between 2 particles [in m]
+dx_m = 2000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 100.* dx0 # half width of seeding patch [in grid points
-jwd  = 100.* dx0 # half width of seeding patch [in grid points]
+iwd  = 10* dx0 # half width of seeding patch [in grid points
+jwd  = 10* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 20 * dx0
-nny = 20 * dx0
+nnx = 2 * dx0
+nny = 2 * dx0
 nnlev = 1
 
 #########
@@ -245,7 +241,7 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-200]
+depths0 = [-100]
 rho0 = [-1.5]
 
 # if True release particles continuously
@@ -255,12 +251,14 @@ if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
+
 #########################################
 # NOT TO BE EDITED
 #########################################
-# bottom at top vertical levels in sigma coordinate 
+# bottom to top vertical levels in sigma coordinate
 lev0= 0
 lev1= len(depths)
+
 ##########
 # 2D advection at advdepth 
 if not adv3d:
@@ -276,43 +274,13 @@ if not adv3d:
 if initial_depth:
     lev1 = lev0 + len(depths0) - 1
     nnlev = 1
+
 #########
 # boolean matrix condition to define seeding patch
 if initial_cond:
     lev1 = len(depths)
     nnlev = 1
 
-##############################################################################
-# Pyticles numerical schemes (TO BE EDITED)
-# 
-#time-stepping Default is RK4
-timestep = 'RK4' # Choices are 
-               # FE (forward-Euler)
-               # RK2, RK4 (Runge-Kutta 2nd and 4th order)
-               # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
-               # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
-
-nsub_steps = 360 # Number of time steps between 2 roms time steps
-
-
-# Spatial interpolation
-# Default is linear
-# Avalaible : #define CUBIC_INTERPOLATION
-#             #define CRSPL_INTERPOLATION
-#             #define WENO_INTERPOLATION
-# Beware these higher order schemes have not been rigorously tested
-# To define them, in Modules/interp_3d_for_pyticles.F 
-# Activate ccp keys : NEW_VERSION and chosen numerical scheme
-# Compile cpp keys use make command
-
-nadv = 1 # depreacated 
-
-# number of ghost points for numerical interpolation scheme
-# 1 for linear... 2 for cubic
-ng = 1 
-
-
-##############################################################################
 
 
 

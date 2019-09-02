@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 
-Version 2.0 of pyticles script
+Version 3.0 of pyticles script
 
 - Run on sigma levels
 - New Horiz Interpolation options 
@@ -133,10 +133,9 @@ from R_files import load
 from itertools import product
 
 import seeding_part
-from R_tools import rho1_eos
+#from R_tools import rho1_eos # CV
 # Input file with Pyticles parameters
 from input_file import *
-
 
 ################################################################################
 # Parameters for multiprocessing
@@ -172,98 +171,11 @@ print('-----------------------------------')
 
 
 ################################################################################
-# Define location of outputs
-################################################################################
-'''
-if not os.path.exists(folderout):
-    os.makedirs(folderout)
-'''
-################################################################################
 # Load simulations parameters (date, subsection, static fields, files path ...etc..)
 # [you can check "dir(simul)" to see what has been loaded]
 ################################################################################
-'nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically'
+#'nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically'
 
-#############    
-'''
-#name of the simulation (used for naming plots and output files)
-simulname = '_' + config
-if (not adv3d) and (advdepth > 0):
-    simulname = simulname + '_adv' + '{0:04}'.format(advdepth) + 'sig'
-#    write_depth = False
-elif (not adv3d) and (advdepth <= 0):     
-    simulname = simulname + '_adv' + '{0:04}'.format(-advdepth) + 'm'
-    sedimentaion = False
-    w_sed0 = 0. # JC no sedimentation for 2D advection
-    write_depth = False
-'''
-################################################################################
-# ROMS outputs
-################################################################################
-'''
-simulname = simul.simul +  simulname
-simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
-# Resolution (dx,dy)
-dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
-# Total size of the domain (nx,ny,nz)
-(nx, ny) = simul.pm.shape
-nx += 2*ng; ny += 2*ng # add ghost points to array size
-depths = simul.coord[4]
-nz = len(depths)
-k0 = 0
-mask = simul.mask
-maskrho = copy(mask)
-maskrho[np.isnan(maskrho)] = 0.
-
-if not adv3d: maskrho[simul.topo<-advdepth] = 0.
-
-topo = simul.topo
-filetime = simul.filetime
-timerange = np.round(np.arange(start_file,end_file,dfile),3)
-#for timing purpose
-tstart = tm.time()
-#Time all subparts of the code 
-timing = True
-'''
-
-################################################################################
-# Define Particle seeding
-################################################################################
-'''
-# Number of time steps between frames
-subtstep = np.int(nsub_steps * np.abs(dfile))
-
-#########
-# bottom at top vertical levels in sigma coordinate 
-lev0= 0
-lev1= len(depths)
-##########
-# 2D advection at advdepth 
-if not adv3d:
-    initial_depth = True
-    lev0 = -1
-    lev1 = lev0
-    depths0 = [advdepth]
-    write_uvw = False
-    write_uv = True
-
-#########
-# define initial vertical position using depth
-if initial_depth:
-    lev1 = lev0 + len(depths0) - 1
-    nnlev = 1
-#########
-# boolean matrix condition to define seeding patch
-if initial_cond:
-    lev1 = len(depths)
-    nnlev = 1
-###########
-if continuous_injection:
-    dt_injection = 1 #(1 = injection every time step,
-                     # 10 = injection every 10 time steps)
-    N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
-
-'''
 ################################################################################
 ################################################################################
 # THE FOLLOWING SHOULD NOT BE EDITED BY USER
@@ -335,13 +247,16 @@ if not restart:
     # Define initial px,py,pz pyticles position 
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
-    # isosurface
-    if initial_surf:
-        lev1 = len(rho0) - 1
 
     z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
             lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
             nnlev=nnlev)
+
+    ##############################
+    # isosurface
+    if initial_surf:
+        lev1 = len(rho0) - 1
+
     ##############################
     # initial vertical position = depths0
     if initial_depth: 
@@ -371,12 +286,15 @@ if not restart:
         z = np.ndarray(x.shape)
         z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
 
+
+    ##############################
+    # Total number of particles                            
     nq = np.min([len(x.reshape(-1)),nqmx])
     
     ############################################################################
     ''' no need for topocheck anymore as we are using sigma levels'''
     ''' but we have to remove pyticles which are in a masked area'''
-    # ipmx : count seeding partciles
+    # ipmx : count seeding particles
     # px0, py0, pz0 : initial position for seeding
     # topolim : used in ADV_2D to prevent particles from being seeded below
     #           seafloor
@@ -395,7 +313,7 @@ if not restart:
         i0, j0, k0 = 0, 0, 0
         '''
         A matter of functionality... We take temp, salt, z_w from simulation 
-        Then interpolate each varialbe on px0,py0,pz0
+        Then interpolate each variable on px0,py0,pz0
         Finally we compute potential density
 
         '''
@@ -419,13 +337,14 @@ if not restart:
         prho1 = rho1_eos(ptemp, psalt, pdepth, pdepth, simul.rho0)
         pcond = (prho1 > rho_min) & (prho1 < rho_max)
         #########################
-        # Remove partciles that does not match condition
-        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,                                         nq, ng=ng, pcond=pcond)
-    if part_trap:
+        # Remove particles that do not match condition
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=ng, pcond=pcond)
+    
+    elif part_trap:
         '''
         Particles are released using position of a forward simulation
         Then advected backwards
-         
+        
         Here ipmx is used using all particles at it, including nan
 
         Need to define a time index corresponding to start of backward
@@ -436,19 +355,18 @@ if not restart:
                                 simul, maskrho, itime_fwd=itime_trap,
                                x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
 
-        
     else:
         '''
-        Retunrs px0.... not in args
+        Returns px0.... not in args
         '''
-        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0,
-                nq, ng=ng)
+        
+        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=ng)
 
     del x, y, z
     # Else we need the grid box to compute px0, py0, pz0 at each injection time
-
     nq = ipmx
     print(f'nq = {nq}')
+
     ############################################################################
 
     if continuous_injection:
@@ -468,7 +386,6 @@ if not restart:
             print('---------------------------------------')
             print(f'nq_injection = {nq_injection}')
             print(f'nq = {nq}')
-
     else:
         nq_1 = -1  
 
@@ -478,7 +395,6 @@ if not restart:
     px = shared_array(nq,prec='double')
     py = shared_array(nq,prec='double')
     pz = shared_array(nq,prec='double')
-
     if continuous_injection:
         if part_trap: nq_1 = nq_1save
         px[:nq_1] = px0
@@ -490,10 +406,8 @@ if not restart:
         pz[:] = pz0
         del px0,py0,pz0
 
-
     ############################################################################
-# restart = True
-else: 
+else: # restart = True
 
     if not continuous_injection:
         # load px,py,pz from restart_file
@@ -560,7 +474,6 @@ else:
 
 # Time between 2 frames (in seconds)
 delt   = shared_array(2,value=simul.dt*np.abs(dfile)) 
-
 maxvel = shared_array(2,prec='double',value=maxvel0)
 
 # Total number of time steps:
@@ -600,9 +513,7 @@ def run_process(my_func):
     proc = mp.Process(target=my_func, args=())
     proc.start(); proc.join()
     
-    
     return results
-
 
 ################################################################################
 # Update px,py,px
@@ -613,7 +524,7 @@ def update_xyz():
              'Pyticles_subroutines/update_xyz_largemem.py', 'exec'))
 
 ################################################################################
-# Compte T,S at each pyticles positions -> ptemp,psalt
+# Compute T,S at each pyticles positions -> ptemp,psalt
 ################################################################################
 
 def update_ts():   
@@ -621,25 +532,23 @@ def update_ts():
             'Pyticles_subroutines/update_ts.py', 'exec'))
     
 ################################################################################
-# Compte T at each pyticles positions -> ptemp
+# Compute T at each pyticles positions -> ptemp
 ################################################################################
 
 def update_t():   
-
     exec(compile(open('Pyticles_subroutines/update_t.py').read(), \
             'Pyticles_subroutines/update_t.py', 'exec'))
 
 ################################################################################
-# Compte T at each pyticles positions -> ptemp
+# Compute depth at each pyticles positions -> pdepth
 ################################################################################
 
 def update_depth():   
-
     exec(compile(open('Pyticles_subroutines/update_depth.py').read(), \
             'Pyticles_subroutines/update_depth.py', 'exec'))
 
 ################################################################################
-# Compte T at each pyticles positions -> ptemp
+# Compute lon,lat at each pyticles positions -> plon,plat
 ################################################################################
 
 def update_lonlat():   
@@ -647,7 +556,7 @@ def update_lonlat():
             'Pyticles_subroutines/update_lonlat.py', 'exec'))
 
 ################################################################################
-# Compte T at each pyticles positions -> ptemp
+# Compute topo at each pyticles positions -> ptopo
 ################################################################################
 
 def update_topo():   
@@ -655,7 +564,7 @@ def update_topo():
             'Pyticles_subroutines/update_topo.py', 'exec'))
 
 ################################################################################
-# Compte u,v at each pyticles positions -> pu,pv
+# Compute u,v at each pyticles positions -> pu,pv
 ################################################################################
 
 def update_uv_2d():   
@@ -663,7 +572,7 @@ def update_uv_2d():
             'Pyticles_subroutines/update_uv_2d.py', 'exec'))
 
 ################################################################################
-# Compte u,v at each pyticles positions -> pu,pv
+# Compute u,v,w at each pyticles positions -> pu,pv,pw
 ################################################################################
 
 def update_uvw_3d():
@@ -830,8 +739,9 @@ pm_s = np.array([]);
 itime = restart_time
 
 for time in timerange:
-
-    print('time is ', time)
+    print('--------------------------------------------------------------------')
+    print(' time is ', time)
+    print('--------------------------------------------------------------------')
 
     alpha_time = time - np.floor(time)
 
@@ -1152,12 +1062,4 @@ for time in timerange:
     if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
     if debug: print('error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2))
 
-        
-        
-        
-        
-    
-    
-    
-        
         
