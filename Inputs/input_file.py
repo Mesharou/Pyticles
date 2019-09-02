@@ -12,6 +12,8 @@ THE FOLLOWING CONTAINS ROMS AND PARTICLES SETTINGS TO BE EDITED BY USER
 import sys
 import os
 import numpy as np
+from copy import *
+import time as tm
 
 sys.path.append("../Modules/")
 from R_files import load
@@ -33,9 +35,9 @@ y_periodic = False
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
-dfile = -1
-start_file = 1525
-end_file = 1510
+dfile = 1
+start_file = 1510
+end_file = 1512
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -90,6 +92,37 @@ w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
 if not adv3d:
     sedimentaion = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
+
+##############################################################################
+# Pyticles numerical schemes (TO BE EDITED)
+# 
+#time-stepping Default is RK4
+timestep = 'RK4' # Choices are 
+               # FE (forward-Euler)
+               # RK2, RK4 (Runge-Kutta 2nd and 4th order)
+               # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
+               # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
+
+nsub_steps = 360 # Number of time steps between 2 roms time steps
+
+
+# Spatial interpolation
+# Default is linear
+# Avalaible : #define CUBIC_INTERPOLATION
+#             #define CRSPL_INTERPOLATION
+#             #define WENO_INTERPOLATION
+# Beware these higher order schemes have not been rigorously tested
+# To define them, in Modules/interp_3d_for_pyticles.F 
+# Activate ccp keys : NEW_VERSION and chosen numerical scheme
+# Compile cpp keys use make command
+
+nadv = 1 # depreacated 
+
+# number of ghost points for numerical interpolation scheme
+# 1 for linear... 2 for cubic
+ng = 1
+
+
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
@@ -112,7 +145,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'Trap_any_time'
+config = 'fwd_3D_inidepth'
 folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
@@ -201,9 +234,13 @@ nnlev = 1
 # Therefore if ini_cond = True: initial_depth = False
 
 initial_cond = False # 1036 in Pyticles.py
-initial_depth = False
+initial_depth = True
 initial_surf = False
-part_trap = True
+
+# start from a Pyticles netcdf file, with forward advection
+# runs backward 3D advection from here
+# Option to choose are left to user
+part_trap = False 
 
 if initial_cond:
    initial_depth = False
