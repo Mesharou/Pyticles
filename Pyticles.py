@@ -28,7 +28,7 @@ nprocs : numbers of processors
 ! 2019-05-27 [jeremy collin]:
 !     - add correction for 3D xy_periodic (2D still unstable)
 ! 2019-05-23 [jeremy collin]:
-!     - add possibilty for vertically averaged zonal velocity for advection
+!     - add possibility for vertically averaged zonal velocity for advection
 !       (advzavg) pu being <u>(z=advdepth +/- z_thick)
 !     - add possibility for bathymetric intersection in advzavg
 ! 2019-04-24 [jeremy collin]:
