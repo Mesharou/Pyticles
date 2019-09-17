@@ -247,7 +247,6 @@ example: for an interactive session:
                 self.ncname.tend=int(args[0][4])
         else: self.dtime=1000
 
-
     
 ###################################################################################
 # GET DOMAIN
@@ -2585,7 +2584,23 @@ class files(object):
             self.tfile=1
             self.tstart=861
             self.tend=2687
-            
+
+        ##################
+
+        elif simul=='weddell6':
+            '''
+            CV and CB: Weddell Sea at 6-km resolution for 1 year  
+            '''
+            self.model = 'croco'
+            self.digits = 4
+            folder='/home/datawork-lops-osi/cbucking/CROCO/CIOP06_1YR/'
+            self.his=folder + 'OUT/ciop06_his.'
+            self.grd=folder + 'INIT/ciop06_grd.nc'
+            self.frc=folder + '' # dunno where the forcing files are 
+            self.wind=folder + ''
+            self.tfile=10
+            self.tstart=0
+            self.tend=330 
             
         ################## Test case (to test online features)
     
@@ -3928,16 +3943,4 @@ Choices are:
 ###################################################################################
 # end class files
 ###################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
 
