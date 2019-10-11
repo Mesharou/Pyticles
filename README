@@ -1,0 +1,12 @@
+
+###
+
+Modify the .ssh/config
+
+git remote add mesharou git@github:Mesharou/Pyticles.git
+
+
+I had to change the [remote "origin"] / url field in my local .git/config to use the Host defined in .ssh/config in order for this to work, i.e.,
+
+[remote "origin"]
+        url = git@github.com-activehacker:activehacker/gfs.git
