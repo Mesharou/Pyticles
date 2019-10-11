@@ -21,7 +21,7 @@ sys.path.append('home/jeremy/Bureau/Project/Pyticles/')
 
 from R_files import load
 import visual_tools as vt
-from R_tools import rho1_eos
+from R_tools_fort import rho1_eos
 ##############################################################################
 # INPUT PARAMETERS
 ##############################################################################

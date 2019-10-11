@@ -133,7 +133,7 @@ from R_files import load
 from itertools import product
 
 import seeding_part
-#from R_tools import rho1_eos # CV
+from R_tools_fort import rho1_eos # JC 
 # Input file with Pyticles parameters
 from input_file import *
 
