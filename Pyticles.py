@@ -247,10 +247,14 @@ if not restart:
     # Define initial px,py,pz pyticles position 
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
-
-    z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
-            nnlev=nnlev)
+    if meter_preserved:
+        z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                    nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                    simul=simul, ng=ng)
+    else:
+        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+                nnlev=nnlev)
 
     ##############################
     # isosurface
@@ -277,8 +281,14 @@ if not restart:
         rho = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
         ## temporary box used for sigma-interpolation onto surf0 
         lev1 = rho.shape[2] #  Needed to get all levels
-        z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+        if meter_preserved:
+            z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                        nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                        simul=simul, ng=ng)
+        else:
+            z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                     lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+        
         map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
                 z_box.reshape(-1), ng=ng).reshape(x_box.shape)
        
@@ -959,12 +969,20 @@ for time in timerange:
         ###############################################
         # modify seeding patch center to barycenter of
         # previously released particules after a time_step of advection
+        if testing_new_seed: jc = jc + 100
+
         if barycentric:
             [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
-        ######################################
-        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
-                                        iwd=iwd, jwd=jwd, nx=nx, ny=ny,
-                                        nnx=nnx, nny=nny, nnlev=nnlev)
+        ###############################
+        if meter_preserved:
+            z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                        nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                        simul=simul, ng=ng)
+
+        else:
+            z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                                            iwd=iwd, jwd=jwd, nx=nx, ny=ny,
+                                             nnx=nnx, nny=nny, nnlev=nnlev)
         ###############################
         # Release particles at depths0
         if initial_depth: 
@@ -988,8 +1006,14 @@ for time in timerange:
 
             ## temporary box used for sigma-interpolation onto surf0 vector
             lev1 = rho.shape[2] #  Needed to get all levels
-            z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+            if meter_preserved:
+                z_box, y_box, x_box = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0,
+                                      lev1=lev1, nnlev=nnlev, nx_box=nx_box,
+                                      ny_box=ny_box, dx_box=dx_box,simul=simul, ng=ng)
+            else:
+                z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                        lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+
             map_rho = part.map_var(simul, rho, x_box.reshape(-1),
                                    y_box.reshape(-1),
                     z_box.reshape(-1), ng=ng, coord=coord).reshape(x_box.shape)

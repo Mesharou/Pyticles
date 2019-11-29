@@ -125,10 +125,66 @@ def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
 
     '''
     z, y, x = np.mgrid[lev0:lev1+1:nnlev,
-              np.max([jc-jwd,1]):np.min([jc+jwd+np.min([1.,jwd]),ny]):nny,
-              np.max([ic-iwd,1]):np.min([ic+iwd+np.min([1.,iwd]),nx]):nnx]
+              np.max([jc-jwd,1]):np.min([jc+jwd+nny,ny]):nny,
+              np.max([ic-iwd,1]):np.min([ic+iwd+nnx,nx]):nnx]
 
     return z, y, x
+
+##############################################################################
+def get_dx(jc=0., simul=None):
+    '''
+    returns zonal dx in meters at jc location
+
+    parameters:
+    float jc sigma meridionnal coordinate to compute dx
+    R_files.load simul 
+
+    '''
+    remainder = np.mod(jc,1)
+    if remainder == 0:
+        dx = 1/simul.pm[0, jc]
+    else:
+        im = np.int(np.floor(jc))
+        ip = np.int(np.ceil(jc))
+        dx = (1-remainder)/simul.pm[0, im] + remainder/simul.pm[0, ip]
+    
+    return dx
+
+
+##############################################################################
+def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
+                 dx_box=2000, simul=None, ng=1):
+    '''
+
+    Spatial box for seeding partciles in sigma coordinates located at
+    psi_w points
+    If initial_depth : z will be redefined at depths0
+
+    returns z, y, x
+    
+    Size of the patch and distance between particles in meters are conserved
+    even when box's center moves during simulation
+
+    parameters:
+    ic, jc : center location (floats or int)
+    lev0, lev1 : first and final vertical levels (ints)
+    nnlev : seeding vertical density (int)
+    nx_box, ny_box : number of intervals  in both x, y directions
+    dx_box (meters):  particle's spacing in meters
+
+    '''
+    nx, ny = simul.pm.shape
+    dx = get_dx(jc=jc, simul=simul)
+    # index for mesh
+    j0 = np.max([jc - ny_box/2*dx_box/dx, 1])
+    j1 = np.min([jc + (ny_box+2)/2*dx_box/dx, ny + ng])
+    i0 = np.max([ic - nx_box/2*dx_box/dx, 1])
+    i1 = np.min([ic + (nx_box+2)/2*dx_box/dx, nx + ng])
+
+    z, y, x = np.mgrid[lev0:lev1+1:nnlev, j0:j1:dx_box/dx, i0:i1:dx_box/dx]
+
+    return z, y, x
+
 ##############################################################################
 def ini_surf(simul, rho0, x, y, z, rho, ng=0):
     ''' Interpolate sigma-levels onto rho0-isosurface 
