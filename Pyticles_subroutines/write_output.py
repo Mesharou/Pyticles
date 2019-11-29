@@ -18,7 +18,7 @@ if not os.path.isfile(newfile):
 
     # particles seeding 
     nc.nqmx = nqmx
-    if meter_preserved:
+    if preserved_meter:
         nc.dx_box = dx_box
         nc.nx_box = nx_box
         nc.ny_box = ny_box
@@ -107,7 +107,7 @@ nc.dfile = dfile
 
 # particles seeding 
 nc.nqmx = nqmx
-if meter_preserved:
+if preserved_meter:
     nc.dx_box = dx_box
     nc.nx_box = nx_box
     nc.ny_box = ny_box

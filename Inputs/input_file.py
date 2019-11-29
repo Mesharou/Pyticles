@@ -206,11 +206,9 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-meter_preserved = True
+preserved_meter = True
 
-testing_new_seed = True 
-
-if meter_preserved:
+if preserved_meter:
     dx_box = 100  # horizontal particles spacing meters
     nx_box = 10*2 + 1 # number of intervals in x-dir
     ny_box = 10*2      
