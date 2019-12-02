@@ -981,7 +981,7 @@ for time in timerange:
         if preserved_meter:
             z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                         nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
-                        simul=simul, ng=ng)
+                        simul=simul, ng=ng, debug=debug)
 
         else:
             z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,

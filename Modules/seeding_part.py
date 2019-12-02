@@ -153,7 +153,7 @@ def get_dx(jc=0., simul=None):
 
 ##############################################################################
 def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
-                 dx_box=2000, simul=None, ng=1):
+                 dx_box=2000, simul=None, ng=1, debug=False):
     '''
 
     Spatial box for seeding partciles in sigma coordinates located at
@@ -176,12 +176,19 @@ def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
     nx, ny = simul.pm.shape
     dx = get_dx(jc=jc, simul=simul)
     # index for mesh
-    j0 = np.max([jc - ny_box/2*dx_box/dx, 1])
-    j1 = np.min([jc + (ny_box+2)/2*dx_box/dx, ny + ng])
+    j0 = np.max([jc - (ny_box)/2*dx_box/dx, 1])
+    j1 = np.min([jc + (ny_box+1)/2*dx_box/dx, ny + ng])
+    
     i0 = np.max([ic - nx_box/2*dx_box/dx, 1])
-    i1 = np.min([ic + (nx_box+2)/2*dx_box/dx, nx + ng])
+    i1 = np.min([ic + (nx_box+1)/2*dx_box/dx, nx + ng])
 
     z, y, x = np.mgrid[lev0:lev1+1:nnlev, j0:j1:dx_box/dx, i0:i1:dx_box/dx]
+    
+    if debug:
+        print(f"nx, ny {nx, ny}")
+        print(f"dx {dx}")
+        print(f"i0, i1, j0, j1 {i0, i1, j0 ,j1}")
+        print(f"dx_box {dx_box}")
 
     return z, y, x
 
