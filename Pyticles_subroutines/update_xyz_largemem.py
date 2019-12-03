@@ -5,10 +5,10 @@
 ##LM
 if sedimentation: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
-    w_sed = w_sed0/(3600.*24.)
+    w_sed = 2 * w_sed0/(3600.*24.)
     print(' ')
     print(' ===========> Vitesse de sedimentation :')
-    print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
+    print((' w(m/d), w(m/sec) = ',w_sed0, w_sed/2))
     print(' ')
 ##LM
 

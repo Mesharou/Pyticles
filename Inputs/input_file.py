@@ -17,6 +17,7 @@ import time as tm
 
 sys.path.append("../Modules/")
 from R_files import load
+import pyticles_sig_sa as part
 
 ##############################################################################
 
@@ -34,15 +35,16 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
-dfile = 1
-start_file = 1510
-end_file = 1512
+# Use -1 for backward simulation
+dfile = -1
+start_file = 1120
+end_file = 1000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
 # itime_trap = -1 : last time index in forward simulation
 itime_trap = -11 
-trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
+trap_file = '/home/wang/Bureau/Data/Pyticles/Trap_fwd/' \
                     + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
 
 ###### Restart from a Pyticles output file
@@ -50,7 +52,7 @@ trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
 # restart_time : number of time step since start_file
 restart = False
 restart_time = 7 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
+restart_file = '/home/wang/Bureau/Data/Pyticles/' \
                +'/Cubic_adv/Case_1_Cubic_adv_4_1510.nc'
 
 if not restart:
@@ -60,7 +62,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'Case_1'
+my_simul = 'apero'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
@@ -112,8 +114,8 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = False
-w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
+sedimentation = True
+w_sed0 = -200 # vertical velocity for particles sedimentation (m/s)
 
 if not adv3d:
     sedimentation = False
@@ -141,8 +143,9 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'tmp_debug_test'
-folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
+#config = 'longer_simul_50d_sed100'
+config = 'st_with_newpatch2'
+folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp2/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -196,20 +199,23 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic, jc] = [361, 168] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+#[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
-
+#[ic, jc] = part.find_points(simul.x,simul.y, -16.5, 49)
+x_ic = np.int(part.find_points(simul.x,simul.y, -16.5, 49)[0])
+y_jc = np.int(part.find_points(simul.x,simul.y, -16.5, 49)[1])
+[ic,jc] = [x_ic,y_jc]
 dx_m = 2000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 10* dx0 # half width of seeding patch [in grid points
-jwd  = 10* dx0 # half width of seeding patch [in grid points]
+iwd  = 10 * dx0 # half width of seeding patch [in grid points
+jwd  = 10 * dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 2 * dx0
-nny = 2 * dx0
+nnx = 1 * dx0
+nny = 1 * dx0
 nnlev = 1
 
 #########
@@ -241,12 +247,12 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-100]
+depths0 = [-500,-1000,-2000,-3000]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)

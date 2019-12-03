@@ -18,6 +18,11 @@ or in interactive
 python -i Pyticles.py nprocs
 nprocs : numbers of processors 
 
+! Bugs to be fixed:
+    Seems to be an issue regarding the number of released particles at the last
+    time step of backward simulation in case of continuous seeding of particles
+    Bug was detetcted at 1020 time in Lu simulation
+
 !---------------------------------------------------------------------------------------------
 ! 2019-06-12 [jeremy collin]:
 !      - add capacity to seed particles from pyticles netcdf output file trap_file
