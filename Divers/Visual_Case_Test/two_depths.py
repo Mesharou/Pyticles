@@ -55,7 +55,6 @@ grd_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_grd.nc'
 zeta = vt.get_var('zeta', roms_file, itime=0, ndims=3)
 temp = vt.get_var('temp', roms_file, itime=0, ndims=4)
 salt = vt.get_var('salt', roms_file, itime=0, ndims=4)
-tend = tm.time() - tstart
 
 topo_roms = vt.get_var('h', grd_file)
 #zeta.mask = mask
@@ -88,7 +87,7 @@ dtime : int
 
 dtime = 4
 save_fig = False
-zlevs =20
+zlevs = 20
 
 
 indx = pdepth[0, :] > - 400

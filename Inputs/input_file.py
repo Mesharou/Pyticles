@@ -31,7 +31,8 @@ meanflow = False
 # in case of periodic channel
 x_periodic = False
 y_periodic = False
-ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
+
+ng = 1
 
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
@@ -63,6 +64,8 @@ else:
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
 my_simul = 'apero'
+# user may add my_simul in Module/R_files.py to indicate roms output path and
+# parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
@@ -203,20 +206,32 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 #[ic, jc] = part.find_points(simul.x,simul.y, -16.5, 49)
-x_ic = np.int(part.find_points(simul.x,simul.y, -16.5, 49)[0])
-y_jc = np.int(part.find_points(simul.x,simul.y, -16.5, 49)[1])
+x_ic = part.find_points(simul.x,simul.y, -16.5, 49)[0]
+y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 [ic,jc] = [x_ic,y_jc]
-dx_m = 2000. # distance between 2 particles [in m]
-dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 10 * dx0 # half width of seeding patch [in grid points
-jwd  = 10 * dx0 # half width of seeding patch [in grid points]
 
-#########
-# density of pyticles (n*dx0: particle every n grid points)
-# 
-nnx = 1 * dx0
-nny = 1 * dx0
-nnlev = 1
+barycentric = False  # Automatically modifies patch's center to previsously seeded
+                     # Particles After being advected over one time step 
+
+# Size of the patch and distance between particles in meters are conserved
+# even when box's center moves during simulation
+preserved_meter = True
+
+if preserved_meter:
+    dx_box = 100  # horizontal particles spacing meters
+    nx_box = 10*2 + 1 # number of intervals in x-dir
+    ny_box = 10*2      
+    nnlev = 1  
+else:
+    dx_m = 2000. # distance between 2 particles [in m]
+    dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
+    dx0 = 1
+    iwd  = 1* dx0 # half width of seeding patch [in grid points
+    jwd  = 1* dx0 # half width of seeding patch [in grid points]
+    # density of pyticles (n*dx0: particle every n grid points)
+    nnx = 1/10 * dx0
+    nny = 1/10 * dx0
+    nnlev = 1
 
 #########
 # define initial vertical position using:

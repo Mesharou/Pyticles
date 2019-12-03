@@ -18,11 +18,16 @@ if not os.path.isfile(newfile):
 
     # particles seeding 
     nc.nqmx = nqmx
-    nc.dx_m = dx_m
-    nc.iwd = iwd
-    nc.jwd = jwd
-    nc.nnx = nnx
-    nc.nny = nny
+    if preserved_meter:
+        nc.dx_box = dx_box
+        nc.nx_box = nx_box
+        nc.ny_box = ny_box
+    else:
+        nc.dx_m = dx_m
+        nc.iwd = iwd
+        nc.jwd = jwd
+        nc.nnx = nnx
+        nc.nny = nny
     nc.nnlev = nnlev
     nc.depth0 = depths0
 
@@ -102,11 +107,16 @@ nc.dfile = dfile
 
 # particles seeding 
 nc.nqmx = nqmx
-nc.dx_m = dx_m
-nc.iwd = iwd
-nc.jwd = jwd
-nc.nnx = nnx
-nc.nny = nny
+if preserved_meter:
+    nc.dx_box = dx_box
+    nc.nx_box = nx_box
+    nc.ny_box = ny_box
+else:
+    nc.dx_m = dx_m
+    nc.iwd = iwd
+    nc.jwd = jwd
+    nc.nnx = nnx
+    nc.nny = nny
 nc.nnlev = nnlev
 nc.depth0 = depths0
 
@@ -174,21 +184,6 @@ nc.y_periodic = int(y_periodic)
 nc.timestep = timestep
 nc.sedimentation = int(sedimentation)
 if continuous_injection : nc.dt_injection = dt_injection
-
-# particles seeding 
-nc.ic = ic
-nc.jc = jc
-nc.dx_m = dx_m
-nc.iwd = iwd
-nc.jwd = jwd
-nc.nnx = nnx
-nc.nny = nny
-nc.nnlev = nnlev
-nc.depth0 = depths0
-nc.lev0 = lev0
-nc.lev1 = lev1
-
-
 
 # Close netcdf file
 nc.close()
