@@ -19,12 +19,17 @@ python -i Pyticles.py nprocs
 nprocs : numbers of processors 
 
 !---------------------------------------------------------------------------------------------
+! 2019-11-29 [jeremy collin]:
+!     - add key preserved_meter (input_file)
+!       horizontal spacing between particles is defined with dx (m)
+!       dx is preserved as the patch center moves (barycentric,...)
+!       dx[ic,jc] using linear interpolation allows float coordinates
 ! 2019-06-12 [jeremy collin]:
-!      - add capacity to seed particles from pyticles netcdf output file trap_file
-!        starting from time index itime_trap
-!        Purpose is to run a forward 2D simulation with output: trap_file
-!        Then a backward 3D simulation to identify origin of sediment found in
-!        trap_file
+!     - add capacity to seed particles from pyticles netcdf output file trap_file
+!       starting from time index itime_trap
+!       Purpose is to run a forward 2D simulation with output: trap_file
+!       Then a backward 3D simulation to identify origin of sediment found in
+!       trap_file
 ! 2019-05-27 [jeremy collin]:
 !     - add correction for 3D xy_periodic (2D still unstable)
 ! 2019-05-23 [jeremy collin]:
@@ -133,7 +138,7 @@ from R_files import load
 from itertools import product
 
 import seeding_part
-#from R_tools import rho1_eos # CV
+#from R_tools_fort import rho1_eos # JC 
 # Input file with Pyticles parameters
 from input_file import *
 
@@ -247,10 +252,14 @@ if not restart:
     # Define initial px,py,pz pyticles position 
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
-
-    z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
-            nnlev=nnlev)
+    if preserved_meter:
+        z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                    nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                    simul=simul, ng=ng)
+    else:
+        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+                nnlev=nnlev)
 
     ##############################
     # isosurface
@@ -277,8 +286,14 @@ if not restart:
         rho = rho1_eos(temp, salt, z_r, z_w, roms_rho0)
         ## temporary box used for sigma-interpolation onto surf0 
         lev1 = rho.shape[2] #  Needed to get all levels
-        z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+        if preserved_meter:
+            z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                        nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                        simul=simul, ng=ng)
+        else:
+            z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                     lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+        
         map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
                 z_box.reshape(-1), ng=ng).reshape(x_box.shape)
        
@@ -959,12 +974,19 @@ for time in timerange:
         ###############################################
         # modify seeding patch center to barycenter of
         # previously released particules after a time_step of advection
+
         if barycentric:
             [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
-        ######################################
-        z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
-                                        iwd=iwd, jwd=jwd, nx=nx, ny=ny,
-                                        nnx=nnx, nny=nny, nnlev=nnlev)
+        ###############################
+        if preserved_meter:
+            z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                        nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                        simul=simul, ng=ng, debug=debug)
+
+        else:
+            z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+                                            iwd=iwd, jwd=jwd, nx=nx, ny=ny,
+                                             nnx=nnx, nny=nny, nnlev=nnlev)
         ###############################
         # Release particles at depths0
         if initial_depth: 
@@ -988,8 +1010,14 @@ for time in timerange:
 
             ## temporary box used for sigma-interpolation onto surf0 vector
             lev1 = rho.shape[2] #  Needed to get all levels
-            z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+            if preserved_meter:
+                z_box, y_box, x_box = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0,
+                                      lev1=lev1, nnlev=nnlev, nx_box=nx_box,
+                                      ny_box=ny_box, dx_box=dx_box,simul=simul, ng=ng)
+            else:
+                z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                        lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+
             map_rho = part.map_var(simul, rho, x_box.reshape(-1),
                                    y_box.reshape(-1),
                     z_box.reshape(-1), ng=ng, coord=coord).reshape(x_box.shape)
