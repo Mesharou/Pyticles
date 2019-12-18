@@ -35,8 +35,8 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1510
-end_file = 1512
+start_file = 1555
+end_file = 1559
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -142,7 +142,7 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 config = 'tmp_debug_test'
-folderout = '/home/jeremy/Bureau/Data/Pyticles/' + config + '/'
+folderout = '/home2/datawork/jcollin/Pyticles/TEST/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)

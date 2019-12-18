@@ -2295,7 +2295,7 @@ class files(object):
         # JC simulations
 
         elif simul=='Case_1':  
-            folder= '/home/jeremy/Bureau/Data/Pyticles'
+            folder= '/home2/datawork/jcollin/Pyticles/TEST'
             self.model = 'croco'
             self.his=folder + '/chaba_his.'
             self.grd=folder + '/chaba_grd.nc'
