@@ -314,7 +314,8 @@ if not restart:
     # topolim : used in ADV_2D to prevent particles from being seeded below
     #           seafloor
     
-    ipmx = 0; px0,py0,pz0 = [],[],[]
+    ipmx = 0;
+    px0, py0, pz0 = [], [], []
     topolim=0
 
     if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
@@ -392,8 +393,8 @@ if not restart:
         '''
             
         nq_injection = nq
-        nq = np.nanmin([nq_injection*(N_injection+1),nqmx])
-        print('it would take', nq_injection*N_injection-nqmx, ' more pyticles')
+        nq = np.nanmin([nq_injection * N_injection, nqmx])
+        print('it would take', nq_injection * N_injection - nqmx, ' more pyticles')
         print('to be able to release through all the simulation')
         nq_1 = nq_injection
         nq_0 = 0
@@ -1064,7 +1065,8 @@ for time in timerange:
         del x, y, z
         
         ####################################################################
-        nq_0 = nq_1 + 1 
+        #nq_0 = nq_1 + 1 
+        nq_0 = nq_1
         nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
         px[nq_0: nq_1] = px0
         py[nq_0: nq_1] = py0

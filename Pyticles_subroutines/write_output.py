@@ -133,35 +133,35 @@ else: nc.y_periodic =  0
 
 
 
-nc.variables['time'][itime]=time
-nc.variables['px'][itime,:]=px
-nc.variables['py'][itime,:]=py
-if adv3d: nc.variables['pz'][itime,:]=pz
+nc.variables['time'][itime] = time
+nc.variables['px'][itime, :] = px
+nc.variables['py'][itime, :] = py
+if adv3d: nc.variables['pz'][itime, :] = pz
 
 if write_ts:    
-    nc.variables['pt'][itime,:]=ptemp
-    nc.variables['ps'][itime,:]=psalt
+    nc.variables['pt'][itime, :] = ptemp
+    nc.variables['ps'][itime, :] = psalt
 elif write_t:    
-    nc.variables['pt'][itime,:]=ptemp
+    nc.variables['pt'][itime, :] = ptemp
 
 if write_lonlat:    
-    nc.variables['plon'][itime,:]=plon
-    nc.variables['plat'][itime,:]=plat
+    nc.variables['plon'][itime, :] = plon
+    nc.variables['plat'][itime, :] = plat
 
 if write_depth:    
-    nc.variables['pdepth'][itime,:]=pdepth
+    nc.variables['pdepth'][itime, :] = pdepth
 
 if write_topo:    
-    nc.variables['ptopo'][itime,:]=ptopo
+    nc.variables['ptopo'][itime, :] = ptopo
 
 if write_uv:
-    nc.variables['pu'][itime,:]=pu
-    nc.variables['pv'][itime,:]=pv
+    nc.variables['pu'][itime, :] = pu
+    nc.variables['pv'][itime, :] = pv
 
 if write_uvw:
-    nc.variables['pu'][itime,:]=pu
-    nc.variables['pv'][itime,:]=pv
-    nc.variables['pw'][itime,:]=pw
+    nc.variables['pu'][itime, :] = pu
+    nc.variables['pv'][itime, :] = pv
+    nc.variables['pw'][itime, :] = pw
 #Some parameters
 
 nc.w_sed0 = w_sed0
