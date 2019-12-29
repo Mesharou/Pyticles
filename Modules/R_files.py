@@ -3916,7 +3916,7 @@ class files(object):
 
             self.tfile = 20
             self.tstart = 0
-            self.tend = 120
+            self.tend = 40
 
 
         ##################

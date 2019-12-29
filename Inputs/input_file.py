@@ -38,8 +38,8 @@ ng = 1
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = -1
-start_file = 1120
-end_file = 1000
+start_file = 1220
+end_file = 1180
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -98,7 +98,7 @@ nadv = 1 # deprecated
 # Particles Dynamics
 ##############################################################################
 # 3D advection
-adv3d = True
+adv3d = False
 advzavg = False
 
 if advzavg:
@@ -106,7 +106,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -200.
+    advdepth = -500.
 
 '''
         NOTE that advdepths is used as follows:
@@ -117,8 +117,8 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = True
-w_sed0 = -200 # vertical velocity for particles sedimentation (m/s)
+sedimentation = False
+w_sed0 = 0 # vertical velocity for particles sedimentation (m/d)
 
 if not adv3d:
     sedimentation = False
@@ -147,8 +147,8 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
-config = 'st_with_newpatch2'
-folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp2/' + config + '/'
+config = 'test_stat_disp_pair'
+folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp5/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -206,9 +206,10 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                     # Particles After being advected over one time step 
 #[ic, jc] = part.find_points(simul.x,simul.y, -16.5, 49)
-x_ic = part.find_points(simul.x,simul.y, -16.5, 49)[0]
-y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
-[ic,jc] = [x_ic,y_jc]
+#x_ic = part.find_points(simul.x,simul.y, -16.5, 49)[0]
+#y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
+#[ic,jc] = [x_ic,y_jc]
+[ic,jc] = np.load('/home2/datahome/lwang/Pyticles/Inputs/ic_jc.npy')
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
@@ -218,19 +219,18 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 preserved_meter = True
 
 if preserved_meter:
-    dx_box = 100  # horizontal particles spacing meters
-    nx_box = 10*2 + 1 # number of intervals in x-dir
-    ny_box = 10*2      
+    dx_box = 250  # horizontal particles spacing meters
+    nx_box = 16 # number of intervals in x-dir
+    ny_box = 16      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-    dx0 = 1
-    iwd  = 1* dx0 # half width of seeding patch [in grid points
-    jwd  = 1* dx0 # half width of seeding patch [in grid points]
+    iwd  = 10 * dx0 # half width of seeding patch [in grid points
+    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
-    nnx = 1/10 * dx0
-    nny = 1/10 * dx0
+    nnx = 1 * dx0
+    nny = 1 * dx0
     nnlev = 1
 
 #########
@@ -262,14 +262,14 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-500,-1000,-2000,-3000]
+depths0 = [-500]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = False
+continuous_injection = True
 if continuous_injection:
-    dt_injection = 1 #(1 = injection every time step,
+    dt_injection = 10 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
