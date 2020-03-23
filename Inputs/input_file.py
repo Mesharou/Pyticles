@@ -37,9 +37,9 @@ ng = 1
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1
-start_file = 1220
-end_file = 1180
+dfile = 1
+start_file = 200 
+end_file = 220
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -106,7 +106,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -500.
+    advdepth = -3000.
 
 '''
         NOTE that advdepths is used as follows:
@@ -147,8 +147,9 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
-config = 'test_stat_disp_pair'
-folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp5/' + config + '/'
+config = 'test_2d_forward'
+
+folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -196,7 +197,7 @@ subtstep = np.int(nsub_steps * np.abs(dfile))
 ################################################################################
 
 #Initial Particle release
-nqmx = 100000  # maximum number of particles
+nqmx = 1000000  # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
@@ -219,9 +220,9 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 preserved_meter = True
 
 if preserved_meter:
-    dx_box = 250  # horizontal particles spacing meters
-    nx_box = 16 # number of intervals in x-dir
-    ny_box = 16      
+    dx_box = 1000  # horizontal particles spacing meters
+    nx_box = 4 # number of intervals in x-dir
+    ny_box = 4      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
@@ -262,14 +263,14 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-500]
+depths0 = [-3000]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
 continuous_injection = True
 if continuous_injection:
-    dt_injection = 10 #(1 = injection every time step,
+    dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 

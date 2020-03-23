@@ -3909,14 +3909,15 @@ class files(object):
 
             self.his=folder +'polgyr_his.'
 
-            self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
+            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
 
             self.frc=folder + '/HIS/polgyr_his.00000.nc'
             self.wind=folder + '/HIS/polgyr_his.00000.nc'
 
             self.tfile = 20
             self.tstart = 0
-            self.tend = 40
+            self.tend = 20
 
 
         ##################
