@@ -3,15 +3,25 @@
 ################################################
 module load NETCDF/4.3.3.1-mpt-intel2016
 
-#load conda
-module load anaconda-py2.7/4.3.13
+# ----- load conda
+# Warning since 2020-03-06
+# module load anaconda is deprecated
+# source : https://domicile.ifremer.fr/intraric/Mon-IntraRIC/Calcul-et-donnees-scientifiques/Datarmor-Calcul-et-Donnees/Datarmor-calcul-et-programmes/Pour-aller-plus-loin/,DanaInfo=w3z.ifremer.fr,SSL+Conda-sur-Datarmor#
+# regarding the SHELL 
+# bash : . /appli/anaconda/versions/[numero_version]/etc/profile.d/conda.sh
+# csh : source /appli/anaconda/versions/[numero_version]/etc/profile.d/conda.csh
 
+#module load anaconda-py2.7/4.3.13
+. /appli/anaconda/versions/4.7.12/etc/profile.d/conda.sh
 # create new env
 conda create --name my_conda
+conda create --name my_conda python=3.6.8
 
-bash
-cd /appli/anaconda/2.7/bin
-source activate my_conda
+#bash
+#cd /appli/anaconda/2.7/bin
+#source activate my_conda
+
+conda activate my_conda 
 
 ## install modules
 

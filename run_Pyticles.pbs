@@ -31,7 +31,7 @@ echo $LD_LIBRARY_PATH
 cd $PBS_O_WORKDIR
 
 
-export PYTHONPATH=$HOME/Python_Modules
+#export PYTHONPATH=$HOME/Python_Modules
 
 
 echo "you use " $OMP_NUM_THREADS "threads for your omp jobs"

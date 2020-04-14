@@ -3888,7 +3888,7 @@ class files(object):
 
             self.his=folder +'polgyr_his.'
 
-            self.grd='/home/datawork-lops-osi/jgula/POLGYR/polgyr_grd.nc'
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
 
             self.frc=folder + '/HIS/polgyr_his.00000.nc'
             self.wind=folder + '/HIS/polgyr_his.00000.nc'
@@ -3899,7 +3899,7 @@ class files(object):
 
         ##################
 
-        elif 'lwang' in simul:
+        elif 'apero' in simul:
 
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)
@@ -3919,6 +3919,29 @@ class files(object):
             self.tfile=20
             self.tstart=0
             self.tend=1000
+
+        elif 'debug_netcdf' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder = '/home/datawork-lops-osi/mlecorre/POLGYR/INIT/'
+            folder_his = '/home2/scratch/jcollin/Pyticles/POLGYR/'
+
+            self.his=folder_his +'polgyr_his.'
+
+            self.grd=folder + 'polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.01000.nc'
+            self.wind=folder + '/HIS/polgyr_his.01000.nc'
+
+            self.tfile=20
+            self.tstart=0
+            self.tend=1000
+
 
 
         ##################

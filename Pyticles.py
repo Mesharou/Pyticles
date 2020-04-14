@@ -983,11 +983,15 @@ for time in timerange:
             z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                         nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
                         simul=simul, ng=ng, debug=debug)
-
         else:
             z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                                             iwd=iwd, jwd=jwd, nx=nx, ny=ny,
-                                             nnx=nnx, nny=nny, nnlev=nnlev)
+                                            nnx=nnx, nny=nny, nnlev=nnlev)
+        print(f"hdf debug:")
+        print(f"x,y,z")
+        print(x)
+        print(y)
+        print(z)
         ###############################
         # Release particles at depths0
         if initial_depth: 
@@ -1090,6 +1094,5 @@ for time in timerange:
     print(' ')
         
     if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
-    if debug: print('error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2))
 
         
