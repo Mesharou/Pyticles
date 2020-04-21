@@ -202,14 +202,14 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 
 dx_m = 2000. # distance between 2 particles [in m]
 dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-iwd  = 10* dx0 # half width of seeding patch [in grid points
-jwd  = 10* dx0 # half width of seeding patch [in grid points]
+iwd  = 1* dx0 # half width of seeding patch [in grid points
+jwd  = 1* dx0 # half width of seeding patch [in grid points]
 
 #########
 # density of pyticles (n*dx0: particle every n grid points)
 # 
-nnx = 2 * dx0
-nny = 2 * dx0
+nnx = 1 * dx0
+nny = 1 * dx0
 nnlev = 1
 
 #########
