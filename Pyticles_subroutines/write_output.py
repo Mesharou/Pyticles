@@ -18,11 +18,16 @@ if not os.path.isfile(newfile):
 
     # particles seeding 
     nc.nqmx = nqmx
-    nc.dx_m = dx_m
-    nc.iwd = iwd
-    nc.jwd = jwd
-    nc.nnx = nnx
-    nc.nny = nny
+    if preserved_meter:
+        nc.dx_box = dx_box
+        nc.nx_box = nx_box
+        nc.ny_box = ny_box
+    else:
+        nc.dx_m = dx_m
+        nc.iwd = iwd
+        nc.jwd = jwd
+        nc.nnx = nnx
+        nc.nny = nny
     nc.nnlev = nnlev
     nc.depth0 = depths0
 
@@ -102,11 +107,16 @@ nc.dfile = dfile
 
 # particles seeding 
 nc.nqmx = nqmx
-nc.dx_m = dx_m
-nc.iwd = iwd
-nc.jwd = jwd
-nc.nnx = nnx
-nc.nny = nny
+if preserved_meter:
+    nc.dx_box = dx_box
+    nc.nx_box = nx_box
+    nc.ny_box = ny_box
+else:
+    nc.dx_m = dx_m
+    nc.iwd = iwd
+    nc.jwd = jwd
+    nc.nnx = nnx
+    nc.nny = nny
 nc.nnlev = nnlev
 nc.depth0 = depths0
 
@@ -123,35 +133,35 @@ else: nc.y_periodic =  0
 
 
 
-nc.variables['time'][itime]=time
-nc.variables['px'][itime,:]=px
-nc.variables['py'][itime,:]=py
-if adv3d: nc.variables['pz'][itime,:]=pz
+nc.variables['time'][itime] = time
+nc.variables['px'][itime, :] = px
+nc.variables['py'][itime, :] = py
+if adv3d: nc.variables['pz'][itime, :] = pz
 
 if write_ts:    
-    nc.variables['pt'][itime,:]=ptemp
-    nc.variables['ps'][itime,:]=psalt
+    nc.variables['pt'][itime, :] = ptemp
+    nc.variables['ps'][itime, :] = psalt
 elif write_t:    
-    nc.variables['pt'][itime,:]=ptemp
+    nc.variables['pt'][itime, :] = ptemp
 
 if write_lonlat:    
-    nc.variables['plon'][itime,:]=plon
-    nc.variables['plat'][itime,:]=plat
+    nc.variables['plon'][itime, :] = plon
+    nc.variables['plat'][itime, :] = plat
 
 if write_depth:    
-    nc.variables['pdepth'][itime,:]=pdepth
+    nc.variables['pdepth'][itime, :] = pdepth
 
 if write_topo:    
-    nc.variables['ptopo'][itime,:]=ptopo
+    nc.variables['ptopo'][itime, :] = ptopo
 
 if write_uv:
-    nc.variables['pu'][itime,:]=pu
-    nc.variables['pv'][itime,:]=pv
+    nc.variables['pu'][itime, :] = pu
+    nc.variables['pv'][itime, :] = pv
 
 if write_uvw:
-    nc.variables['pu'][itime,:]=pu
-    nc.variables['pv'][itime,:]=pv
-    nc.variables['pw'][itime,:]=pw
+    nc.variables['pu'][itime, :] = pu
+    nc.variables['pv'][itime, :] = pv
+    nc.variables['pw'][itime, :] = pw
 #Some parameters
 
 nc.w_sed0 = w_sed0
@@ -174,21 +184,6 @@ nc.y_periodic = int(y_periodic)
 nc.timestep = timestep
 nc.sedimentation = int(sedimentation)
 if continuous_injection : nc.dt_injection = dt_injection
-
-# particles seeding 
-nc.ic = ic
-nc.jc = jc
-nc.dx_m = dx_m
-nc.iwd = iwd
-nc.jwd = jwd
-nc.nnx = nnx
-nc.nny = nny
-nc.nnlev = nnlev
-nc.depth0 = depths0
-nc.lev0 = lev0
-nc.lev1 = lev1
-
-
 
 # Close netcdf file
 nc.close()
