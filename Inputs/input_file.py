@@ -120,6 +120,7 @@ if not adv3d:
 sedimentation = False
 w_sed0 = -50 # vertical velocity for particles sedimentation (m/d)
 
+
 if not adv3d:
     sedimentation = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
@@ -146,6 +147,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
+
 #config = 'longer_simul_50d_sed100'
 config = 'test_2d'
 
@@ -211,10 +213,6 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 #y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 #[ic,jc] = [x_ic,y_jc]
 [ic,jc] = np.load('/home2/datahome/lwang/Pyticles/Inputs/ic_jc.npy')
-#[ic,jc] = [1418,467] # sw site
-barycentric = False  # Automatically modifies patch's center to previsously seeded
-                     # Particles After being advected over one time step 
-    
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
 preserved_meter = True
