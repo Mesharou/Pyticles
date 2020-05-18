@@ -37,9 +37,9 @@ ng = 1
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = 1
-start_file = 200 
-end_file = 220
+dfile = -1
+start_file = 3720
+end_file = 3700
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -106,7 +106,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -3000.
+    advdepth = -500.
 
 '''
         NOTE that advdepths is used as follows:
@@ -118,7 +118,7 @@ if not adv3d:
 '''
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = False
-w_sed0 = 0 # vertical velocity for particles sedimentation (m/d)
+w_sed0 = -50 # vertical velocity for particles sedimentation (m/d)
 
 if not adv3d:
     sedimentation = False
@@ -147,9 +147,9 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
-config = 'test_2d_forward'
+config = 'test_2d'
 
-folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10/' + config + '/'
+folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10/egu/3d/forward/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -211,18 +211,18 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 #y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 #[ic,jc] = [x_ic,y_jc]
 [ic,jc] = np.load('/home2/datahome/lwang/Pyticles/Inputs/ic_jc.npy')
-
+#[ic,jc] = [1418,467] # sw site
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
-
+    
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
 preserved_meter = True
 
 if preserved_meter:
-    dx_box = 1000  # horizontal particles spacing meters
-    nx_box = 4 # number of intervals in x-dir
-    ny_box = 4      
+    dx_box = 2000  # horizontal particles spacing meters
+    nx_box = 40 # number of intervals in x-dir
+    ny_box = 40      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
@@ -263,7 +263,7 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-3000]
+depths0 = [-4000]
 rho0 = [-1.5]
 
 # if True release particles continuously
