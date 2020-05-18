@@ -115,7 +115,7 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = False
+sedimentation = True
 w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
 
 if not adv3d:
@@ -144,7 +144,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'high_density_part'
+config = 'continuous_3D_big'
 folderout = '/scratch/Jcollin/Pyticles/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
@@ -193,13 +193,14 @@ subtstep = np.int(nsub_steps * np.abs(dfile))
 ################################################################################
 
 #Initial Particle release
-nqmx = 100000  # maximum number of particles
+nqmx = 10000000  # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 [ic, jc] = [800, 400] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+[ic,jc] = np.load('/home/j/jcollin/Project/Pyticles/Inputs/ic_jc.npy')
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
@@ -209,9 +210,9 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 preserved_meter = True
 
 if preserved_meter:
-    dx_box = 100  # horizontal particles spacing meters
-    nx_box = 10*2 + 1 # number of intervals in x-dir
-    ny_box = 10*2      
+    dx_box = 2000  # horizontal particles spacing meters
+    nx_box = 400  # number of intervals in x-dir
+    ny_box = 400      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
@@ -253,7 +254,7 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-100]
+depths0 = [-10]
 rho0 = [-1.5]
 
 # if True release particles continuously
