@@ -39,5 +39,5 @@ echo "you use " $OMP_NUM_THREADS "threads for your omp jobs"
 date
 
 
-python Pyticles.py 56 
+python Pyticles.py 28 
 date

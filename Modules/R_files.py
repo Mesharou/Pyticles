@@ -3905,8 +3905,8 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
 
-            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
-
+            #folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+            folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
             self.his=folder +'polgyr_his.'
 
             self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
@@ -3917,7 +3917,7 @@ class files(object):
 
             self.tfile = 20
             self.tstart = 0
-            self.tend = 20
+            self.tend = 362
 
 
         ##################
