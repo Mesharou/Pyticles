@@ -36,8 +36,8 @@ ng = 1
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = 1
-start_file = 1000
-end_file = 1010
+start_file = 1500
+end_file = 1510
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,7 +63,7 @@ else:
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
-my_simul = 'lwang'
+my_simul = 'Case_1'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
@@ -145,7 +145,7 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 config = 'high_density_part'
-folderout = '/scratch/Jcollin/Pyticles/' + config + '/'
+folderout = '/tmp/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
