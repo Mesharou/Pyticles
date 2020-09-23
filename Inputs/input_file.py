@@ -37,7 +37,7 @@ ng = 1
 # (default is 1 = using all outputs files)
 dfile = 1
 start_file = 1000
-end_file = 1010
+end_file = 1005
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -144,7 +144,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'continuous_3D_big'
+config = 'pw_test'
 folderout = '/scratch/Jcollin/Pyticles/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
@@ -193,7 +193,7 @@ subtstep = np.int(nsub_steps * np.abs(dfile))
 ################################################################################
 
 #Initial Particle release
-nqmx = 10000000  # maximum number of particles
+nqmx = 100000  # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
@@ -211,8 +211,8 @@ preserved_meter = True
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 400  # number of intervals in x-dir
-    ny_box = 400      
+    nx_box = 20  # number of intervals in x-dir
+    ny_box = 20      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
@@ -254,7 +254,7 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-10]
+depths0 = [-100]
 rho0 = [-1.5]
 
 # if True release particles continuously
