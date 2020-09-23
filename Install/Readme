@@ -1,0 +1,19 @@
+#!/bin/bash
+# Jcollin 2020 jeremy.collin@univ-brest.fr 
+
+# To install a python environment for Pyticles you may chose between
+
+# - conda (recommanded)
+#   follow conda_install instructions
+
+# - virtualenv
+#   follow Virtual_Python3_install
+
+# ---> build Pyticles Modules
+
+cd Modules 
+make
+
+# ---> edit Input/input.py and Modules/R_files.py
+
+

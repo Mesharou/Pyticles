@@ -1,0 +1,10 @@
+name: pyti-conda-beta
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - netcdf4
+  - basemap
+

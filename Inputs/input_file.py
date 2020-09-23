@@ -36,8 +36,13 @@ ng = 1
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 dfile = 1
+<<<<<<< HEAD
 start_file = 1000
 end_file = 1005
+=======
+start_file = 1500
+end_file = 1510
+>>>>>>> 0cff873723a95745c664813d2b47e90a06ce17c3
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,7 +68,7 @@ else:
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
-my_simul = 'lwang'
+my_simul = 'Case_1'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
