@@ -470,9 +470,9 @@ else: # restart = True
         # because px0, py0, pz0 may vary upon time
         nq_injection = np.argmax(np.isnan(nc.variables['px'][0, :]))
 
-        px0 = nc.variables['px'][0, :nq_injection]
-        py0 = nc.variables['py'][0, :nq_injection]
-        pz0 = nc.variables['pz'][0, :nq_injection]
+        px0 = np.array(nc.variables['px'][0, :nq_injection])
+        py0 = np.array(nc.variables['py'][0, :nq_injection])
+        pz0 = np.array(nc.variables['pz'][0, :nq_injection])
         nc.close()
         
         nq_1 = np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])

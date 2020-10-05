@@ -130,9 +130,6 @@ else: nc.x_periodic =  0
 if y_periodic: nc.y_periodic =  1
 else: nc.y_periodic =  0
 
-
-
-
 nc.variables['time'][itime] = time
 nc.variables['px'][itime, :] = px
 nc.variables['py'][itime, :] = py

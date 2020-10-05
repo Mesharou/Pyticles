@@ -1,7 +1,8 @@
-name: pyti-conda-beta
+name: pyti-conda-3.6
 channels:
   - defaults
 dependencies:
+  - python=3.6
   - numpy
   - scipy
   - matplotlib

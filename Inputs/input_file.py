@@ -33,16 +33,11 @@ y_periodic = False
 
 ng = 1
 
-# dfile is frequency for the use of the ROMS outputs
+# dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
-dfile = 1
-<<<<<<< HEAD
+dfile = 0.5
 start_file = 1000
 end_file = 1005
-=======
-start_file = 1500
-end_file = 1510
->>>>>>> 0cff873723a95745c664813d2b47e90a06ce17c3
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -68,7 +63,7 @@ else:
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
-my_simul = 'Case_1'
+my_simul = 'zero_vel'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
@@ -149,8 +144,8 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'pw_test'
-folderout = '/scratch/Jcollin/Pyticles/' + config + '/'
+config = 'zero_vel'
+folderout = '/postproc/COLLIN/Pyticles/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -186,7 +181,7 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-timerange = np.round(np.arange(start_file,end_file,dfile),3)
+timerange = np.round(np.arange(start_file, end_file, dfile),3)
 #for timing purpose
 tstart = tm.time()
 #Time all subparts of the code 
@@ -215,9 +210,9 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 preserved_meter = True
 
 if preserved_meter:
-    dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 20  # number of intervals in x-dir
-    ny_box = 20      
+    dx_box = 20000  # horizontal particles spacing meters
+    nx_box = 4  # number of intervals in x-dir (nx_box+1) * (ny_box + 1) part 
+    ny_box = 5      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
@@ -264,7 +259,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
