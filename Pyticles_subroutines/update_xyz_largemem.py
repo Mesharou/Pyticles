@@ -112,7 +112,8 @@ if np.isnan(pm_s[0,0]):
 # Update simul at t+1 - and get u,v,w at time-step t+1
 
 if not meanflow: simul.update(np.int(np.floor(time)+simul.dtime));
-tim1 = simul.oceantime
+# JC
+#tim1 = simul.oceantime
 
 if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
@@ -168,15 +169,19 @@ if timing: tstart = tm.time()
 ########################
 
 # Integrate in time to the next frame
-if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
+# JC high freq 
+#if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
+if not meanflow: delt[0] = simul.dt * np.abs(dfile)
+"""
 if dfile < 1: 
     print("Manually enter delt[0] in Pyticles_subroutines/update_xyz_largemem.py")
-    delt[0] = 21600 
+    delt[0] = 21600
+"""
 dt = delt[0]/subtstep 
 dfct = 1. /subtstep * np.abs(dfile)
 # FREQ
-print("delt[0], tim1, tim0, dt, dfct")
-print(delt[0], tim1, tim0, dt, dfct)
+print("delt[0], tim0, dt, dfct")
+print(delt[0], tim0, dt, dfct)
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
