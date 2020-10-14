@@ -686,7 +686,8 @@ def plot_selection(alldomain=True):
   #JC  ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
 
     plt.title(format(np.sum(px>0)) + ' pyticles ' )
-    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
+    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', dpi=150,bbox_inches='tight') 
+    plt.clf()
     
 
 
