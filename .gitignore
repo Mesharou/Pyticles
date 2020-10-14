@@ -1,5 +1,23 @@
 *.so
+*.log
 
 Divers/
 env_pyticles/
+
+Inputs/3d_continuous_forward.py
+Inputs/__pycache__/
+Inputs/ic_jc.npy
+Inputs/nan_particles.py
+Inputs/test_backward_2D.py
+Inputs/test_forward_2d.py
+
+Modules/Python_Modules_examples/
+Modules/R_tools.py
+Modules/__pycache__/
+Modules/pyticles_3d_sig_sa.f
+
+Postprocessing/Vic_routines/
+
+output_case1
+requiremens.txt
 
