@@ -489,8 +489,10 @@ else: # restart = True
 ################################################################################
 
 # Time between 2 frames (in seconds)
-delt   = shared_array(2,value=simul.dt*np.abs(dfile)) 
-maxvel = shared_array(2,prec='double',value=maxvel0)
+delt   = shared_array(2, value=simul.dt*np.abs(dfile)) 
+maxvel = shared_array(2, prec='double', value=maxvel0)
+print("delt is: ", delt)
+print("")
 
 # Total number of time steps:
 istep = shared_array(1,prec='int',value=-1)
@@ -684,7 +686,7 @@ def plot_selection(alldomain=True):
   #JC  ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
 
     plt.title(format(np.sum(px>0)) + ' pyticles ' )
-    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
+    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
     
 
 
@@ -753,6 +755,7 @@ run_process(plot_selection)
 pm_s = np.array([]); 
 
 itime = restart_time
+print("itime is!", itime)
 
 for time in timerange:
     print('--------------------------------------------------------------------')
@@ -760,6 +763,8 @@ for time in timerange:
     print('--------------------------------------------------------------------')
 
     alpha_time = time - np.floor(time)
+    print ("alpha time :", alpha_time)
+    print("")
 
     ############################################################################
     # Define domainstimerange
@@ -768,7 +773,7 @@ for time in timerange:
     ############################################################################
     if debug: print('max. vel. is ',  maxvel)
 
-    tightcoord= part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
+    tightcoord = part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
     coord= part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
                            nadv= nadv)
 
@@ -957,7 +962,7 @@ for time in timerange:
     ############################################################################
 
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
-    if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2):
+    if not meanflow and (np.round(time+dfile) - (time+dfile) <= np.abs(dfile)*1e-2):
         simul.update(np.int(np.floor(time)+simul.dtime));
 
     print('Total computation of px,py,pz............', tm.time()-tstart)
@@ -1090,6 +1095,5 @@ for time in timerange:
     print(' ')
         
     if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
-    if debug: print('error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2))
 
         
