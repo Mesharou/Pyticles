@@ -118,8 +118,6 @@ if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
-    # JC DEBUG
-    print('u after')
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
             coord=subcoord)
@@ -171,8 +169,14 @@ if timing: tstart = tm.time()
 
 # Integrate in time to the next frame
 if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
-dt = delt[0]/subtstep
+if dfile < 1: 
+    print("Manually enter delt[0] in Pyticles_subroutines/update_xyz_largemem.py")
+    delt[0] = 21600 
+dt = delt[0]/subtstep 
 dfct = 1. /subtstep * np.abs(dfile)
+# FREQ
+print("delt[0], tim1, tim0, dt, dfct")
+print(delt[0], tim1, tim0, dt, dfct)
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
