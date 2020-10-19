@@ -340,12 +340,21 @@ def advance_2d(subrange,out,step):
 # ADVANCE_3D
 ###################################################################################
 
-nslice = len(subsubrange)//nproc+1; subranges=[]; nprocs=[]
+nslice = len(subsubrange)//nproc
+remain = nq - nslice * nproc
+i_shift = remain * (nslice + 1)
 
-for i in range(nproc): 
-    subranges.append(subsubrange[i*nslice:np.nanmin([(i+1)*nslice,nq])])
-    if len(subranges[-1])>0: nprocs.append(i)
+subranges=[]
+nprocs=[]
 
+for i in range(nproc):
+    if i < remain:
+        subranges.append(subsubrange[i*(nslice+1) : np.nanmin([(i+1)*(nslice+1), nq])])
+    else:
+        j = i - remain
+        subranges.append(subsubrange[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice, nq])])
+    
+    if len(subranges[-1]) > 0: nprocs.append(i)
 
 ################################################################################
 # Run nproc simultaneous processes
@@ -374,13 +383,5 @@ if len(nprocs)>0:
     if timing: tstart = tm.time()
 
     ############################################################################
-
-
-
-
-
-
-
-
 
 
