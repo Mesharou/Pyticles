@@ -19,6 +19,11 @@ python -i Pyticles.py nprocs
 nprocs : numbers of processors 
 
 !---------------------------------------------------------------------------------------------
+! 2020-10-19 [jeremy collin]
+!     - modifcation of particle distribution over threads to enable small number of particles
+!     with high number of processors. Usefull for continuous injection
+! 2020-10-14  [jeremy collin]
+!    - Generic high frequency: re-enable higher frequency output (dfile >1) 
 ! 2019-11-29 [jeremy collin]:
 !     - add key preserved_meter (input_file)
 !       horizontal spacing between particles is defined with dx (m)
