@@ -37,10 +37,10 @@ ng = 1
 # dfile is frequency for the use of the ROMS outputs
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1
-start_file = 3720
-end_file = 3700
-
+dfile = -1/4
+start_file = 3750
+end_file = 3538
+#end_file = 3538
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
 # itime_trap = -1 : last time index in forward simulation
@@ -52,9 +52,10 @@ trap_file = '/home/wang/Bureau/Data/Pyticles/Trap_fwd/' \
 # user should not change start_file
 # restart_time : number of time step since start_file
 restart = False
-restart_time = 7 #nb of time steps in the restart_file
-restart_file = '/home/wang/Bureau/Data/Pyticles/' \
-               +'/Cubic_adv/Case_1_Cubic_adv_4_1510.nc'
+restart_time = 123 #nb of time steps in the restart_file
+restart_file = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/' \
+               + 'apero_hfo3h_bk3d_06winter_trap1000m_sed50_restart.nc' 
+              
 
 if not restart:
     restart_time = 0
@@ -98,7 +99,7 @@ nadv = 1 # deprecated
 # Particles Dynamics
 ##############################################################################
 # 3D advection
-adv3d = False
+adv3d = True
 advzavg = False
 
 if advzavg:
@@ -106,7 +107,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -500.
+    advdepth = -4000.
 
 '''
         NOTE that advdepths is used as follows:
@@ -117,8 +118,9 @@ if not adv3d:
                              ..., Nz = surface [Nz-1 in netcdf file])
 '''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = False
+sedimentation = True
 w_sed0 = -50 # vertical velocity for particles sedimentation (m/d)
+
 
 
 if not adv3d:
@@ -137,7 +139,7 @@ if advzavg:
     write_topo = True # Needed to keep track when water column intersects with
                       # bathymetry (topo > |advdepth| - z_thick/2)
 write_uv = True
-write_ts = True
+write_ts = False
 write_uvw = True
 if write_uvw:
     write_uv = False
@@ -147,11 +149,14 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-
 #config = 'longer_simul_50d_sed100'
-config = 'test_2d'
+#config = 'bk2d_0506winter'
+config = 'hfo3h_bk3d_06winter_trap1000m_sed50'
+#config = 'debug_high_freq'
 
-folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10/egu/3d/forward/'
+#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
+#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp12_newbk/3d/2006/'
+folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -199,7 +204,7 @@ subtstep = np.int(nsub_steps * np.abs(dfile))
 ################################################################################
 
 #Initial Particle release
-nqmx = 1000000  # maximum number of particles
+nqmx = 100000  # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
@@ -213,14 +218,18 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 #y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 #[ic,jc] = [x_ic,y_jc]
 [ic,jc] = np.load('/home2/datahome/lwang/Pyticles/Inputs/ic_jc.npy')
+#[ic,jc] = [1418,467] # sw site
+barycentric = False  # Automatically modifies patch's center to previsously seeded
+                     # Particles After being advected over one time step 
+    
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
 preserved_meter = True
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 40 # number of intervals in x-dir
-    ny_box = 40      
+    nx_box = 5 # number of intervals in x-dir
+    ny_box = 5      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
@@ -261,14 +270,14 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-4000]
+depths0 = [-1000]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
 continuous_injection = True
 if continuous_injection:
-    dt_injection = 1 #(1 = injection every time step,
+    dt_injection = 4 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 

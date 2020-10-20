@@ -2,7 +2,7 @@
 #PBS -q omp
 #PBS -l ncpus=28
 #PBS -l mem=65g
-#PBS -l walltime=24:00:00
+#PBS -l walltime=00:10:00
 #PBS -o /home2/datahome/lwang/Pyticles/output_case1
 #  COMMENT
 #  Tina ODAKA 06.03.2017
@@ -37,7 +37,5 @@ export PYTHONPATH=$HOME/home2/datahome/lwang/.conda/envs/pyti_conda/bin/python
 
 echo "you use " $OMP_NUM_THREADS "threads for your omp jobs"
 date
-
-
 python Pyticles.py 28 
 date

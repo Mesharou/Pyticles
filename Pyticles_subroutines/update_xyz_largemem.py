@@ -170,9 +170,10 @@ if timing: tstart = tm.time()
 ########################
 
 # Integrate in time to the next frame
-if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
-dt = delt[0]/subtstep
-dfct = 1. /subtstep * np.abs(dfile)
+if not meanflow: delt[0] = delt[0] = simul.dt * np.abs(dfile) 
+
+dt = delt[0] / subtstep
+dfct = 1. / subtstep * np.abs(dfile)
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
