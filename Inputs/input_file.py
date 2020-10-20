@@ -52,16 +52,16 @@ trap_file = '/home/wang/Bureau/Data/Pyticles/Trap_fwd/' \
 ###### Restart from a Pyticles output file
 # user should not change start_file
 # restart_time : number of time step since start_file
-restart = False
-restart_time = 123 #nb of time steps in the restart_file
+restart = True
+restart_time = 28 #nb of time steps in the restart_file
 restart_file = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/' \
-               + 'apero_hfo3h_bk3d_06winter_trap1000m_sed50_restart.nc' 
+               + 'apero_hfo3h_bk3d_06winter_trap1000m_sed50_28_3740.nc' 
               
 
 if not restart:
     restart_time = 0
 else:
-    start_file += restart_time
+    start_file += restart_time * np.sign(dfile)
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
@@ -276,7 +276,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = False
+continuous_injection = True
 if continuous_injection:
     dt_injection = 4 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
