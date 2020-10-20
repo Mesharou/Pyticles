@@ -3963,6 +3963,28 @@ class files(object):
             self.tstart=0
             self.tend=1000
 
+        #####################
+
+        elif 'zero_vel' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder= '/postproc/COLLIN/Polgyr_test/'
+
+            self.his=folder +'polgyr_his.'
+
+            self.grd=folder + 'polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.01000.nc'
+            self.wind=folder + '/HIS/polgyr_his.01000.nc'
+
+            self.tfile=20
+            self.tstart=0
+            self.tend=1000
 
         ##################
 

@@ -1,3 +1,6 @@
+# Deprecated version for old python2.7 Pyticles version
+# No longer supported
+
 #!/bin/bash
 ########################################
 # How to set up a virtualenv for python:

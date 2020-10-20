@@ -39,12 +39,22 @@ if not meanflow and alpha_time != 0:
 # Get depth at particles positions
 ###############################################################################
 
-nslice = nq//nproc + 1
+nslice = nq // nproc
+remain = nq - nslice * nproc
+i_shift = remain * (nslice + 1)
+
+index = np.arange(nq)
+
 subranges = []
 procs = []
 
 for i in range(nproc):
-    subranges.append(list(range(i*nslice,np.nanmin([(i+1)*nslice,nq]))))
+    if i < remain:
+        subranges.append(index[i*(nslice+1) : np.nanmin([(i+1)*(nslice+1), nq])])
+    else:
+        j = i - remain
+        subranges.append(index[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice, nq])])
+
     procs.append(mp.Process(target=interp_3d_depth, args=(subranges[i],)))
 
 for p in procs: p.start()

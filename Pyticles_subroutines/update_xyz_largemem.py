@@ -112,14 +112,13 @@ if np.isnan(pm_s[0,0]):
 # Update simul at t+1 - and get u,v,w at time-step t+1
 
 if not meanflow: simul.update(np.int(np.floor(time)+simul.dtime));
-tim1 = simul.oceantime
+# JC
+#tim1 = simul.oceantime
 
 if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
-    # JC DEBUG
-    print('u after')
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
             coord=subcoord)
@@ -170,7 +169,7 @@ if timing: tstart = tm.time()
 ########################
 
 # Integrate in time to the next frame
-if not meanflow: delt[0] = delt[0] = simul.dt * np.abs(dfile) 
+if not meanflow: delt[0] = simul.dt * np.abs(dfile) 
 
 dt = delt[0] / subtstep
 dfct = 1. / subtstep * np.abs(dfile)
@@ -332,12 +331,21 @@ def advance_2d(subrange,out,step):
 # ADVANCE_3D
 ###################################################################################
 
-nslice = len(subsubrange)//nproc+1; subranges=[]; nprocs=[]
+nslice = len(subsubrange)//nproc
+remain = nq - nslice * nproc
+i_shift = remain * (nslice + 1)
 
-for i in range(nproc): 
-    subranges.append(subsubrange[i*nslice:np.nanmin([(i+1)*nslice,nq])])
-    if len(subranges[-1])>0: nprocs.append(i)
+subranges=[]
+nprocs=[]
 
+for i in range(nproc):
+    if i < remain:
+        subranges.append(subsubrange[i*(nslice+1) : np.nanmin([(i+1)*(nslice+1), nq])])
+    else:
+        j = i - remain
+        subranges.append(subsubrange[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice, nq])])
+    
+    if len(subranges[-1]) > 0: nprocs.append(i)
 
 ################################################################################
 # Run nproc simultaneous processes
@@ -366,13 +374,5 @@ if len(nprocs)>0:
     if timing: tstart = tm.time()
 
     ############################################################################
-
-
-
-
-
-
-
-
 
 

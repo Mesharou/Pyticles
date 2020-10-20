@@ -34,13 +34,14 @@ y_periodic = False
 
 ng = 1
 
-# dfile is frequency for the use of the ROMS outputs
+# dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = -1/4
 start_file = 3750
 end_file = 3538
 #end_file = 3538
+
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
 # itime_trap = -1 : last time index in forward simulation
@@ -192,7 +193,7 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-timerange = np.round(np.arange(start_file,end_file,dfile),3)
+timerange = np.round(np.arange(start_file, end_file, dfile),3)
 #for timing purpose
 tstart = tm.time()
 #Time all subparts of the code 
@@ -275,7 +276,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 4 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)

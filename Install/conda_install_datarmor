@@ -20,7 +20,7 @@ conda install numpy
 conda install scipy
 conda install matplotlib
 conda install netCDF4
-
+conda install basemap
 
 
 ################################################
