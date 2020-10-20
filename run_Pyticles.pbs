@@ -1,8 +1,8 @@
 #!/bin/bash
 #PBS -q omp
-#PBS -l ncpus=28
+#PBS -l ncpus=56
 #PBS -l mem=65g
-#PBS -l walltime=00:10:00
+#PBS -l walltime=04:00:00
 #PBS -o /home2/datahome/lwang/Pyticles/output_case1
 #  COMMENT
 #  Tina ODAKA 06.03.2017

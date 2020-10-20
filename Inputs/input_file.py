@@ -61,7 +61,7 @@ restart_file = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/' \
 if not restart:
     restart_time = 0
 else:
-    start_file += restart_time * np.sign(dfile)
+    start_file += restart_time * int(np.sign(dfile))
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
