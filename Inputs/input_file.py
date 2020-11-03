@@ -34,7 +34,7 @@ y_periodic = False
 
 ng = 1
 
-# dfile is frequency for the use of the ROMS outputs
+# dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
@@ -59,7 +59,7 @@ restart_file = '/home/wang/Bureau/Data/Pyticles/' \
 if not restart:
     restart_time = 0
 else:
-    start_file += restart_time
+    start_file += restart_time * int(np.sign(dfile))
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
@@ -106,7 +106,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -200.
+    advdepth = -4000.
 
 '''
         NOTE that advdepths is used as follows:
@@ -136,7 +136,7 @@ if advzavg:
     write_topo = True # Needed to keep track when water column intersects with
                       # bathymetry (topo > |advdepth| - z_thick/2)
 write_uv = True
-write_ts = True
+write_ts = False
 write_uvw = True
 if write_uvw:
     write_uv = False
@@ -184,7 +184,7 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-timerange = np.round(np.arange(start_file,end_file,dfile),3)
+timerange = np.round(np.arange(start_file, end_file, dfile),3)
 #for timing purpose
 tstart = tm.time()
 #Time all subparts of the code 
@@ -213,21 +213,21 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
-
+    
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-preserved_meter = False
+preserved_meter = True
 
 if preserved_meter:
     dx_box = 4000  # horizontal particles spacing meters
-    nx_box = 10 # number of intervals in x-dir
-    ny_box = 10      
+    nx_box = 5 # number of intervals in x-dir
+    ny_box = 4      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-    iwd  = 2 * dx0 # half width of seeding patch [in grid points
-    jwd  = 2 * dx0 # half width of seeding patch [in grid points]
+    iwd  = 10 * dx0 # half width of seeding patch [in grid points
+    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
     nnx = 1 * dx0
     nny = 1 * dx0
@@ -262,14 +262,14 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-10, -200 , -1000, -500]
+depths0 = [-1000]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
 continuous_injection = True
 if continuous_injection:
-    dt_injection = 1 #(1 = injection every time step,
+    dt_injection = 4 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 

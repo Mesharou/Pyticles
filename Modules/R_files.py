@@ -3896,6 +3896,49 @@ class files(object):
             self.tfile=20
             self.tstart=0
             self.tend=1000
+          
+        elif 'apero' in simul:
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+            #folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
+            self.his=folder +'polgyr_his.'
+
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
+            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.00000.nc'
+            self.wind=folder + '/HIS/polgyr_his.00000.nc'
+
+            self.tfile = 20
+            self.tstart = 0
+            self.tend = 212    
+        ######################
+        elif 'uncompressed' in simul:
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+            #folder = '/home/datawork-lops-rrex/jgula/POLGYR/HIS_uncompressed/'      
+            self.his=folder +'polgyr_his.'
+
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
+            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.00000.nc'
+            self.wind=folder + '/HIS/polgyr_his.00000.nc'
+
+            self.tfile = 20
+            self.tstart = 0
+            self.tend = 184
 
         ##################
 
@@ -3920,7 +3963,8 @@ class files(object):
             self.tstart=0
             self.tend=1000
 
-        elif 'debug_netcdf' in simul:
+
+        elif 'zero_vel' in simul:
 
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)
@@ -3932,6 +3976,9 @@ class files(object):
             folder_his = '/home2/scratch/jcollin/Pyticles/POLGYR/'
 
             self.his=folder_his +'polgyr_his.'
+            folder= '/postproc/COLLIN/Polgyr_test/'
+
+            self.his=folder +'polgyr_his.'
 
             self.grd=folder + 'polgyr_grd.nc'
 
@@ -3941,8 +3988,6 @@ class files(object):
             self.tfile=20
             self.tstart=0
             self.tend=1000
-
-
 
         ##################
 

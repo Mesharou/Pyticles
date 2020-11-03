@@ -21,39 +21,34 @@ sys.path.append('home/jeremy/Bureau/Project/Pyticles/')
 
 from R_files import load
 import visual_tools as vt
-from R_tools_fort import rho1_eos
 ##############################################################################
 # INPUT PARAMETERS
 ##############################################################################
-start_file = 1510
-end_file = 1535
+start_file = 1020 
+end_file = 1040 
 
-my_simul = 'Case_1'
+my_simul = 'polygr_apero'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
-ncfile = '/home/jeremy/Bureau/Data/Pyticles/Rho1_-1.5/' \
-         + 'Case_1_Rho1_-1.5_6_1510.nc'
-roms_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_his.1550.nc'
-grd_file = '/home/jeremy/Bureau/Data/Pyticles/chaba_grd.nc'
+ncfile = '/home/wang/Bureau/Data/Pyticles/fisrt_test/' \
+         + 'polygr_apero_fisrt_test_1_1020.nc'
+roms_file = '/home/wang/Desktop/Pyticles/ROMS/polgyr_his.1020.nc'
+grd_file = '/home/wang/Desktop/Pyticles/ROMS/polgyr_grd.nc'
 
 # OUTPUT PARAM
 save_fig = True
-save_dir = '/home/jeremy/Bureau/Data/Pyticles/RESU/Visual_tools/Anim/'
-gen_name = 'fig_isopycnal_pdepth_topo'
+save_dir = '/home/wang/Desktop/IDYPOP/Plot_2D/'
+gen_name = 'fig_zeta_pdepth_topo'
 fmt = '.png'
-
-
-
-
 
 ##############################################################################
 # COMPUTING TEST ZONE
 ##############################################################################
 # Case Adv3d
 # Given a variable at particle location and a 2D var over wall domain
-zeta = vt.get_var('zeta', roms_file, itime=0, ndims=3)
-temp = vt.get_var('temp', roms_file, itime=0, ndims=4)
+zeta = vt.get_var('zeta', roms_file, ndims=3)
+temp = vt.get_var('temp', roms_file,itime=0, ndims=4)
 salt = vt.get_var('salt', roms_file, itime=0, ndims=4)
 
 ocean_time = vt.get_var('time', roms_file)
@@ -81,24 +76,25 @@ sst = temp[-1, :, :]
 
 ##############################################################################
 # Pdepth
-roms_path = '/home/jeremy/Bureau/Data/Pyticles/'
+roms_path = '/home/wang/Desktop/Pyticles/ROMS/'
 npts = 5
 xmin, xmax, ymin, ymax = vt.get_xy_lim(px, py, npts=npts, nx=1202, ny=1404)
 #scat_min = -700
 #scat_max = 0
-
+#zlevels = [-1, -0.5, -0.35, -0.32, -0.3, 0, 0.5 ]
 print('=' * 40)
 advdepth = -1
 for itime in range(px.shape[0]):
     fig = plt.figure(figsize=(6, 4), facecolor='white')
     ax1 = plt.subplot()
-    roms_file = roms_path + 'chaba_his.' + str(start_file + (itime//5)*5) +'.nc'
+    roms_file = roms_path + 'polgyr_his.' + str(start_file + (itime//20)*20) +'.nc'
     # mask land
     vt.mask_contour(ax1, topo, advdepth=advdepth)
     # map_var
-    map_var = topo
-    quad1 = ax1.contourf(np.ma.masked_invalid(map_var.T), cmap='Greys',
-                         zorder=1)
+    #map_var = topo
+    map_var = zeta[itime,:,:]
+    quad1 = ax1.contourf(np.ma.masked_invalid(map_var.T), cmap='jet',
+                         zorder=1, zlevels=10)
     # text
     ax1.set_xlabel('px')
     ax1.set_ylabel('py')

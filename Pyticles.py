@@ -18,7 +18,17 @@ or in interactive
 python -i Pyticles.py nprocs
 nprocs : numbers of processors 
 
+! Bugs to be fixed:
+    Seems to be an issue regarding the number of released particles at the last
+    time step of backward simulation in case of continuous seeding of particles
+    Bug was detetcted at 1020 time in Lu simulation
+
 !---------------------------------------------------------------------------------------------
+! 2020-10-19 [jeremy collin]
+!     - modifcation of particle distribution over threads to enable small number of particles
+!     with high number of processors. Usefull for continuous injection
+! 2020-10-14  [jeremy collin]
+!    - Generic high frequency: re-enable higher frequency output (dfile >1) 
 ! 2019-11-29 [jeremy collin]:
 !     - add key preserved_meter (input_file)
 !       horizontal spacing between particles is defined with dx (m)
@@ -470,9 +480,9 @@ else: # restart = True
         # because px0, py0, pz0 may vary upon time
         nq_injection = np.argmax(np.isnan(nc.variables['px'][0, :]))
 
-        px0 = nc.variables['px'][0, :nq_injection]
-        py0 = nc.variables['py'][0, :nq_injection]
-        pz0 = nc.variables['pz'][0, :nq_injection]
+        px0 = np.array(nc.variables['px'][0, :nq_injection])
+        py0 = np.array(nc.variables['py'][0, :nq_injection])
+        pz0 = np.array(nc.variables['pz'][0, :nq_injection])
         nc.close()
         
         nq_1 = np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
@@ -489,8 +499,10 @@ else: # restart = True
 ################################################################################
 
 # Time between 2 frames (in seconds)
-delt   = shared_array(2,value=simul.dt*np.abs(dfile)) 
-maxvel = shared_array(2,prec='double',value=maxvel0)
+delt   = shared_array(2, value=simul.dt*np.abs(dfile)) 
+maxvel = shared_array(2, prec='double', value=maxvel0)
+print("delt is: ", delt)
+print("")
 
 # Total number of time steps:
 istep = shared_array(1,prec='int',value=-1)
@@ -684,7 +696,7 @@ def plot_selection(alldomain=True):
   #JC  ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
 
     plt.title(format(np.sum(px>0)) + ' pyticles ' )
-    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
+    #plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
     
 
 
@@ -753,6 +765,7 @@ run_process(plot_selection)
 pm_s = np.array([]); 
 
 itime = restart_time
+print("itime is!", itime)
 
 for time in timerange:
     print('--------------------------------------------------------------------')
@@ -760,6 +773,8 @@ for time in timerange:
     print('--------------------------------------------------------------------')
 
     alpha_time = time - np.floor(time)
+    print ("alpha time :", alpha_time)
+    print("")
 
     ############################################################################
     # Define domainstimerange
@@ -768,7 +783,7 @@ for time in timerange:
     ############################################################################
     if debug: print('max. vel. is ',  maxvel)
 
-    tightcoord= part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
+    tightcoord = part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
     coord= part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
                            nadv= nadv)
 
@@ -957,7 +972,7 @@ for time in timerange:
     ############################################################################
 
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
-    if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2):
+    if not meanflow and (np.round(time+dfile) - (time+dfile) <= np.abs(dfile)*1e-2):
         simul.update(np.int(np.floor(time)+simul.dtime));
 
     print('Total computation of px,py,pz............', tm.time()-tstart)

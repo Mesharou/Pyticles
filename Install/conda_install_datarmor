@@ -17,11 +17,8 @@ module load NETCDF/4.3.3.1-mpt-intel2016
 conda create --name my_conda
 conda create --name my_conda python=3.6.8
 
-#bash
-#cd /appli/anaconda/2.7/bin
-#source activate my_conda
-
 conda activate my_conda 
+# conda deactivate to exit environment
 
 ## install modules
 
@@ -29,7 +26,7 @@ conda install numpy
 conda install scipy
 conda install matplotlib
 conda install netCDF4
-
+conda install basemap
 
 
 ################################################
@@ -39,9 +36,9 @@ conda install netCDF4
 bash
 
 source /usr/share/Modules/3.2.10/init/bash
-module load anaconda-py2.7/4.3.13
+module load anaconda-py3.6/4.3.13
 
-cd /appli/anaconda/2.7/bin
+cd /appli/anaconda/3.6/bin
 source activate my_conda
 
 
