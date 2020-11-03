@@ -38,8 +38,8 @@ ng = 1
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 800
-end_file = 820
+start_file = 0
+end_file = 10
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,7 +63,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'apero'
+my_simul = 'POLGYR_xios_3h'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -147,7 +147,7 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
-config = 'test_merge'
+config = 'croco_3h'
 folderout = '/home2/datawork/jcollin/Pyticles/TEST/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
