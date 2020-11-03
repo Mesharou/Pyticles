@@ -3942,7 +3942,7 @@ class files(object):
 
         ##################
 
-        elif 'apero' in simul:
+        elif 'apero_styx' in simul:
 
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)

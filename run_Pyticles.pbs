@@ -23,13 +23,8 @@ qstat -f $PBS_JOBID
 source /usr/share/Modules/3.2.10/init/bash
 module load anaconda-py3.6/4.3.13
 
-<<<<<<< HEAD
 cd /appli/anaconda/2.7/bin
 source activate /home2/datahome/jcollin/conda-env/my_conda
-=======
-cd /appli/anaconda/3.6/bin
-source activate pyti_conda
->>>>>>> fc03cf8ff81a5843a43d1b9097f0ed54f0c44389
 
 echo $LD_LIBRARY_PATH
 
@@ -37,14 +32,9 @@ echo $LD_LIBRARY_PATH
 cd $PBS_O_WORKDIR
 
 
-<<<<<<< HEAD
 #export PYTHONPATH=$HOME/Python_Modules
-=======
-export PYTHONPATH=$HOME/home2/datahome/lwang/.conda/envs/pyti_conda/bin/python
->>>>>>> fc03cf8ff81a5843a43d1b9097f0ed54f0c44389
-
 
 echo "you use " $OMP_NUM_THREADS "threads for your omp jobs"
 date
-python Pyticles.py 28 
+python Pyticles.py 56 
 date

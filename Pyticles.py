@@ -1002,11 +1002,6 @@ for time in timerange:
             z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                                             iwd=iwd, jwd=jwd, nx=nx, ny=ny,
                                             nnx=nnx, nny=nny, nnlev=nnlev)
-        print(f"hdf debug:")
-        print(f"x,y,z")
-        print(x)
-        print(y)
-        print(z)
         ###############################
         # Release particles at depths0
         if initial_depth: 

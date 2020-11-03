@@ -63,7 +63,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'debug_netcdf'
+my_simul = 'apero'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -147,7 +147,7 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
-config = 'dbg_3D_forward_continuous_old_seed'
+config = 'test_merge'
 folderout = '/home2/datawork/jcollin/Pyticles/TEST/' + config + '/'
 # create folder if does not exist
 if not os.path.exists(folderout):
