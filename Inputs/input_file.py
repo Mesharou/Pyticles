@@ -127,6 +127,7 @@ if not adv3d:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
+plot_part = False # plot SST + particles location
 
 #Write lon,lat,topo,depth
 write_lonlat = True

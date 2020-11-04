@@ -758,7 +758,9 @@ tstart = tm.time()
 ###############################
 time = timerange[0]-dfile;
 coord= part.subsection(px, py, nx=nx, ny=ny, offset=50)
-run_process(plot_selection)
+if plot_part:
+    run_process(plot_selection)
+
 ###############################
 
 #Initialization
@@ -1089,7 +1091,7 @@ for time in timerange:
     ############################################################################
     # Plot particles position (+ SST)
         
-    if (time+dfile)%1<np.abs(dfile)*1e-2: run_process(plot_selection)
+    if (time+dfile)%1<np.abs(dfile)*1e-2 and plot_part : run_process(plot_selection)
     
     ############################################################################
     itime += 1

@@ -839,6 +839,9 @@ example: for an interactive session:
             elif  self.ncname.model in ['croco','agrif_jc']:
                 self.dt = np.array(ncfile.variables['scrum_time'][1]) \
                         - np.array(ncfile.variables['scrum_time'][0])
+            elif self.ncname.model is 'croco_xios':
+                self.dt = np.array(ncfile.variables['time'][1]) \
+                        - np.array(ncfile.variables['time'][0]) 
         except:
             if self.simul[:4]=='natl': self.dt = 24. * 3600
             elif self.simul =='atlbig_mean2': self.dt = 24. * 3600 * 5.
