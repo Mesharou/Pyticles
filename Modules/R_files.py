@@ -483,8 +483,10 @@ example: for an interactive session:
                             print("temporary fix")
                             cs_name = '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/polgyr_his.00100.nc'
                             cs_file = Dataset(cs_name, 'r')         
-                            self.Cs_r = self.Forder(cs_file.variables['Cs_r'][:])
-                            self.Cs_w = self.Forder(cs_file.variables['Cs_w'][:])     
+                            self.Cs_r = self.Forder(cs_file.Cs_r)
+                            self.Cs_w = self.Forder(cs_file.Cs_w)
+                            self.sc_r = self.Forder(cs_file.sc_r)
+                            self.sc_w = self.Forder(cs_file.sc_w)     
                             cs_file.close() 
                         else:
                             pass
