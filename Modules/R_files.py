@@ -232,10 +232,10 @@ class load(object):
             self.infiletime = self.time%self.ncname.tfile
             self.filetime = self.time-self.infiletime
 
-            if output: print((self.simul,format(self.time)))
+            print((self.simul,format(self.time)))
             #fix for GIGATL3_6h_knl! shifted by one day.
             if self.simul == 'gigatl3_6h' and self.time>=1550:
-                if output: print('fix for GIGATL3_6h_knl')
+                print('fix for GIGATL3_6h_knl')
                 date1 = date1 - timedelta(days = 1)
                 year1 = date1.year
                 month1 = date1.month
@@ -251,7 +251,7 @@ class load(object):
                         + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
 
 
-            if output: print('self.time is ',self.time)
+            print('self.time is ',self.time)
 
         self.cst();
 
@@ -440,7 +440,7 @@ example: for an interactive session:
         try:
             ncfile = Dataset(self.ncfile, 'r')
         except:
-            if output: print('cannot find: ', self.ncfile)
+            print('cannot find: ', self.ncfile)
 
         try:
             self.rho0 = ncfile.rho0
@@ -455,14 +455,14 @@ example: for an interactive session:
             self.Cs_w = self.Forder(ncfile.variables['Cs_w'][:])
             self.sc_r = self.Forder(ncfile.variables['sc_r'][:])
             self.sc_w = self.Forder(ncfile.variables['sc_w'][:])
-            if output: print('read Cs_r in ncfile.variables')
+            print('read Cs_r in ncfile.variables')
         except:
             try:
                 self.Cs_r = self.Forder(ncfile.Cs_r)
                 self.Cs_w = self.Forder(ncfile.Cs_w)
                 self.sc_r = self.Forder(ncfile.sc_r)
                 self.sc_w = self.Forder(ncfile.sc_w)
-                if output: print('read Cs_r in ncfile.Cs_r')
+                print('read Cs_r in ncfile.Cs_r')
 
             except:
                 try:
@@ -470,16 +470,24 @@ example: for an interactive session:
                     self.Cs_r = self.Forder(grdfile.variables['Cs_r'][:])
                     self.Cs_w = self.Forder(grdfile.variables['Cs_w'][:])
                     grdfile.close()
-                    if output: print('read Cs_r in grdfile.variables')
+                    print('read Cs_r in grdfile.variables')
                 except:
                     try:
                         grdfile = Dataset(self.ncname.grd, 'r')
                         self.Cs_r = self.Forder(grdfile.Cs_r)
                         self.Cs_w = self.Forder(grdfile.Cs_w)
                         grdfile.close()
-                        if output: print('read Cs_r in grdfile.Cs_r')
+                        print('read Cs_r in grdfile.Cs_r')
                     except:
-                        pass
+                        if 'POLGYR_xios' in self.simul:
+                            print("temporary fix")
+                            cs_name = '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/polgyr_his.00100.nc'
+                            cs_file = Dataset(cs_name, 'r')         
+                            self.Cs_r = self.Forder(cs_file.variables['Cs_r'][:])
+                            self.Cs_w = self.Forder(cs_file.variables['Cs_w'][:])     
+                            cs_file.close() 
+                        else:
+                            pass
         try:
             if np.ndim(self.Cs_r)==2:
                 self.Cs_r = self.Cs_r[:,0]
@@ -487,7 +495,7 @@ example: for an interactive session:
 
             #ugly fix for now because of wrong xios files
             if self.Cs_r.max()>1:
-                if output: print('really??')
+                print('really??')
                 try:
                     grdfile = Dataset(self.ncname.grd, 'r')
                     self.Cs_r = self.Forder(grdfile.Cs_r)
@@ -543,7 +551,7 @@ example: for an interactive session:
         try:
             self.Zob = ncfile.Zob
         except:
-            if output: print('no Zob in job ... using Zob = 0.01')
+            print('no Zob in job ... using Zob = 0.01')
             self.Zob = 0.01
 
         try:
@@ -771,7 +779,11 @@ example: for an interactive session:
             self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
         elif self.ncname.model == 'agrif_jc':
             self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
-
+        else:
+            try:
+                self.oceantime = int(np.array(ncfile.variables['time'][self.infiletime]))
+            except:
+                self.oceantime = int(np.array(ncfile.variables['time_centered'][self.infiletime]))
 
         if not self.ncname.realyear:
         
@@ -4112,42 +4124,44 @@ class files(object):
             self.model = 'croco_xios'
             self.digits = 0
 
-            folder = '/home2/datawork/jgula/Simulations/POLGYR3h/HIS/'
+            folder = '/home2/datawork/jgula/Simulations/POLGYR3h/'
             #folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
-            self.his = folder + 'polgyr_his.'
+            #self.his = folder + 'HIS/polgyr_his.'
 
-            self.grd = folder + '@expname@_@freq@_grid.nc'
+            self.grd = folder + 'polgyr_grd.nc'
 
             #self.frc = folder + '/HIS/polgyr_his.00000.nc'
             #self.wind = folder + '/HIS/polgyr_his.00000.nc'
            
             if '1h' in simul:
-                self.his = folder + 'POLGYR_1h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_1h_avg_3d_' #1999-01-25-1999-01-29'
                 self.tfile = 120
                 self.dtfile = 3600
                 self.tstart = 0
                 self.tend = 10000
 
             elif '3h' in simul:
-                self.his = folder + 'POLGYR_3h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_3h_avg_3d_' #1999-01-25-1999-01-29'
                 self.tfile = 40
                 self.dtfile = 3 * 3600
                 self.tstart = 0
                 self.tend = 10000
  
             elif '6h' in simul:
-                self.his = folder + 'POLGYR_6h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_6h_avg_3d_' #1999-01-25-1999-01-29'
                 self.tfile = 20
                 self.dtfile = 6 * 3600
                 self.tstart = 0
                 self.tend = 10000
 
             elif '12h' in simul:
-                self.his = folder + 'POLGYR_12h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_12h_avg_3d_' #1999-01-25-1999-01-29'
                 self.tfile = 10
                 self.dtfile = 12 * 3600
                 self.tstart = 0
                 self.tend = 10000
+
+
         ######################
         elif 'uncompressed' in simul:
             self.realyear = True
