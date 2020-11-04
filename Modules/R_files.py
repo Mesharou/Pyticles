@@ -224,7 +224,7 @@ class load(object):
             day1 = date1.day
 
             time2 = time1 + self.ncname.tfile #- 1
-            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile) -timedelta(days=1)
+            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile) #-timedelta(days=1)
             year2 = date2.year
             month2 = date2.month
             day2 = date2.day
