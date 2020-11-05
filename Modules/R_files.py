@@ -4125,21 +4125,17 @@ class files(object):
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)
             self.realyear_tstart = datetime(2003,11,16)
-
             self.model = 'croco_xios'
             self.digits = 0
-
             folder = '/home2/datawork/jgula/Simulations/POLGYR3h/'
-            #folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
-            #self.his = folder + 'HIS/polgyr_his.'
-
             self.grd = folder + 'polgyr_grd.nc'
-
-            #self.frc = folder + '/HIS/polgyr_his.00000.nc'
-            #self.wind = folder + '/HIS/polgyr_his.00000.nc'
            
             if '1h' in simul:
-                self.his = folder + 'HIS/POLGYR_1h_avg_3d_' #1999-01-25-1999-01-29'
+                if 'avg' in simul:
+                    self.his = folder + 'HIS/POLGYR_1h_avg_3d_' #1999-01-25-1999-01-29'
+                elif 'inst' in simul:
+                    self.his = folder + 'HIS/POLGYR_1h_inst_'
+
                 self.tfile = 120
                 self.dtfile = 3600
                 self.tstart = 0
@@ -4158,14 +4154,12 @@ class files(object):
                 self.dtfile = 6 * 3600
                 self.tstart = 0
                 self.tend = 10000
-
+            
             elif '12h' in simul:
                 self.his = folder + 'HIS/POLGYR_12h_avg_3d_' #1999-01-25-1999-01-29'
                 self.tfile = 10
                 self.dtfile = 12 * 3600
                 self.tstart = 0
-                self.tend = 10000
-
 
         ######################
         elif 'uncompressed' in simul:
