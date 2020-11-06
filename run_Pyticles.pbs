@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -q omp
-#PBS -l ncpus=56
+#PBS -l ncpus=20
 #PBS -l mem=65g
 #PBS -l walltime=04:00:00
-#PBS -o /home2/datahome/lwang/Pyticles/output_case1
+#PBS -o /home2/datahome/jcollin/Pyticles/output_apero
 #  COMMENT
 #  Tina ODAKA 06.03.2017
 #  example for using datarmor with 'queue omp' in a personalised way
@@ -36,5 +36,5 @@ cd $PBS_O_WORKDIR
 
 echo "you use " $OMP_NUM_THREADS "threads for your omp jobs"
 date
-python Pyticles.py 56 
+python Pyticles.py 20  
 date

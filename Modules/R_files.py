@@ -4101,7 +4101,6 @@ class files(object):
             
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)
-
             self.model = 'croco'
             self.digits = 5
 

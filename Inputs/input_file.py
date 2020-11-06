@@ -38,8 +38,8 @@ ng = 1
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 0
-end_file = 10
+start_file = 2180
+end_file = 2200 
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,7 +63,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'POLGYR_xios_3h'
+my_simul = 'apero_12h'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -127,7 +127,7 @@ if not adv3d:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = False # plot SST + particles location
+plot_part = True # plot SST + particles location
 
 #Write lon,lat,topo,depth
 write_lonlat = True
@@ -220,7 +220,7 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 preserved_meter = True
 
 if preserved_meter:
-    dx_box = 4000  # horizontal particles spacing meters
+    dx_box = 2000  # horizontal particles spacing meters
     nx_box = 5 # number of intervals in x-dir
     ny_box = 4      
     nnlev = 1  
@@ -270,7 +270,7 @@ rho0 = [-1.5]
 # if False only one release at initial time-step
 continuous_injection = True
 if continuous_injection:
-    dt_injection = 4 #(1 = injection every time step,
+    dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
