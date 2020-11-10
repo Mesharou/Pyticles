@@ -502,7 +502,7 @@ else: # restart = True
 if simul.simul in 'POLGYR_xios_6h_avg':
     delt   = shared_array(2, value = simul.ncname.dtfile * np.abs(dfile)) 
 else:
-    delt   = shared_array(2, value = simul.dt * np.abs(dfile)) 
+    delt   = shared_array(2, value = simul.dt * dfile) 
 
 maxvel = shared_array(2, prec='double', value=maxvel0)
 print("delt is: ", delt)

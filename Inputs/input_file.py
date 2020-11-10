@@ -37,9 +37,9 @@ ng = 1
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = 1
-start_file = 0
-end_file = 10 
+dfile = -3
+start_file = 3 * 240 #3750
+end_file = 0 #3490
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -52,9 +52,10 @@ trap_file = '/home/wang/Bureau/Data/Pyticles/Trap_fwd/' \
 # user should not change start_file
 # restart_time : number of time step since start_file
 restart = False
-restart_time = 7 #nb of time steps in the restart_file
-restart_file = '/home/wang/Bureau/Data/Pyticles/' \
-               +'/Cubic_adv/Case_1_Cubic_adv_4_1510.nc'
+restart_time = 28 #nb of time steps in the restart_file
+restart_file = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/' \
+               + 'apero_hfo3h_bk3d_06winter_trap1000m_sed50_28_3740.nc' 
+              
 
 if not restart:
     restart_time = 0
@@ -63,7 +64,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'POLGYR_xios_6h'
+my_simul = 'POLGYR_xios_1h_inst'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -118,7 +119,9 @@ if not adv3d:
 '''
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
-w_sed0 = -50 # vertical velocity for particles sedimentation (m/d)
+w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
+
+
 
 if not adv3d:
     sedimentation = False
@@ -127,7 +130,7 @@ if not adv3d:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = False # plot SST + particles location
+plot_part = False
 
 #Write lon,lat,topo,depth
 write_lonlat = True
@@ -148,8 +151,13 @@ if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
-config = 'croco_3h'
-folderout = '/home2/datawork/jcollin/Pyticles/TEST/' + config + '/'
+#config = 'bk2d_0506winter'
+config = 'bk3d_06winter_3h_trap1000m_sed20'
+#config = 'debug_high_freq'
+
+#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
+folderout = '/home2/datawork/jcollin/Pyticles/new_dt/'
+#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -211,7 +219,7 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 #y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 #[ic,jc] = [x_ic,y_jc]
 [ic,jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
-
+#[ic,jc] = [1418,467] # sw site
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
     
@@ -222,7 +230,7 @@ preserved_meter = True
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
     nx_box = 5 # number of intervals in x-dir
-    ny_box = 4      
+    ny_box = 5      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]

@@ -480,7 +480,6 @@ example: for an interactive session:
                         print('read Cs_r in grdfile.Cs_r')
                     except:
                         if 'POLGYR_xios' in self.simul:
-                            print("temporary fix")
                             cs_name = '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/polgyr_his.00100.nc'
                             cs_file = Dataset(cs_name, 'r')         
                             self.Cs_r = self.Forder(cs_file.Cs_r)
@@ -557,7 +556,6 @@ example: for an interactive session:
             self.Zob = 0.01
 
         try:
-            print("I tried !!!")
             self.VertCoordType = ncfile.VertCoordType
         except:
             self.VertCoordType = 'OLD'
