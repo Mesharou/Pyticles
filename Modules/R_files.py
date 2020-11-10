@@ -564,81 +564,6 @@ example: for an interactive session:
 
         ncfile.close()
 
-        """
-        before xios version
-        try:
-            ncfile = Dataset(self.ncfile, 'r')
-        except:
-            print('cannot find: ', self.ncfile)
-
-        try:
-            self.rho0 = ncfile.rho0 
-            self.g = 9.81
-            self.hc = ncfile.hc
-            self.Cs_w = self.Forder(ncfile.Cs_w)
-            self.Cs_r = self.Forder(ncfile.Cs_r)
-            self.dt_model = ncfile.dt
-        except:
-            pass
-
-        try:
-            self.rdrg = ncfile.rdrg
-        except:
-            self.rdrg = 0.
-
-        try:
-            self.rdrg2 = ncfile.rdrg2
-        except:
-            self.rdrg2 = 0.
-
-
-        try:
-            self.Cdb_max = ncfile.Cdb_max
-            self.Cdb_min = ncfile.Cdb_min
-        except:
-            self.Cdb_max = None
-            self.Cdb_min = None
-
-        try:
-            self.sc_r = self.Forder(ncfile.sc_r)
-            self.sc_w = self.Forder(ncfile.sc_w)
-        except:
-            print('no sc_r,sc_w')
-
-        try:
-            self.cpp = ncfile.CPPS
-        except:
-            try:
-                self.cpp = ncfile.__getattribute__('CPP-options')
-            except:
-                pass
-
-        try:
-            self.visc2 = ncfile.visc2       
-        except:
-            self.visc2 = None
-
-        try:
-            if 'NONLIN_EOS' not in self.cpp:
-                self.Tcoef = ncfile.Tcoef
-                self.Scoef = ncfile.Scoef
-                self.R0 = ncfile.R0
-        except:
-            pass
-        
-        try:
-            self.Zob = ncfile.Zob
-        except:
-            print('no Zob in job ... using Zob = 0.01')
-            self.Zob = 0.01
-        
-        try:
-            self.VertCoordType = ncfile.VertCoordType
-        except:
-            self.VertCoordType = 'OLD'
-
-        ncfile.close()
-        """
 ###################################################################################
 #Load some data from the .in file not outputed
 ###################################################################################
@@ -4104,7 +4029,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
 
-            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+            folder= '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/' 
             #folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
             self.his=folder +'polgyr_his.'
 
@@ -4120,7 +4045,7 @@ class files(object):
         
         ######################
         elif 'POLGYR_xios' in simul:
-
+            
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)
             self.realyear_tstart = datetime(2003,11,16)
@@ -4153,7 +4078,7 @@ class files(object):
                 self.dtfile = 6 * 3600
                 self.tstart = 0
                 self.tend = 10000
-            
+ 
             elif '12h' in simul:
                 self.his = folder + 'HIS/POLGYR_12h_avg_3d_' #1999-01-25-1999-01-29'
                 self.tfile = 10

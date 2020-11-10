@@ -169,7 +169,10 @@ if timing: tstart = tm.time()
 ########################
 
 # Integrate in time to the next frame
-if not meanflow: delt[0] = simul.dt * np.abs(dfile) 
+if 'POLGYR_xios_6h' in simul.simul:
+    if not meanflow: delt[0] = simul.ncname.dtfile * np.abs(dfile) 
+else:
+    if not meanflow: delt[0] = simul.dt * np.abs(dfile)
 
 dt = delt[0] / subtstep
 dfct = 1. / subtstep * np.abs(dfile)

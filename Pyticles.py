@@ -499,7 +499,11 @@ else: # restart = True
 ################################################################################
 
 # Time between 2 frames (in seconds)
-delt   = shared_array(2, value=simul.dt*np.abs(dfile)) 
+if simul.simul in 'POLGYR_xios_6h_avg':
+    delt   = shared_array(2, value = simul.ncname.dtfile * np.abs(dfile)) 
+else:
+    delt   = shared_array(2, value = simul.dt * np.abs(dfile)) 
+
 maxvel = shared_array(2, prec='double', value=maxvel0)
 print("delt is: ", delt)
 print("")
@@ -757,7 +761,7 @@ tstart = tm.time()
 
 ###############################
 time = timerange[0]-dfile;
-coord= part.subsection(px, py, nx=nx, ny=ny, offset=50)
+coord = part.subsection(px, py, nx=nx, ny=ny, offset=50)
 if plot_part:
     run_process(plot_selection)
 
@@ -786,7 +790,7 @@ for time in timerange:
     if debug: print('max. vel. is ',  maxvel)
 
     tightcoord = part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
-    coord= part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
+    coord = part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
                            nadv= nadv)
 
     nx_s, ny_s = coord[3]-coord[2], coord[1]-coord[0]

@@ -38,8 +38,8 @@ ng = 1
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 2180
-end_file = 2200 
+start_file = 0
+end_file = 10 
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,7 +63,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'apero_12h'
+my_simul = 'POLGYR_xios_6h'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -127,7 +127,7 @@ if not adv3d:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = True # plot SST + particles location
+plot_part = False # plot SST + particles location
 
 #Write lon,lat,topo,depth
 write_lonlat = True
