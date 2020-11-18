@@ -37,9 +37,9 @@ ng = 1
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -3
-start_file = 3 * 240 #3750
-end_file = 0 #3490
+dfile = -1/2
+start_file = 6 #3750
+end_file = -dfile #3490
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -64,7 +64,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'POLGYR_xios_1h_inst'
+my_simul = 'POLGYR_xios_1h_avg'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -152,11 +152,11 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
 #config = 'bk2d_0506winter'
-config = 'bk3d_06winter_3h_trap1000m_sed20'
+config = '1h_single_inj'
 #config = 'debug_high_freq'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
-folderout = '/home2/datawork/jcollin/Pyticles/new_dt/'
+folderout = '/home2/datawork/jcollin/Pyticles/new_dt_script/'
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
 # create folder if does not exist
 if not os.path.exists(folderout):
@@ -198,7 +198,9 @@ timerange = np.round(np.arange(start_file, end_file, dfile),3)
 tstart = tm.time()
 #Time all subparts of the code 
 timing = True
+
 subtstep = np.int(nsub_steps * np.abs(dfile))
+#subtstep = np.int(nsub_steps)
 
 ################################################################################
 # Define Particle seeding (to be edited)
@@ -276,7 +278,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
