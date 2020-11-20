@@ -90,8 +90,12 @@ else:
     
 # Write Variables into file
 try:
-    nc.variables['ocean_time'][itime]= simul.oceantime + (time - np.floor(time))\
-                                       * simul.dt * np.sign(dfile)
+    if  dfile > 0:
+        alpha_time = time - np.floor(time)
+    else:
+        alpha_time = time - np.ceil(time)
+    
+    nc.variables['ocean_time'][itime]= simul.oceantime + alpha_time * simul.dt
 except:
     print('no simul.oceantime')
     nc.variables['ocean_time'][itime]= time * delt
