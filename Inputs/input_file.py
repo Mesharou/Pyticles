@@ -37,9 +37,9 @@ ng = 1
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1/2
-start_file = 6 #3750
-end_file = -dfile #3490
+dfile = -1/4
+start_file = 4 #3750
+end_file = 0 #3490
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -152,11 +152,11 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
 #config = 'bk2d_0506winter'
-config = '1h_single_inj'
+config = '3h_single_inj'
 #config = 'debug_high_freq'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
-folderout = '/home2/datawork/jcollin/Pyticles/new_dt_script/'
+folderout = '/home2/datawork/jcollin/Pyticles/update_xios/'
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
 # create folder if does not exist
 if not os.path.exists(folderout):
@@ -193,7 +193,7 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-timerange = np.round(np.arange(start_file, end_file, dfile),3)
+timerange = np.round(np.arange(start_file, end_file + dfile, dfile),3)
 #for timing purpose
 tstart = tm.time()
 #Time all subparts of the code 

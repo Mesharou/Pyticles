@@ -815,7 +815,6 @@ for time in timerange:
         ptemp = shared_array(nq, prec='double')
         psalt = shared_array(nq, prec='double')
         r = run_process(update_ts)
-
         print('get T,S..................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -823,7 +822,6 @@ for time in timerange:
 
         ptemp = shared_array(nq, prec='double')
         r = run_process(update_t)
-
         print('get T....................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -833,7 +831,6 @@ for time in timerange:
         pu = shared_array(nq, prec='double')
         pv = shared_array(nq, prec='double')
         r = run_process(update_uv_2d)
-
         print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
    
@@ -843,7 +840,6 @@ for time in timerange:
         pv = shared_array(nq, prec='double')
         pw = shared_array(nq, prec='double')
         r = run_process(update_uvw_3d)
-
         print('get u,v,w..................................', tm.time()-tstart)
         tstart = tm.time()
 
@@ -853,7 +849,6 @@ for time in timerange:
         plon = shared_array(nq, prec='double')
         plat = shared_array(nq, prec='double')
         r = run_process(update_lonlat)
-
         print('get lon,lat..............................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -862,7 +857,6 @@ for time in timerange:
 
         pdepth = shared_array(nq, prec='double'); 
         r = run_process(update_depth)
-
         print('get depth................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -871,7 +865,6 @@ for time in timerange:
 
         ptopo = shared_array(nq, prec='double');
         r = run_process(update_topo)
-
         print('get topo................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -978,9 +971,10 @@ for time in timerange:
     ############################################################################
 
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
-    if not meanflow and (np.round(time+dfile) - (time+dfile) <= np.abs(dfile)*1e-2):
-        simul.update(np.int(np.floor(time)+simul.dtime));
-
+    if not meanflow and np.abs(np.round(time+dfile) - (time+dfile)) <= np.abs(dfile)*1e-2:
+        simul.update(np.round(time + dfile));
+        print("===> to update ", np.round(time + dfile))
+    
     print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
         
