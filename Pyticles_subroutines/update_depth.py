@@ -22,17 +22,27 @@ def interp_3d_depth(subrange):
 ###################################################################################
 #create shared arrays
 
-z_w = shared_array(nx_s,ny_s,nz+1);
+z_w = shared_array(nx_s, ny_s, nz+1);
 
 #Load depth
 
-z_w[:] = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+z_w[:] = part.get_depths_w(simul, x_periodic=x_periodic, y_periodic=y_periodic,\
+                           ng=ng, coord=coord)
+
+# JC dfile
+if dfile > 0:
+    prev_time = np.floor(time)
+    next_time = np.ceil(time)
+else:
+    prev_time = np.ceil(time)
+    next_time = np.floor(time)
 
 if not meanflow and alpha_time != 0:
-    simul.update(np.ceil(time))
-    z_w2 = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
-    simul.update(np.floor(time))
-    z_w[:] = linear(z_w[:],z_w2,alpha_time)
+    simul.update(next_time)
+    z_w2 = part.get_depths_w(simul, x_periodic=x_periodic,
+                             y_periodic=y_periodic, ng=ng, coord=coord)
+    simul.update(prev_time)
+    z_w[:] = linear(z_w[:], z_w2, alpha_time)
     del z_w2
 
 ###############################################################################

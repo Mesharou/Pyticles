@@ -32,14 +32,23 @@ def interp_3d_t(subrange):
 #create shared arrays
 temp = shared_array(nx_s,ny_s,nz)
 
+# JC dfile
+if dfile > 0:
+    prev_time = np.floor(time)
+    next_time = np.ceil(time)
+else:
+    prev_time = np.ceil(time)
+    next_time = np.floor(time)
 
 #Load T,S on sigma levels (much faster than accessing nc files through subprocesses)
-temp[:] = part.get_t_io(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+temp[:] = part.get_t_io(simul, x_periodic=x_periodic, y_periodic=y_periodic,
+                        ng=ng, coord=coord)
 if not meanflow and alpha_time != 0:
-    simul.update(np.ceil(time))
-    temp2 = part.get_t_io(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
-    simul.update(np.floor(time))
-    temp[:] = linear(temp[:],temp2,alpha_time)
+    simul.update(next_time)
+    temp2 = part.get_t_io(simul, x_periodic=x_periodic, y_periodic=y_periodic,
+                           ng=ng, coord=coord)
+    simul.update(prev_time)
+    temp[:] = linear(temp[:], temp2, alpha_time)
 
 
 ###############################################################################
@@ -51,7 +60,7 @@ remain = nq - nslice * nproc
 i_shift = remain * (nslice + 1)
 
 index = np.arange(nq)
-subranges=[]
+subranges = []
 procs = []
 
 for i in range(nproc):

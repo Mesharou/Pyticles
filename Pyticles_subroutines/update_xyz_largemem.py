@@ -12,8 +12,8 @@ if sedimentation:
     print(' ')
 ##LM
 
-timing=False #timing for this subroutine
-timing=True #timing for this subroutine
+timing = False #timing for this subroutine
+timing = True #timing for this subroutine
 
 tstart = tm.time()  
 
@@ -25,19 +25,20 @@ coord, nx_s, ny_s
 '''
 
 nx_s, ny_s = subcoord[3]-subcoord[2], subcoord[1]-subcoord[0]
-i0=subcoord[2]; j0=subcoord[0]
+i0 = subcoord[2]
+j0 = subcoord[0]
 
 
 ###################################################################################
 # Create variables here to be able to release memory completely
 if adv3d:
-    u = shared_array(nx_s-1,ny_s,nz,2)
-    v = shared_array(nx_s,ny_s-1,nz,2)  
-    w = shared_array(nx_s,ny_s,nz+1,2)  
-    dz = shared_array(nx_s,ny_s,nz,2)
+    u = shared_array(nx_s-1, ny_s, nz, 2)
+    v = shared_array(nx_s, ny_s-1, nz, 2)  
+    w = shared_array(nx_s, ny_s, nz+1, 2)  
+    dz = shared_array(nx_s, ny_s, nz, 2)
 else:
-    u = shared_array(nx_s-1,ny_s,2)
-    v = shared_array(nx_s,ny_s-1,2)  
+    u = shared_array(nx_s-1, ny_s, 2)
+    v = shared_array(nx_s, ny_s-1, 2)  
 
 
 pm_s = shared_array(nx_s,ny_s)
@@ -53,7 +54,7 @@ tstart = tm.time()
 ###################################################################################
 # LOADING ROMS FIELD
 ###################################################################################
-subtiming=False
+subtiming = False
 
 tim0 = simul.oceantime
 
@@ -111,9 +112,21 @@ if np.isnan(pm_s[0,0]):
 ###################################################################################
 # Update simul at t+1 - and get u,v,w at time-step t+1
 
-if not meanflow: simul.update(np.int(np.floor(time)+simul.dtime));
+print("")
+print("in update_xyz, ", )
+print(time)
+
+print("infiletime prev", simul.infiletime)
+if not meanflow:
+    if dfile > 0: 
+        simul.update(np.int(np.floor(time)+simul.dtime))
+    else:
+        simul.update(np.int(np.ceil(time)+simul.dtime))
+print("infiletime next", simul.infiletime)
+print("")
+
 # JC
-#tim1 = simul.oceantime
+tim1 = simul.oceantime
 
 if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
@@ -174,8 +187,15 @@ if 'POLGYR_xios_6h' in simul.simul:
 else:
     if not meanflow: delt[0] = simul.dt * dfile
 
+print("----- ok ----")
 dt = delt[0] / subtstep
 dfct = 1. / subtstep * np.abs(dfile)
+
+print("tim1 -tim0", tim1 - tim0)
+print(" % 24 * 3600", (tim1-tim0)%(360*24*3600)) 
+print("simul.dt", simul.dt)
+print("old",  (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile)
+print("new", delt[0])
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
@@ -194,7 +214,7 @@ def advance_3d(subrange,out,step):
     py_F = np.asfortranarray(py[subrange])
     pz_F = np.asfortranarray(pz[subrange])
     istep_F = istep[0]
-    subtime= tim0 + alpha_time * delt[0]/np.abs(dfile)
+    subtime = tim0 + alpha_time * delt[0]/np.abs(dfile)
     
     if timestep[:2]=='AB': 
         dpx_F = np.asfortranarray(dpx[subrange,:])
@@ -266,7 +286,8 @@ def advance_3d(subrange,out,step):
             raise Exception("no time-stepping scheme specified")
 
         #Remove particles exiting the domain:
-        [px_F,py_F,pz_F] = part.cull(px_F,py_F,pz_F,nx,ny,nz,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        [px_F,py_F,pz_F] = part.cull(px_F, py_F, pz_F, nx, ny, nz,
+                           x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
         
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F,nz)

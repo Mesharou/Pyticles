@@ -17,14 +17,22 @@ Outputs:
 ###################################################################################
 #Load u,v
 
+# JC dfile
+if dfile > 0:
+    prev_time = np.floor(time)
+    next_time = np.ceil(time)
+else:
+    prev_time = np.ceil(time)
+    next_time = np.floor(time)
+
 if simul.simul[-4:]=='surf':
     [u, v] = part.get_vel_io_surf(simul, x_periodic=x_periodic,
              y_periodic=y_periodic, ng=ng, coord=coord)
     if not meanflow and alpha_time != 0:
-        simul.update(np.ceil(time))
+        simul.update(next_time)
         [u2, v2] = part.get_vel_io_surf(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng, coord=coord)
-        simul.update(np.floor(time))
+        simul.update(prev_time)
         u = linear(u, u2, alpha_time)
         v = linear(v, v2, alpha_time)
 ### JC 
@@ -34,11 +42,11 @@ elif advzavg:
             y_periodic=y_periodic, ng=ng, advdepth=advdepth, z_thick=z_thick,
             coord=coord)
     if not meanflow and alpha_time != 0:
-        simul.update(np.ceil(time))
+        simul.update(next_time)
         [u2, v2] = part.get_vel_io_2d_zavg(simul, x_periodic=x_periodic,
                   y_periodic=y_periodic, ng=ng, coord=coord, advdepth=advdepth,
                   z_thick=z_thick)
-        simul.update(np.floor(time))
+        simul.update(prev_time)
         u = linear(u, u2, alpha_time)
         v = linear(v, v2, alpha_time)
         if debug_zavg:
@@ -50,10 +58,10 @@ else:
     [u,v] = part.get_vel_io_2d(simul, x_periodic=x_periodic, y_periodic=y_periodic,
             ng=ng, advdepth=advdepth, coord=coord)
     if not meanflow and alpha_time != 0:
-        simul.update(np.ceil(time))
+        simul.update(next_time)
         [u2,v2] = part.get_vel_io_2d(simul, x_periodic=x_periodic,
                   y_periodic=y_periodic, ng=ng, advdepth = advdepth,coord=coord)
-        simul.update(np.floor(time))
+        simul.update(prev_time)
         u = linear(u, u2, alpha_time)
         v = linear(v, v2, alpha_time)
 
@@ -65,5 +73,5 @@ pv[:] = partF.interp_2d_v(px, py, v, ng, nq, i0, j0)
 
 ###################################################################################
 
-del u,v
+del u, v
 
