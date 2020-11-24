@@ -37,7 +37,7 @@ ng = 1
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1/4
+dfile = -1/2
 start_file = 4 #3750
 end_file = 0 #3490
 
@@ -64,7 +64,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'POLGYR_xios_1h_avg'
+my_simul = 'POLGYR_xios_3h_avg'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -152,7 +152,7 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
 #config = 'bk2d_0506winter'
-config = '3h_single_inj'
+config = 'date_3h_single_inj'
 #config = 'debug_high_freq'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'

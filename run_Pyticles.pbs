@@ -23,7 +23,7 @@ qstat -f $PBS_JOBID
 source /usr/share/Modules/3.2.10/init/bash
 module load anaconda-py3.6/4.3.13
 
-cd /appli/anaconda/2.7/bin
+#cd /appli/anaconda/2.7/bin
 source activate /home2/datahome/jcollin/conda-env/my_conda
 
 echo $LD_LIBRARY_PATH

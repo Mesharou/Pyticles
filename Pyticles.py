@@ -777,6 +777,10 @@ for time in timerange:
     print('--------------------------------------------------------------------')
     print(' time is ', time)
     print('--------------------------------------------------------------------')
+    if dfile > 0:
+        alpha_time = time - np.floor(time)
+    else:
+        alpha_time = time - np.ceil(time)    
 
     alpha_time = time - np.floor(time)
     print ("alpha time :", alpha_time)

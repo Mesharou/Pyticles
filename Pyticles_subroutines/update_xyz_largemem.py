@@ -5,10 +5,10 @@
 ##LM
 if sedimentation: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
-    w_sed = 2 * w_sed0/(3600.*24.)
+    w_sed = w_sed0/(3600.*24.)
     print(' ')
     print(' ===========> Vitesse de sedimentation :')
-    print((' w(m/d), w(m/sec) = ',w_sed0, w_sed/2))
+    print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
     print(' ')
 ##LM
 
@@ -59,6 +59,7 @@ subtiming = False
 tim0 = simul.oceantime
 
 if np.isnan(pm_s[0,0]):
+    print("so true ")
     pm_s[:] = part.periodize2d_fromvar(simul, simul.pm, coord=subcoord,
             x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
     pn_s[:] = part.periodize2d_fromvar(simul, simul.pn, coord=subcoord,
@@ -71,13 +72,12 @@ if np.isnan(pm_s[0,0]):
     ############################################################################
     # Load (u,v,w) on sigmal-levels at time-step t
     if adv3d:
-        #JC DEBUG
-        print('getting u')
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
                 coord=subcoord)
-    
+        if sedimentation:
+            w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
@@ -136,10 +136,12 @@ if adv3d:
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
             coord=subcoord)
     if sedimentation:
+        print(" **** Rognogntudju ****")
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
 elif simul.simul[-4:]=='surf':
-    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,
-                                       x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
+                                       timing=subtiming, x_periodic=x_periodic,
+                                        y_periodic=y_periodic, ng=ng, coord=subcoord)
 ### JC 
 elif advzavg:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
