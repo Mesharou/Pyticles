@@ -59,7 +59,6 @@ subtiming = False
 tim0 = simul.oceantime
 
 if np.isnan(pm_s[0,0]):
-    print("so true ")
     pm_s[:] = part.periodize2d_fromvar(simul, simul.pm, coord=subcoord,
             x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
     pn_s[:] = part.periodize2d_fromvar(simul, simul.pn, coord=subcoord,
@@ -112,18 +111,11 @@ if np.isnan(pm_s[0,0]):
 ###################################################################################
 # Update simul at t+1 - and get u,v,w at time-step t+1
 
-print("")
-print("in update_xyz, ", )
-print(time)
-
-print("infiletime prev", simul.infiletime)
 if not meanflow:
     if dfile > 0: 
         simul.update(np.int(np.floor(time)+simul.dtime))
     else:
         simul.update(np.int(np.ceil(time)+simul.dtime))
-print("infiletime next", simul.infiletime)
-print("")
 
 # JC
 tim1 = simul.oceantime
@@ -136,7 +128,6 @@ if adv3d:
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
             coord=subcoord)
     if sedimentation:
-        print(" **** Rognogntudju ****")
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
 elif simul.simul[-4:]=='surf':
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
@@ -189,15 +180,8 @@ if 'POLGYR_xios_6h' in simul.simul:
 else:
     if not meanflow: delt[0] = simul.dt * dfile
 
-print("----- ok ----")
 dt = delt[0] / subtstep
 dfct = 1. / subtstep * np.abs(dfile)
-
-print("tim1 -tim0", tim1 - tim0)
-print(" % 24 * 3600", (tim1-tim0)%(360*24*3600)) 
-print("simul.dt", simul.dt)
-print("old",  (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile)
-print("new", delt[0])
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
@@ -227,7 +211,6 @@ def advance_3d(subrange,out,step):
     for it in range(subtstep):
         
         fct = (subtime-tim0)/delt[0]*np.abs(dfile)
-        
         #print 'debug it fct', it,fct,dfct
         
         istep_F += 1; #print 'istep is', istep, istep_F

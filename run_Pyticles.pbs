@@ -3,7 +3,7 @@
 #PBS -l ncpus=30
 #PBS -l mem=65g
 #PBS -l walltime=04:00:00
-#PBS -o /home2/datahome/jcollin/Pyticles/output_dt_long_crash
+#PBS -o /home2/datahome/jcollin/Pyticles/3h.log
 #  COMMENT
 #  Tina ODAKA 06.03.2017
 #  example for using datarmor with 'queue omp' in a personalised way

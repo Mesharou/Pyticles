@@ -94,8 +94,6 @@ try:
         alpha_time = time - np.floor(time)
     else:
         alpha_time = time - np.ceil(time)
-        print(" write outp:")
-        print("alhpa * simul.dt =", alpha_time, " * ", simul.dt)
     
     nc.variables['ocean_time'][itime]= simul.oceantime + alpha_time * simul.dt
 except:

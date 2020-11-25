@@ -38,7 +38,7 @@ ng = 1
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = -1/2
-start_file = 4 #3750
+start_file = 120 #3750
 end_file = 0 #3490
 
 ######
@@ -278,7 +278,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = False
+continuous_injection = True
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)

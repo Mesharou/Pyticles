@@ -164,7 +164,6 @@ else:
     nproc = int(sys.argv[1])
 
 print('-----------------------------------')
-
 #Use multiprocess version of the code   
 print('Parallel version')
 
@@ -174,22 +173,7 @@ if nproc<=0:
 else:
     nproc = np.min([mp.cpu_count(),nproc])
 print(nproc, ' processors will be used')
-
 print('-----------------------------------')
-
-################################################################################
-################################################################################
-# THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
-# MOST OF PARAMTERS ARE DEFINED IN INPUTS/INPUT_FILE
-################################################################################
-################################################################################
-
-
-################################################################################
-# Load simulations parameters (date, subsection, static fields, files path ...etc..)
-# [you can check "dir(simul)" to see what has been loaded]
-################################################################################
-#'nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically'
 
 ################################################################################
 ################################################################################
@@ -505,8 +489,6 @@ else:
     delt   = shared_array(2, value = simul.dt * dfile) 
 
 maxvel = shared_array(2, prec='double', value=maxvel0)
-print("delt is: ", delt)
-print("")
 
 # Total number of time steps:
 istep = shared_array(1,prec='int',value=-1)
@@ -747,15 +729,6 @@ print('newfile', newfile)
 ################################################################################
 #START OF THE TIME LOOP
 ################################################################################
-if (nq / nproc) < 10:
-    print('----------------------------------------------------')
-    print(f'WARNING : Multiprocessing Issue')
-    print('number of particles too small relatively to nprocs')
-    print(f'in subranges')
-    print('use less procs')
-    print('----------------------------------------------------')
-    #  [nq/nprocs > nprocs-1]
-print (' ')
 print (' ')
 tstart = tm.time()
 
@@ -977,7 +950,6 @@ for time in timerange:
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
     if not meanflow and np.abs(np.round(time+dfile) - (time+dfile)) <= np.abs(dfile)*1e-2:
         simul.update(np.round(time + dfile));
-        print("===> to update ", np.round(time + dfile))
     
     print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
