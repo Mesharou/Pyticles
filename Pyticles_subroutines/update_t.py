@@ -32,26 +32,44 @@ def interp_3d_t(subrange):
 #create shared arrays
 temp = shared_array(nx_s,ny_s,nz)
 
+# JC dfile
+if dfile > 0:
+    prev_time = np.floor(time)
+    next_time = np.ceil(time)
+else:
+    prev_time = np.ceil(time)
+    next_time = np.floor(time)
 
 #Load T,S on sigma levels (much faster than accessing nc files through subprocesses)
-temp[:] = part.get_t_io(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
+temp[:] = part.get_t_io(simul, x_periodic=x_periodic, y_periodic=y_periodic,
+                        ng=ng, coord=coord)
 if not meanflow and alpha_time != 0:
-    simul.update(np.ceil(time))
-    temp2 = part.get_t_io(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=coord)
-    simul.update(np.floor(time))
-    temp[:] = linear(temp[:],temp2,alpha_time)
+    simul.update(next_time)
+    temp2 = part.get_t_io(simul, x_periodic=x_periodic, y_periodic=y_periodic,
+                           ng=ng, coord=coord)
+    simul.update(prev_time)
+    temp[:] = linear(temp[:], temp2, alpha_time)
 
 
 ###############################################################################
 # Get T,S at particles positions
 ###############################################################################
 
-nslice = nq//nproc + 1
-subranges=[]
+nslice = nq // nproc
+remain = nq - nslice * nproc
+i_shift = remain * (nslice + 1)
+
+index = np.arange(nq)
+subranges = []
 procs = []
 
 for i in range(nproc):
-    subranges.append(list(range(i*nslice, np.nanmin([(i+1)*nslice, nq]))))
+    if i < remain:
+        subranges.append(index[i*(nslice+1) : np.nanmin([(i+1)*(nslice+1), nq])])
+    else:
+        j = i - remain
+        subranges.append(index[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice, nq])])
+    
     procs.append(mp.Process(target=interp_3d_t, args=(subranges[i],)))
 #procs = [mp.Process(target=interp_3d_t, args=([subranges[i]])) for i in range(nproc)]
 

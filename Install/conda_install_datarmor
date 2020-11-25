@@ -34,15 +34,22 @@ conda install netCDF4
 ################################################
 module load NETCDF/4.3.3.1-mpt-intel2016
 
-#load conda
-module load anaconda-py2.7/4.3.13
+# ----- load conda
+# Warning since 2020-03-06
+# module load anaconda is deprecated
+# source : https://domicile.ifremer.fr/intraric/Mon-IntraRIC/Calcul-et-donnees-scientifiques/Datarmor-Calcul-et-Donnees/Datarmor-calcul-et-programmes/Pour-aller-plus-loin/,DanaInfo=w3z.ifremer.fr,SSL+Conda-sur-Datarmor#
+# regarding the SHELL 
+# bash : . /appli/anaconda/versions/[numero_version]/etc/profile.d/conda.sh
+# csh : source /appli/anaconda/versions/[numero_version]/etc/profile.d/conda.csh
 
+#module load anaconda-py2.7/4.3.13
+. /appli/anaconda/versions/4.7.12/etc/profile.d/conda.sh
 # create new env
 conda create --name my_conda
+conda create --name my_conda python=3.6.8
 
-bash
-cd /appli/anaconda/2.7/bin
-source activate my_conda
+conda activate my_conda 
+# conda deactivate to exit environment
 
 ## install modules
 
@@ -50,7 +57,7 @@ conda install numpy
 conda install scipy
 conda install matplotlib
 conda install netCDF4
-
+conda install basemap
 
 
 
@@ -64,9 +71,9 @@ conda install netCDF4
 bash
 
 source /usr/share/Modules/3.2.10/init/bash
-module load anaconda-py2.7/4.3.13
+module load anaconda-py3.6/4.3.13
 
-cd /appli/anaconda/2.7/bin
+cd /appli/anaconda/3.6/bin
 source activate my_conda
 
 

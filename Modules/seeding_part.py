@@ -12,7 +12,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 import pyticles_sig_sa as part
-from copy import *
+from copy import copy
 from netCDF4 import Dataset
 
 

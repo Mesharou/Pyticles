@@ -17,6 +17,7 @@ import time as tm
 
 sys.path.append("../Modules/")
 from R_files import load
+import pyticles_sig_sa as part
 
 ##############################################################################
 
@@ -32,37 +33,39 @@ x_periodic = False
 y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
-# dfile is frequency for the use of the ROMS outputs
+# dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
-dfile = 1
-start_file = 1000
-end_file = 1010
+# Use -1 for backward simulation
+dfile = -1/2
+start_file = 120 #3750
+end_file = 0 #3490
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
 # itime_trap = -1 : last time index in forward simulation
 itime_trap = -11 
-trap_file = '/home/jeremy/Bureau/Data/Pyticles/Trap_fwd/' \
+trap_file = '/home/wang/Bureau/Data/Pyticles/Trap_fwd/' \
                     + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
 
 ###### Restart from a Pyticles output file
 # user should not change start_file
 # restart_time : number of time step since start_file
 restart = False
-restart_time = 7 #nb of time steps in the restart_file
-restart_file = '/home/jeremy/Bureau/Data/Pyticles/' \
-               +'/Cubic_adv/Case_1_Cubic_adv_4_1510.nc'
+restart_time = 28 #nb of time steps in the restart_file
+restart_file = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/' \
+               + 'apero_hfo3h_bk3d_06winter_trap1000m_sed50_28_3740.nc' 
+              
 
 if not restart:
     restart_time = 0
 else:
-    start_file += restart_time
+    start_file += restart_time * int(np.sign(dfile))
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
+my_simul = 'POLGYR_xios_3h_avg'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
-my_simul = 'lwang'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 
@@ -103,7 +106,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -200.
+    advdepth = -4000.
 
 '''
         NOTE that advdepths is used as follows:
@@ -115,7 +118,9 @@ if not adv3d:
 '''
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
-w_sed0 = -40 # vertical velocity for particles sedimentation (m/s)
+w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
+
+
 
 if not adv3d:
     sedimentation = False
@@ -124,6 +129,7 @@ if not adv3d:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
+plot_part = False
 
 #Write lon,lat,topo,depth
 write_lonlat = True
@@ -133,7 +139,7 @@ if advzavg:
     write_topo = True # Needed to keep track when water column intersects with
                       # bathymetry (topo > |advdepth| - z_thick/2)
 write_uv = True
-write_ts = True
+write_ts = False
 write_uvw = True
 if write_uvw:
     write_uv = False
@@ -143,8 +149,14 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'continuous_3D_big'
-folderout = '/scratch/Jcollin/Pyticles/' + config + '/'
+#config = 'longer_simul_50d_sed100'
+#config = 'bk2d_0506winter'
+config = 'date_3h_single_inj'
+#config = 'debug_high_freq'
+
+#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
+folderout = '/home2/datawork/jcollin/Pyticles/update_xios/'
+#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -180,48 +192,55 @@ if not adv3d: maskrho[simul.topo<-advdepth] = 0.
 
 topo = simul.topo
 filetime = simul.filetime
-timerange = np.round(np.arange(start_file,end_file,dfile),3)
+timerange = np.round(np.arange(start_file, end_file + dfile, dfile),3)
 #for timing purpose
 tstart = tm.time()
 #Time all subparts of the code 
 timing = True
+
 subtstep = np.int(nsub_steps * np.abs(dfile))
+#subtstep = np.int(nsub_steps)
 
 ################################################################################
 # Define Particle seeding (to be edited)
 ################################################################################
 
 #Initial Particle release
-nqmx = 10000000  # maximum number of particles
+nqmx = 100000  # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-[ic, jc] = [800, 400] #= part.find_points(simul.x,simul.y,-32.28,37.30)
-[ic,jc] = np.load('/home/j/jcollin/Project/Pyticles/Inputs/ic_jc.npy')
-
+#[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+barycentric = False  # Automatically modifies patch's center to previsously seeded
+                    # Particles After being advected over one time step 
+#[ic, jc] = part.find_points(simul.x,simul.y, -16.5, 49)
+#x_ic = part.find_points(simul.x,simul.y, -16.5, 49)[0]
+#y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
+#[ic,jc] = [x_ic,y_jc]
+[ic,jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
+#[ic,jc] = [1418,467] # sw site
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
-
+    
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
 preserved_meter = True
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 400  # number of intervals in x-dir
-    ny_box = 400      
+    nx_box = 5 # number of intervals in x-dir
+    ny_box = 5      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
     dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-    dx0 = 1
-    iwd  = 1* dx0 # half width of seeding patch [in grid points
-    jwd  = 1* dx0 # half width of seeding patch [in grid points]
+    iwd  = 10 * dx0 # half width of seeding patch [in grid points
+    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
-    nnx = 1/10 * dx0
-    nny = 1/10 * dx0
+    nnx = 1 * dx0
+    nny = 1 * dx0
     nnlev = 1
 
 #########
@@ -253,7 +272,7 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-10]
+depths0 = [-1000]
 rho0 = [-1.5]
 
 # if True release particles continuously

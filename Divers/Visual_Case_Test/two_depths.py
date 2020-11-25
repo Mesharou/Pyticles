@@ -36,10 +36,10 @@ import visual_tools as vt
 ##############################################################################
 # INPUT PARAMETERS
 ##############################################################################
-start_file = 1510
-end_file = 1535
+start_file = 1020
+end_file = 1040
 
-my_simul = 'Case_1'
+my_simul = 'polygr_apero'
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
 simul = load(simul = parameters, floattype=np.float64)
 

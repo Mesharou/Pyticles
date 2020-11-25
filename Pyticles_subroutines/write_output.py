@@ -90,7 +90,12 @@ else:
     
 # Write Variables into file
 try:
-    nc.variables['ocean_time'][itime]= simul.oceantime + (time - np.floor(time)) * simul.dt
+    if  dfile > 0:
+        alpha_time = time - np.floor(time)
+    else:
+        alpha_time = time - np.ceil(time)
+    
+    nc.variables['ocean_time'][itime]= simul.oceantime + alpha_time * simul.dt
 except:
     print('no simul.oceantime')
     nc.variables['ocean_time'][itime]= time * delt
@@ -129,9 +134,6 @@ if x_periodic: nc.x_periodic =  1
 else: nc.x_periodic =  0
 if y_periodic: nc.y_periodic =  1
 else: nc.y_periodic =  0
-
-
-
 
 nc.variables['time'][itime] = time
 nc.variables['px'][itime, :] = px

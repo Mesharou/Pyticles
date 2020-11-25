@@ -37,12 +37,6 @@ import pyticles_3d_sig_sa as partF
 
 #copy data
 from copy import copy
-################################################################################
-
-
-
-
-
 
 ###################################################################################
 #@profile
@@ -1489,9 +1483,11 @@ def get_depths_w(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
     topo = periodize2d_fromvar(simul,simul.topo,coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng) 
 
     if hasattr(simul, 'zeta'):
+        print("YES simul has attribute zeta")
         zeta=periodize2d_fromvar(simul,simul.zeta,coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng) 
-    else: 
-        zeta=periodize2d_fromnc(simul,'zeta',coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng) 
+    else:
+        print("NOPE simul has NOT attribute zeta")
+        zeta=periodize2d_fromnc(simul,'zeta',coord=coord,x_periodic=x_periodic,                                 y_periodic=y_periodic,ng=ng) 
 
     if simul.ncname.model=='ucla':
         (z_w) = partF.zlevs_w(topo, zeta, simul.hc,  simul.Cs_w)

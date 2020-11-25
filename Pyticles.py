@@ -18,7 +18,17 @@ or in interactive
 python -i Pyticles.py nprocs
 nprocs : numbers of processors 
 
+! Bugs to be fixed:
+    Seems to be an issue regarding the number of released particles at the last
+    time step of backward simulation in case of continuous seeding of particles
+    Bug was detetcted at 1020 time in Lu simulation
+
 !---------------------------------------------------------------------------------------------
+! 2020-10-19 [jeremy collin]
+!     - modifcation of particle distribution over threads to enable small number of particles
+!     with high number of processors. Usefull for continuous injection
+! 2020-10-14  [jeremy collin]
+!    - Generic high frequency: re-enable higher frequency output (dfile >1) 
 ! 2019-11-29 [jeremy collin]:
 !     - add key preserved_meter (input_file)
 !       horizontal spacing between particles is defined with dx (m)
@@ -154,7 +164,6 @@ else:
     nproc = int(sys.argv[1])
 
 print('-----------------------------------')
-
 #Use multiprocess version of the code   
 print('Parallel version')
 
@@ -164,22 +173,7 @@ if nproc<=0:
 else:
     nproc = np.min([mp.cpu_count(),nproc])
 print(nproc, ' processors will be used')
-
 print('-----------------------------------')
-
-################################################################################
-################################################################################
-# THE FOLLOWING CONTAINS DEFINITION OF THE PARTICLES SETTINGS TO BE EDITED BY USER
-# MOST OF PARAMTERS ARE DEFINED IN INPUTS/INPUT_FILE
-################################################################################
-################################################################################
-
-
-################################################################################
-# Load simulations parameters (date, subsection, static fields, files path ...etc..)
-# [you can check "dir(simul)" to see what has been loaded]
-################################################################################
-#'nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically'
 
 ################################################################################
 ################################################################################
@@ -470,9 +464,9 @@ else: # restart = True
         # because px0, py0, pz0 may vary upon time
         nq_injection = np.argmax(np.isnan(nc.variables['px'][0, :]))
 
-        px0 = nc.variables['px'][0, :nq_injection]
-        py0 = nc.variables['py'][0, :nq_injection]
-        pz0 = nc.variables['pz'][0, :nq_injection]
+        px0 = np.array(nc.variables['px'][0, :nq_injection])
+        py0 = np.array(nc.variables['py'][0, :nq_injection])
+        pz0 = np.array(nc.variables['pz'][0, :nq_injection])
         nc.close()
         
         nq_1 = np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
@@ -489,8 +483,12 @@ else: # restart = True
 ################################################################################
 
 # Time between 2 frames (in seconds)
-delt   = shared_array(2,value=simul.dt*np.abs(dfile)) 
-maxvel = shared_array(2,prec='double',value=maxvel0)
+if simul.simul in 'POLGYR_xios_6h_avg':
+    delt   = shared_array(2, value = simul.ncname.dtfile * np.abs(dfile)) 
+else:
+    delt   = shared_array(2, value = simul.dt * dfile) 
+
+maxvel = shared_array(2, prec='double', value=maxvel0)
 
 # Total number of time steps:
 istep = shared_array(1,prec='int',value=-1)
@@ -731,35 +729,35 @@ print('newfile', newfile)
 ################################################################################
 #START OF THE TIME LOOP
 ################################################################################
-if (nq / nproc) < 10:
-    print('----------------------------------------------------')
-    print(f'WARNING : Multiprocessing Issue')
-    print('number of particles too small relatively to nprocs')
-    print(f'in subranges')
-    print('use less procs')
-    print('----------------------------------------------------')
-    #  [nq/nprocs > nprocs-1]
-print (' ')
 print (' ')
 tstart = tm.time()
 
 ###############################
 time = timerange[0]-dfile;
-coord= part.subsection(px, py, nx=nx, ny=ny, offset=50)
-run_process(plot_selection)
+coord = part.subsection(px, py, nx=nx, ny=ny, offset=50)
+if plot_part:
+    run_process(plot_selection)
+
 ###############################
 
 #Initialization
 pm_s = np.array([]); 
 
 itime = restart_time
+print("itime is!", itime)
 
 for time in timerange:
     print('--------------------------------------------------------------------')
     print(' time is ', time)
     print('--------------------------------------------------------------------')
+    if dfile > 0:
+        alpha_time = time - np.floor(time)
+    else:
+        alpha_time = time - np.ceil(time)    
 
     alpha_time = time - np.floor(time)
+    print ("alpha time :", alpha_time)
+    print("")
 
     ############################################################################
     # Define domainstimerange
@@ -768,8 +766,8 @@ for time in timerange:
     ############################################################################
     if debug: print('max. vel. is ',  maxvel)
 
-    tightcoord= part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
-    coord= part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
+    tightcoord = part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
+    coord = part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
                            nadv= nadv)
 
     nx_s, ny_s = coord[3]-coord[2], coord[1]-coord[0]
@@ -794,7 +792,6 @@ for time in timerange:
         ptemp = shared_array(nq, prec='double')
         psalt = shared_array(nq, prec='double')
         r = run_process(update_ts)
-
         print('get T,S..................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -802,7 +799,6 @@ for time in timerange:
 
         ptemp = shared_array(nq, prec='double')
         r = run_process(update_t)
-
         print('get T....................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -812,7 +808,6 @@ for time in timerange:
         pu = shared_array(nq, prec='double')
         pv = shared_array(nq, prec='double')
         r = run_process(update_uv_2d)
-
         print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
    
@@ -822,7 +817,6 @@ for time in timerange:
         pv = shared_array(nq, prec='double')
         pw = shared_array(nq, prec='double')
         r = run_process(update_uvw_3d)
-
         print('get u,v,w..................................', tm.time()-tstart)
         tstart = tm.time()
 
@@ -832,7 +826,6 @@ for time in timerange:
         plon = shared_array(nq, prec='double')
         plat = shared_array(nq, prec='double')
         r = run_process(update_lonlat)
-
         print('get lon,lat..............................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -841,7 +834,6 @@ for time in timerange:
 
         pdepth = shared_array(nq, prec='double'); 
         r = run_process(update_depth)
-
         print('get depth................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -850,7 +842,6 @@ for time in timerange:
 
         ptopo = shared_array(nq, prec='double');
         r = run_process(update_topo)
-
         print('get topo................................', tm.time()-tstart)
         tstart = tm.time()   
 
@@ -957,9 +948,9 @@ for time in timerange:
     ############################################################################
 
     #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
-    if not meanflow and ( np.round(time+dfile)-(time+dfile)<=np.abs(dfile)*1e-2):
-        simul.update(np.int(np.floor(time)+simul.dtime));
-
+    if not meanflow and np.abs(np.round(time+dfile) - (time+dfile)) <= np.abs(dfile)*1e-2:
+        simul.update(np.round(time + dfile));
+    
     print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
         
@@ -983,11 +974,10 @@ for time in timerange:
             z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                         nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
                         simul=simul, ng=ng, debug=debug)
-
         else:
             z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                                             iwd=iwd, jwd=jwd, nx=nx, ny=ny,
-                                             nnx=nnx, nny=nny, nnlev=nnlev)
+                                            nnx=nnx, nny=nny, nnlev=nnlev)
         ###############################
         # Release particles at depths0
         if initial_depth: 
@@ -1075,7 +1065,7 @@ for time in timerange:
     ############################################################################
     # Plot particles position (+ SST)
         
-    if (time+dfile)%1<np.abs(dfile)*1e-2: run_process(plot_selection)
+    if (time+dfile)%1<np.abs(dfile)*1e-2 and plot_part : run_process(plot_selection)
     
     ############################################################################
     itime += 1
@@ -1090,6 +1080,5 @@ for time in timerange:
     print(' ')
         
     if debug: print('memory usage', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6)
-    if debug: print('error',np.sqrt((px[0]-31.)**2+(py[0]-60.)**2))
 
         

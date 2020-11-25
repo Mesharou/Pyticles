@@ -117,7 +117,35 @@ class load(object):
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month) + self.ncname.fileformat
-            print('file is ',self.ncfile)
+        elif self.ncname.model == 'croco_xios' or self.ncname.model == 'croco_gigatl1':
+            # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
+            time1 = self.time - self.time%self.ncname.tfile
+            date1 = self.ncname.realyear_tstart + timedelta(seconds=time1*self.ncname.dtfile)
+            year1 = date1.year
+            month1 = date1.month
+            day1 = date1.day
+
+            time2 = time1 + self.ncname.tfile #- 1
+
+            date2 = self.ncname.realyear_tstart\
+                    + timedelta(seconds=time2*self.ncname.dtfile) # JC fix -timedelta(days=1)
+            year2 = date2.year
+            month2 = date2.month
+            day2 = date2.day
+            self.infiletime = self.time%self.ncname.tfile
+            self.filetime = self.time
+            
+            if self.ncname.model == 'croco_xios':
+                self.ncfile = self.ncname.his\
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1)\
+                        + '-' +'{0:02}'.format(day1) + '-'\
+                        + '{0:04}'.format(year2) + '-' + '{0:02}'.format(month2)\
+                        + '-' +'{0:02}'.format(day2) + self.ncname.fileformat
+            elif self.ncname.model == 'croco_gigatl1':
+                self.ncfile = self.ncname.his\
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
+
+        print('file is ',self.ncfile)
 
 
         try: 
@@ -187,7 +215,43 @@ class load(object):
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
             print('file is ',self.ncfile)
 
+        elif self.ncname.model == 'croco_xios' or self.ncname.model == 'croco_gigatl1':
+            # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
+            time1 = self.time - self.time%self.ncname.tfile
+            date1 = self.ncname.realyear_tstart + timedelta(seconds=time1*self.ncname.dtfile)
+            year1 = date1.year
+            month1 = date1.month
+            day1 = date1.day
 
+            time2 = time1 + self.ncname.tfile #- 1
+            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile) #-timedelta(days=1)
+            year2 = date2.year
+            month2 = date2.month
+            day2 = date2.day
+
+            self.infiletime = self.time%self.ncname.tfile
+            self.filetime = self.time-self.infiletime
+
+            print((self.simul,format(self.time)))
+            #fix for GIGATL3_6h_knl! shifted by one day.
+            if self.simul == 'gigatl3_6h' and self.time>=1550:
+                print('fix for GIGATL3_6h_knl')
+                date1 = date1 - timedelta(days = 1)
+                year1 = date1.year
+                month1 = date1.month
+                day1 = date1.day
+
+            if self.ncname.model == 'croco_xios':
+                self.ncfile = self.ncname.his\
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)\
+                   + '-'+ '{0:04}'.format(year2)+'-'+'{0:02}'.format(month2) + '-' +'{0:02}'.format(day2)\
+                        + self.ncname.fileformat
+            elif self.ncname.model == 'croco_gigatl1':
+                self.ncfile = self.ncname.his\
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
+
+
+            print('self.time is ',self.time)
 
         self.cst();
 
@@ -379,15 +443,73 @@ example: for an interactive session:
             print('cannot find: ', self.ncfile)
 
         try:
-            self.rho0 = ncfile.rho0 
+            self.rho0 = ncfile.rho0
             self.g = 9.81
             self.hc = ncfile.hc
-            self.Cs_w = self.Forder(ncfile.Cs_w)
-            self.Cs_r = self.Forder(ncfile.Cs_r)
             self.dt_model = ncfile.dt
         except:
             pass
 
+        try:
+            self.Cs_r = self.Forder(ncfile.variables['Cs_r'][:])
+            self.Cs_w = self.Forder(ncfile.variables['Cs_w'][:])
+            self.sc_r = self.Forder(ncfile.variables['sc_r'][:])
+            self.sc_w = self.Forder(ncfile.variables['sc_w'][:])
+            print('read Cs_r in ncfile.variables')
+        except:
+            try:
+                self.Cs_r = self.Forder(ncfile.Cs_r)
+                self.Cs_w = self.Forder(ncfile.Cs_w)
+                self.sc_r = self.Forder(ncfile.sc_r)
+                self.sc_w = self.Forder(ncfile.sc_w)
+                print('read Cs_r in ncfile.Cs_r')
+
+            except:
+                try:
+                    grdfile = Dataset(self.ncname.grd, 'r')
+                    self.Cs_r = self.Forder(grdfile.variables['Cs_r'][:])
+                    self.Cs_w = self.Forder(grdfile.variables['Cs_w'][:])
+                    grdfile.close()
+                    print('read Cs_r in grdfile.variables')
+                except:
+                    try:
+                        grdfile = Dataset(self.ncname.grd, 'r')
+                        self.Cs_r = self.Forder(grdfile.Cs_r)
+                        self.Cs_w = self.Forder(grdfile.Cs_w)
+                        grdfile.close()
+                        print('read Cs_r in grdfile.Cs_r')
+                    except:
+                        if 'POLGYR_xios' in self.simul:
+                            cs_name = '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/polgyr_his.00100.nc'
+                            cs_file = Dataset(cs_name, 'r')         
+                            self.Cs_r = self.Forder(cs_file.Cs_r)
+                            self.Cs_w = self.Forder(cs_file.Cs_w)
+                            self.sc_r = self.Forder(cs_file.sc_r)
+                            self.sc_w = self.Forder(cs_file.sc_w)     
+                            cs_file.close() 
+                        else:
+                            pass
+        try:
+            if np.ndim(self.Cs_r)==2:
+                self.Cs_r = self.Cs_r[:,0]
+                self.Cs_w = self.Cs_w[:,0]
+
+            #ugly fix for now because of wrong xios files
+            if self.Cs_r.max()>1:
+                print('really??')
+                try:
+                    grdfile = Dataset(self.ncname.grd, 'r')
+                    self.Cs_r = self.Forder(grdfile.Cs_r)
+                    self.Cs_w = self.Forder(grdfile.Cs_w)
+                    grdfile.close()
+                except:
+                    grdfile = Dataset(self.ncname.grd, 'r')
+                    self.Cs_r = self.Forder(grdfile.variables['Cs_r'][:])
+                    self.Cs_w = self.Forder(grdfile.variables['Cs_w'][:])
+                    grdfile.close()
+        except:
+            pass
+       
         try:
             self.rdrg = ncfile.rdrg
         except:
@@ -407,12 +529,6 @@ example: for an interactive session:
             self.Cdb_min = None
 
         try:
-            self.sc_r = self.Forder(ncfile.sc_r)
-            self.sc_w = self.Forder(ncfile.sc_w)
-        except:
-            print('no sc_r,sc_w')
-
-        try:
             self.cpp = ncfile.CPPS
         except:
             try:
@@ -421,7 +537,7 @@ example: for an interactive session:
                 pass
 
         try:
-            self.visc2 = ncfile.visc2       
+            self.visc2 = ncfile.visc2
         except:
             self.visc2 = None
 
@@ -432,13 +548,13 @@ example: for an interactive session:
                 self.R0 = ncfile.R0
         except:
             pass
-        
+
         try:
             self.Zob = ncfile.Zob
         except:
             print('no Zob in job ... using Zob = 0.01')
             self.Zob = 0.01
-        
+
         try:
             self.VertCoordType = ncfile.VertCoordType
         except:
@@ -588,7 +704,11 @@ example: for an interactive session:
             self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
         elif self.ncname.model == 'agrif_jc':
             self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
-
+        else:
+            try:
+                self.oceantime = int(np.array(ncfile.variables['time'][self.infiletime]))
+            except:
+                self.oceantime = int(np.array(ncfile.variables['time_centered'][self.infiletime]))
 
         if not self.ncname.realyear:
         
@@ -642,6 +762,9 @@ example: for an interactive session:
             elif  self.ncname.model in ['croco','agrif_jc']:
                 self.dt = np.array(ncfile.variables['scrum_time'][1]) \
                         - np.array(ncfile.variables['scrum_time'][0])
+            elif self.ncname.model is 'croco_xios':
+                self.dt = np.array(ncfile.variables['time'][1]) \
+                        - np.array(ncfile.variables['time'][0]) 
         except:
             if self.simul[:4]=='natl': self.dt = 24. * 3600
             elif self.simul =='atlbig_mean2': self.dt = 24. * 3600 * 5.
@@ -2295,7 +2418,7 @@ class files(object):
         # JC simulations
 
         elif simul=='Case_1':  
-            folder= '/home/jeremy/Bureau/Data/Pyticles'
+            folder= '/home2/datawork/jcollin/Pyticles/TEST'
             self.model = 'croco'
             self.his=folder + '/chaba_his.'
             self.grd=folder + '/chaba_grd.nc'
@@ -3888,7 +4011,7 @@ class files(object):
 
             self.his=folder +'polgyr_his.'
 
-            self.grd='/home/datawork-lops-osi/jgula/POLGYR/polgyr_grd.nc'
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
 
             self.frc=folder + '/HIS/polgyr_his.00000.nc'
             self.wind=folder + '/HIS/polgyr_his.00000.nc'
@@ -3896,10 +4019,95 @@ class files(object):
             self.tfile=20
             self.tstart=0
             self.tend=1000
+          
+        elif 'apero' in simul:
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 5
+
+            folder= '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/' 
+            #folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
+            self.his=folder +'polgyr_his.'
+
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
+            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.00000.nc'
+            self.wind=folder + '/HIS/polgyr_his.00000.nc'
+
+            self.tfile = 20
+            self.tstart = 0
+            self.tend = 212    
+        
+        ######################
+        elif 'POLGYR_xios' in simul:
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.realyear_tstart = datetime(2003,11,16)
+            self.model = 'croco_xios'
+            self.digits = 0
+            folder = '/home2/datawork/jgula/Simulations/POLGYR3h/'
+            self.grd = folder + 'polgyr_grd.nc'
+           
+            if '1h' in simul:
+                if 'avg' in simul:
+                    self.his = folder + 'HIS/POLGYR_1h_avg_3d_' #1999-01-25-1999-01-29'
+                elif 'inst' in simul:
+                    self.his = folder + 'HIS/POLGYR_1h_inst_'
+
+                self.tfile = 120
+                self.dtfile = 3600
+                self.tstart = 0
+                self.tend = 10000
+
+            elif '3h' in simul:
+                self.his = folder + 'HIS/POLGYR_3h_avg_3d_' #1999-01-25-1999-01-29'
+                self.tfile = 40
+                self.dtfile = 3 * 3600
+                self.tstart = 0
+                self.tend = 10000
+ 
+            elif '6h' in simul:
+                self.his = folder + 'HIS/POLGYR_6h_avg_3d_' #1999-01-25-1999-01-29'
+                self.tfile = 20
+                self.dtfile = 6 * 3600
+                self.tstart = 0
+                self.tend = 10000
+ 
+            elif '12h' in simul:
+                self.his = folder + 'HIS/POLGYR_12h_avg_3d_' #1999-01-25-1999-01-29'
+                self.tfile = 10
+                self.dtfile = 12 * 3600
+                self.tstart = 0
+
+        ######################
+        elif 'uncompressed' in simul:
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+            #folder = '/home/datawork-lops-rrex/jgula/POLGYR/HIS_uncompressed/'      
+            self.his=folder +'polgyr_his.'
+
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
+            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.00000.nc'
+            self.wind=folder + '/HIS/polgyr_his.00000.nc'
+
+            self.tfile = 20
+            self.tstart = 0
+            self.tend = 184
 
         ##################
 
-        elif 'lwang' in simul:
+        elif 'apero_styx' in simul:
 
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)
@@ -3920,6 +4128,31 @@ class files(object):
             self.tstart=0
             self.tend=1000
 
+
+        elif 'zero_vel' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder = '/home/datawork-lops-osi/mlecorre/POLGYR/INIT/'
+            folder_his = '/home2/scratch/jcollin/Pyticles/POLGYR/'
+
+            self.his=folder_his +'polgyr_his.'
+            folder= '/postproc/COLLIN/Polgyr_test/'
+
+            self.his=folder +'polgyr_his.'
+
+            self.grd=folder + 'polgyr_grd.nc'
+
+            self.frc=folder + '/HIS/polgyr_his.01000.nc'
+            self.wind=folder + '/HIS/polgyr_his.01000.nc'
+
+            self.tfile=20
+            self.tstart=0
+            self.tend=1000
 
         ##################
 

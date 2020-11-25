@@ -5,15 +5,15 @@
 ##LM
 if sedimentation: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
-    w_sed = w_sed0/(3600.*24.) * 2
+    w_sed = w_sed0/(3600.*24.)
     print(' ')
     print(' ===========> Vitesse de sedimentation :')
     print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
     print(' ')
 ##LM
 
-timing=False #timing for this subroutine
-timing=True #timing for this subroutine
+timing = False #timing for this subroutine
+timing = True #timing for this subroutine
 
 tstart = tm.time()  
 
@@ -25,19 +25,20 @@ coord, nx_s, ny_s
 '''
 
 nx_s, ny_s = subcoord[3]-subcoord[2], subcoord[1]-subcoord[0]
-i0=subcoord[2]; j0=subcoord[0]
+i0 = subcoord[2]
+j0 = subcoord[0]
 
 
 ###################################################################################
 # Create variables here to be able to release memory completely
 if adv3d:
-    u = shared_array(nx_s-1,ny_s,nz,2)
-    v = shared_array(nx_s,ny_s-1,nz,2)  
-    w = shared_array(nx_s,ny_s,nz+1,2)  
-    dz = shared_array(nx_s,ny_s,nz,2)
+    u = shared_array(nx_s-1, ny_s, nz, 2)
+    v = shared_array(nx_s, ny_s-1, nz, 2)  
+    w = shared_array(nx_s, ny_s, nz+1, 2)  
+    dz = shared_array(nx_s, ny_s, nz, 2)
 else:
-    u = shared_array(nx_s-1,ny_s,2)
-    v = shared_array(nx_s,ny_s-1,2)  
+    u = shared_array(nx_s-1, ny_s, 2)
+    v = shared_array(nx_s, ny_s-1, 2)  
 
 
 pm_s = shared_array(nx_s,ny_s)
@@ -53,7 +54,7 @@ tstart = tm.time()
 ###################################################################################
 # LOADING ROMS FIELD
 ###################################################################################
-subtiming=False
+subtiming = False
 
 tim0 = simul.oceantime
 
@@ -70,13 +71,12 @@ if np.isnan(pm_s[0,0]):
     ############################################################################
     # Load (u,v,w) on sigmal-levels at time-step t
     if adv3d:
-        #JC DEBUG
-        print('getting u')
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
                 coord=subcoord)
-    
+        if sedimentation:
+            w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
@@ -111,23 +111,28 @@ if np.isnan(pm_s[0,0]):
 ###################################################################################
 # Update simul at t+1 - and get u,v,w at time-step t+1
 
-if not meanflow: simul.update(np.int(np.floor(time)+simul.dtime));
+if not meanflow:
+    if dfile > 0: 
+        simul.update(np.int(np.floor(time)+simul.dtime))
+    else:
+        simul.update(np.int(np.ceil(time)+simul.dtime))
+
+# JC
 tim1 = simul.oceantime
 
 if subtiming: print(('Update simulation..............', tm.time()-tstart))
 if subtiming: tstart = tm.time()
 
 if adv3d:
-    # JC DEBUG
-    print('u after')
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
             coord=subcoord)
     if sedimentation:
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
 elif simul.simul[-4:]=='surf':
-    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, timing=subtiming,
-                                       x_periodic=x_periodic, y_periodic=y_periodic, ng=ng, coord=subcoord)
+    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
+                                       timing=subtiming, x_periodic=x_periodic,
+                                        y_periodic=y_periodic, ng=ng, coord=subcoord)
 ### JC 
 elif advzavg:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
@@ -170,9 +175,13 @@ if timing: tstart = tm.time()
 ########################
 
 # Integrate in time to the next frame
-if not meanflow: delt[0] = (np.sign(dfile) * (tim1-tim0))%(360*24*3600) * dfile
-dt = delt[0]/subtstep
-dfct = 1. /subtstep * np.abs(dfile)
+if 'POLGYR_xios_6h' in simul.simul:
+    if not meanflow: delt[0] = simul.ncname.dtfile * dfile 
+else:
+    if not meanflow: delt[0] = simul.dt * dfile
+
+dt = delt[0] / subtstep
+dfct = 1. / subtstep * np.abs(dfile)
 
 ###################################################################################
 # Multiprocess for the advance_3d part   
@@ -191,7 +200,7 @@ def advance_3d(subrange,out,step):
     py_F = np.asfortranarray(py[subrange])
     pz_F = np.asfortranarray(pz[subrange])
     istep_F = istep[0]
-    subtime= tim0 + alpha_time * delt[0]/np.abs(dfile)
+    subtime = tim0 + alpha_time * delt[0]/np.abs(dfile)
     
     if timestep[:2]=='AB': 
         dpx_F = np.asfortranarray(dpx[subrange,:])
@@ -202,7 +211,6 @@ def advance_3d(subrange,out,step):
     for it in range(subtstep):
         
         fct = (subtime-tim0)/delt[0]*np.abs(dfile)
-        
         #print 'debug it fct', it,fct,dfct
         
         istep_F += 1; #print 'istep is', istep, istep_F
@@ -263,7 +271,8 @@ def advance_3d(subrange,out,step):
             raise Exception("no time-stepping scheme specified")
 
         #Remove particles exiting the domain:
-        [px_F,py_F,pz_F] = part.cull(px_F,py_F,pz_F,nx,ny,nz,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        [px_F,py_F,pz_F] = part.cull(px_F, py_F, pz_F, nx, ny, nz,
+                           x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
         
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F,nz)
@@ -331,12 +340,21 @@ def advance_2d(subrange,out,step):
 # ADVANCE_3D
 ###################################################################################
 
-nslice = len(subsubrange)//nproc+1; subranges=[]; nprocs=[]
+nslice = len(subsubrange)//nproc
+remain = nq - nslice * nproc
+i_shift = remain * (nslice + 1)
 
-for i in range(nproc): 
-    subranges.append(subsubrange[i*nslice:np.nanmin([(i+1)*nslice,nq])])
-    if len(subranges[-1])>0: nprocs.append(i)
+subranges=[]
+nprocs=[]
 
+for i in range(nproc):
+    if i < remain:
+        subranges.append(subsubrange[i*(nslice+1) : np.nanmin([(i+1)*(nslice+1), nq])])
+    else:
+        j = i - remain
+        subranges.append(subsubrange[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice, nq])])
+    
+    if len(subranges[-1]) > 0: nprocs.append(i)
 
 ################################################################################
 # Run nproc simultaneous processes
@@ -365,13 +383,5 @@ if len(nprocs)>0:
     if timing: tstart = tm.time()
 
     ############################################################################
-
-
-
-
-
-
-
-
 
 
