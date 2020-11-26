@@ -753,9 +753,9 @@ for time in timerange:
     if dfile > 0:
         alpha_time = time - np.floor(time)
     else:
-        alpha_time = time - np.ceil(time)    
+        alpha_time = np.ceil(time) - time    
 
-    alpha_time = time - np.floor(time)
+    #alpha_time = time - np.floor(time)
     print ("alpha time :", alpha_time)
     print("")
 

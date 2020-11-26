@@ -180,6 +180,10 @@ if 'POLGYR_xios_6h' in simul.simul:
 else:
     if not meanflow: delt[0] = simul.dt * dfile
 
+"""
+delt : Pyticles time step
+subtstep : number of time step between frames
+"""
 dt = delt[0] / subtstep
 dfct = 1. / subtstep * np.abs(dfile)
 
@@ -201,6 +205,7 @@ def advance_3d(subrange,out,step):
     pz_F = np.asfortranarray(pz[subrange])
     istep_F = istep[0]
     subtime = tim0 + alpha_time * delt[0]/np.abs(dfile)
+    #subtime = tim0 + alpha_time * simul.dt
     
     if timestep[:2]=='AB': 
         dpx_F = np.asfortranarray(dpx[subrange,:])
@@ -210,9 +215,10 @@ def advance_3d(subrange,out,step):
 
     for it in range(subtstep):
         
-        fct = (subtime-tim0)/delt[0]*np.abs(dfile)
-        #print 'debug it fct', it,fct,dfct
-        
+        fct = (subtime-tim0) / delt[0] * np.abs(dfile)
+        #print('debug it fct', it, fct, dfct)
+        #print('debug, dt, subtime', dt, subtime)
+
         istep_F += 1; #print 'istep is', istep, istep_F
         
         ########################

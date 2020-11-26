@@ -4,8 +4,6 @@ if not os.path.isfile(newfile):
 
     nc = Dataset(newfile, 'w', format = 'NETCDF4')
 
-    #Some parameters
-    
     #JC write_out
     nc.w_sed0 = w_sed0
 
@@ -33,7 +31,7 @@ if not os.path.isfile(newfile):
 
     nc.description = 'particles tracking'
     nc.simulation = parameters
-    nc.sub =  subtstep
+    nc.nsub_steps = nsub_steps 
     nc.base =  0
     nc.ng =  ng
 
@@ -67,7 +65,6 @@ if not os.path.isfile(newfile):
     if write_topo:    
         nc.createVariable('ptopo','d',('time','nq',))
 
-
     if write_uv:
         nc.createVariable('pu','d',('time','nq',))
         nc.createVariable('pv','d',('time','nq',))
@@ -81,7 +78,6 @@ if not os.path.isfile(newfile):
     #nc.createVariable('psalt','d',('time','nq',))
     #nc.createVariable('prho1','d',('time','nq',))
 
-
 else:
     # If file existes: Open it.
     nc = Dataset(newfile, 'a')
@@ -91,11 +87,11 @@ else:
 # Write Variables into file
 try:
     if  dfile > 0:
-        alpha_time = time - np.floor(time)
+        tcf = time - np.floor(time)
     else:
-        alpha_time = time - np.ceil(time)
+        tcf = time - np.ceil(time)
     
-    nc.variables['ocean_time'][itime]= simul.oceantime + alpha_time * simul.dt
+    nc.variables['ocean_time'][itime]= simul.oceantime + tcf * simul.dt
 except:
     print('no simul.oceantime')
     nc.variables['ocean_time'][itime]= time * delt
@@ -127,7 +123,7 @@ nc.depth0 = depths0
 
 nc.description = 'particles tracking'
 nc.simulation = parameters
-nc.sub =  subtstep
+nc.nsub_steps = nsub_steps
 nc.base =  0
 nc.ng =  ng
 if x_periodic: nc.x_periodic =  1
