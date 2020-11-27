@@ -24,11 +24,17 @@ nprocs : numbers of processors
     Bug was detetcted at 1020 time in Lu simulation
 
 !---------------------------------------------------------------------------------------------
+! 2020-11-26 [jeremy collin]
+!     - high frequency output supports -1 < dfile < 0
+! 2020-11-24 [jeremy collin]
+!     - sedimentation fix 
+! 2020-11-10 [jeremy collin]
+!     - enable use of roms xios files
 ! 2020-10-19 [jeremy collin]
 !     - modifcation of particle distribution over threads to enable small number of particles
 !     with high number of processors. Usefull for continuous injection
 ! 2020-10-14  [jeremy collin]
-!    - Generic high frequency: re-enable higher frequency output (dfile >1) 
+!    - Generic high frequency: re-enable higher frequency output (0 < dfile < 1) 
 ! 2019-11-29 [jeremy collin]:
 !     - add key preserved_meter (input_file)
 !       horizontal spacing between particles is defined with dx (m)
@@ -603,19 +609,20 @@ def write_output():
     
 ################################################################################
 
-def linear(var1,var2,alpha):
-    return alpha * var2 + (1.-alpha) * var1
+def linear(var1, var2, alpha):
+    return alpha * var2 + (1. - alpha) * var1
     
 ################################################################################
 # Plot pyticles on a SST map (is done at each time-step)
 ################################################################################
 
-subtightcoord_saves=[]; subcoord_saves=[];  subsubrange_saves=[]
+subtightcoord_saves = []
+subcoord_saves = []
+subsubrange_saves = []
 
-
-def plot_rect(rect,line='k'):
-    plt.plot([rect[2],rect[2],rect[3],rect[3],rect[2]],\
-             [rect[0],rect[1],rect[1],rect[0],rect[0]],line, linewidth=2)
+def plot_rect(rect, line='k'):
+    plt.plot([rect[2], rect[2], rect[3], rect[3], rect[2]],\
+             [rect[0], rect[1], rect[1], rect[0], rect[0]], line, linewidth=2)
     
 ################################################################################
 
@@ -732,17 +739,12 @@ print('newfile', newfile)
 print (' ')
 tstart = tm.time()
 
-###############################
-time = timerange[0]-dfile;
 coord = part.subsection(px, py, nx=nx, ny=ny, offset=50)
 if plot_part:
     run_process(plot_selection)
 
-###############################
-
 #Initialization
 pm_s = np.array([]); 
-
 itime = restart_time
 print("itime is!", itime)
 
@@ -755,7 +757,6 @@ for time in timerange:
     else:
         alpha_time = np.ceil(time) - time    
 
-    #alpha_time = time - np.floor(time)
     print ("alpha time :", alpha_time)
     print("")
 
@@ -769,12 +770,10 @@ for time in timerange:
     tightcoord = part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
     coord = part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
                            nadv= nadv)
-
     nx_s, ny_s = coord[3]-coord[2], coord[1]-coord[0]
-    i0 = coord[2]; j0 = coord[0]; 
-
+    i0 = coord[2]
+    j0 = coord[0] 
     print('coord is ', coord)
-    
     print('Compute coord............................', tm.time()-tstart)
     tstart = tm.time()   
 
@@ -788,7 +787,6 @@ for time in timerange:
 
 
     if write_ts:
-        
         ptemp = shared_array(nq, prec='double')
         psalt = shared_array(nq, prec='double')
         r = run_process(update_ts)
@@ -796,21 +794,17 @@ for time in timerange:
         tstart = tm.time()   
 
     elif write_t:
-
         ptemp = shared_array(nq, prec='double')
         r = run_process(update_t)
         print('get T....................................', tm.time()-tstart)
         tstart = tm.time()   
 
-
     if write_uv:
-        
         pu = shared_array(nq, prec='double')
         pv = shared_array(nq, prec='double')
         r = run_process(update_uv_2d)
         print('get u,v..................................', tm.time()-tstart)
         tstart = tm.time()   
-   
    
     if write_uvw:
         pu = shared_array(nq, prec='double')
@@ -820,26 +814,20 @@ for time in timerange:
         print('get u,v,w..................................', tm.time()-tstart)
         tstart = tm.time()
 
-
     if write_lonlat:
-
         plon = shared_array(nq, prec='double')
         plat = shared_array(nq, prec='double')
         r = run_process(update_lonlat)
         print('get lon,lat..............................', tm.time()-tstart)
         tstart = tm.time()   
 
-
     if write_depth:
-
         pdepth = shared_array(nq, prec='double'); 
         r = run_process(update_depth)
         print('get depth................................', tm.time()-tstart)
         tstart = tm.time()   
 
-
     if write_topo:
-
         ptopo = shared_array(nq, prec='double');
         r = run_process(update_topo)
         print('get topo................................', tm.time()-tstart)
@@ -849,16 +837,14 @@ for time in timerange:
     ###########################################################################
     # Write in file
     ###########################################################################   
-
+    
     r = run_process(write_output)
 
     if write_ts: del ptemp, psalt
     elif write_t: del ptemp
-
     if write_lonlat: del plon, plat
     if write_depth: del pdepth
     if write_topo: del ptopo
-
     if write_uv: del pu, pv
     if write_uvw: del pu, pv, pw
 
@@ -899,7 +885,8 @@ for time in timerange:
     if nsub_x*nsub_y == 1:
         subcoord = coord
         subsubrange = list(range(nq))
-        r = run_process(update_xyz);
+        if np.abs(time - timerange[-1]) >= np.abs(dfile) * 1e-2:
+            r = run_process(update_xyz);
         
     else:
         subtightcoord = [0, 0, 0, 0]
@@ -929,7 +916,7 @@ for time in timerange:
                           subtightcoord[3] + int(np.abs(maxvel[0]*delt[0]/dx)) )
             subcoord_saves.append(copy(subcoord))
             
-            subsubrange=[]
+            subsubrange = []
             #select pyticles inside subtightcoord only
             for i in range(px.shape[0]):
                 if (subtightcoord[0] <= py[i]+0.5+ng < subtightcoord[1]) \
@@ -943,12 +930,13 @@ for time in timerange:
             subtightcoord = subtightcoord_saves[jsub + isub*nsub_y]
             subcoord = subcoord_saves[jsub + isub*nsub_y]
             subsubrange = subsubrange_saves[jsub + isub*nsub_y]
-            r = run_process(update_xyz);
+            if np.abs(time - timerange[-1]) >= np.abs(dfile) * 1e-2:
+                r = run_process(update_xyz);
 
     ############################################################################
 
-    #if not meanflow and (time+dfile)%1<np.abs(dfile)*1e-2: simul.update(np.int(np.floor(time)+simul.dtime));
-    if not meanflow and np.abs(np.round(time+dfile) - (time+dfile)) <= np.abs(dfile)*1e-2:
+    if (not meanflow) and (np.abs(time - timerange[-1]) >= np.abs(dfile) * 1e-2)\
+    and (np.abs(np.round(time+dfile) - (time+dfile) <= np.abs(dfile)*1e-2)):
         simul.update(np.round(time + dfile));
     
     print('Total computation of px,py,pz............', tm.time()-tstart)
@@ -1025,7 +1013,6 @@ for time in timerange:
             temp = part.get_t_io(simul, x_periodic=x_periodic,
                                  y_periodic=y_periodic, ng=ng, coord=coord)
             ini_cond = (temp > 14.) & (temp < 16.)
-
             pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                                     ini_cond, ng, nq, i0, j0, k0)
             ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
@@ -1034,13 +1021,10 @@ for time in timerange:
             '''
             Particles are released using position of a forward simulation
             Then advected backwards
-         
             Here ipmx is used using all particles at it, including nan
             ipmx has to be changed to nq_1save
-
             Need to define a time index corresponding to start of backward
             simulation
-
             '''
 
             nq_1save, ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file,
@@ -1055,7 +1039,6 @@ for time in timerange:
         del x, y, z
         
         ####################################################################
-        #nq_0 = nq_1 + 1 
         nq_0 = nq_1
         nq_1 = np.nanmin([nq_0 + ipmx, nqmx]) 
         px[nq_0: nq_1] = px0
@@ -1065,7 +1048,8 @@ for time in timerange:
     ############################################################################
     # Plot particles position (+ SST)
         
-    if (time+dfile)%1<np.abs(dfile)*1e-2 and plot_part : run_process(plot_selection)
+    if (time + dfile) % 1 < np.abs(dfile) * 1e-2 \
+       and plot_part : run_process(plot_selection)
     
     ############################################################################
     itime += 1
