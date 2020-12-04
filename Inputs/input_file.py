@@ -36,8 +36,8 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1/2
-start_file = 120 #3750
+dfile = -1
+start_file = 10 #3750
 end_file = 0 #3490
 
 ######
@@ -118,6 +118,9 @@ if not adv3d:
 '''
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
+sedimentation_only = True
+if sedimentation_only:
+    sedimentation = False
 w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
 
 
@@ -151,7 +154,7 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 #config = 'longer_simul_50d_sed100'
 #config = 'bk2d_0506winter'
-config = 'date_3h_single_inj'
+config = 'date_3h_single_inj_procs'
 #config = 'debug_high_freq'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'

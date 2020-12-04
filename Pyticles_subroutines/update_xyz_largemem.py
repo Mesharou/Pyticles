@@ -3,7 +3,7 @@
 ###################################################################################
 
 ##LM
-if sedimentation: 
+if sedimentation or sedimentation_only: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
     w_sed = w_sed0/(3600.*24.)
     print(' ')
@@ -77,6 +77,8 @@ if np.isnan(pm_s[0,0]):
                 coord=subcoord)
         if sedimentation:
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
+        elif sedimentation_only:
+            w[:, :, :, itim[0]] = w[:, :, :, itim[0]] * 0 +  w_sed 
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
@@ -129,6 +131,8 @@ if adv3d:
             coord=subcoord)
     if sedimentation:
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
+    elif sedimentation_only:
+            w[:, :, :, itim[0]] = w[:,:,:,itim[1]] * 0 + w_sed 
 elif simul.simul[-4:]=='surf':
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
                                        timing=subtiming, x_periodic=x_periodic,
