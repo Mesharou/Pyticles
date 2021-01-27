@@ -210,7 +210,10 @@ def advance_3d(subrange,out,step):
     istep_F = istep[0]
     subtime = tim0 + alpha_time * delt[0]/np.abs(dfile)
     #subtime = tim0 + alpha_time * simul.dt
-    
+    if debug_time:
+        print("tim0, alpha_time, delt[0]", tim0, alpha_time, delta[0])
+        print("subtime", subtime)
+ 
     if timestep[:2]=='AB': 
         dpx_F = np.asfortranarray(dpx[subrange,:])
         dpy_F = np.asfortranarray(dpy[subrange,:])

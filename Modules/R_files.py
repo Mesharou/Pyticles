@@ -4054,7 +4054,7 @@ class files(object):
            
             if '1h' in simul:
                 if 'avg' in simul:
-                    self.his = folder + 'HIS/POLGYR_1h_avg_3d_' #1999-01-25-1999-01-29'
+                    self.his = folder + 'HIS/POLGYR_1h_avg_3d_' 
                 elif 'inst' in simul:
                     self.his = folder + 'HIS/POLGYR_1h_inst_'
 
@@ -4064,21 +4064,21 @@ class files(object):
                 self.tend = 10000
 
             elif '3h' in simul:
-                self.his = folder + 'HIS/POLGYR_3h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_3h_avg_3d_' 
                 self.tfile = 40
                 self.dtfile = 3 * 3600
                 self.tstart = 0
                 self.tend = 10000
  
             elif '6h' in simul:
-                self.his = folder + 'HIS/POLGYR_6h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_6h_avg_3d_' 
                 self.tfile = 20
                 self.dtfile = 6 * 3600
                 self.tstart = 0
                 self.tend = 10000
  
             elif '12h' in simul:
-                self.his = folder + 'HIS/POLGYR_12h_avg_3d_' #1999-01-25-1999-01-29'
+                self.his = folder + 'HIS/POLGYR_12h_avg_3d_' 
                 self.tfile = 10
                 self.dtfile = 12 * 3600
                 self.tstart = 0
