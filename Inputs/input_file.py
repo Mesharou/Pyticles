@@ -79,7 +79,7 @@ timestep = 'RK4' # Choices are
                # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
                # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
 
-nsub_steps = 360 # Number of time steps between 2 roms time steps
+nsub_steps = 10 # Number of time steps between 2 roms time steps
 
 # Spatial interpolation
 # Default is linear
@@ -208,7 +208,7 @@ subtstep = np.int(nsub_steps * np.abs(dfile))
 ################################################################################
 
 #Initial Particle release
-nqmx = 1000000 # maximum number of particles
+nqmx = 1000 # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
@@ -274,7 +274,7 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [0]
+depths0 = [-1000]
 rho0 = [-1.5]
 
 # if True release particles continuously

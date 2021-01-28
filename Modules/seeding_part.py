@@ -371,7 +371,7 @@ def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
     Modify in place px0, py0, pz0 with particles coordinates
     Returns ipcount to keep count of seeded particles
     
-    Found an issue sue to machine precision
+    Found an issue due to machine precision
     After mask interpolation on particules you might get 0.999...999
     And therefore remove particles from patch area
     Therefore we introduce eps to fiw this numerical issue

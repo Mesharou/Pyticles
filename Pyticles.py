@@ -314,9 +314,9 @@ if not restart:
     # topolim : used in ADV_2D to prevent particles from being seeded below
     #           seafloor
     
-    ipmx = 0;
+    ipmx = 0
     px0, py0, pz0 = [], [], []
-    topolim=0
+    topolim = 0
 
     if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
     elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick/2])

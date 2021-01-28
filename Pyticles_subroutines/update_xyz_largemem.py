@@ -209,9 +209,11 @@ def advance_3d(subrange,out,step):
     pz_F = np.asfortranarray(pz[subrange])
     istep_F = istep[0]
     subtime = tim0 + alpha_time * delt[0]/np.abs(dfile)
+
     #subtime = tim0 + alpha_time * simul.dt
+    debug_time = True
     if debug_time:
-        print("tim0, alpha_time, delt[0]", tim0, alpha_time, delta[0])
+        print("tim0, alpha_time, delt[0]", tim0, alpha_time, delt[0])
         print("subtime", subtime)
  
     if timestep[:2]=='AB': 
@@ -231,19 +233,22 @@ def advance_3d(subrange,out,step):
         ########################
                 
         if timestep=='FE':
-            partF.timestep_fe(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,mask_s,dz,dt,ng,nq,i0,j0,k0)
+            partF.timestep_fe(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,
+                              mask_s,dz,dt,ng,nq,i0,j0,k0)
             
         elif timestep=='RK2':  
-            partF.timestep_rk2(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,mask_s,dz,dt,ng,nq,i0,j0,k0)
+            partF.timestep_rk2(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,
+                               mask_s,dz,dt,ng,nq,i0,j0,k0)
 
 
         elif timestep=='RK4':
         
-            #print ' '
-            #print 'debug px0', px_F[:3]
-            #print 'debug py0', py_F[:3]
-            #print 'debug others itim,fct,dfct,dt,ng,nq,i0,j0,k0'
-            #print 'debug others', itim,fct,dfct,dt,ng,nq,i0,j0,k0
+            print('---> ')
+            print('debug px0', px_F[:3])
+            print('debug py0', py_F[:3])
+            print('debug others itim,fct,dfct,dt,ng,nq,i0,j0,k0')
+            print('debug others', itim,fct,dfct,dt,ng,nq,i0,j0,k0)
+            
             partF.timestep_rk4(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,
             	                   mask_s,dz,dt,ng,nq,i0,j0,k0)
 
