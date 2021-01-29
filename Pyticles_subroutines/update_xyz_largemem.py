@@ -184,10 +184,6 @@ if 'POLGYR_xios_6h' in simul.simul:
 else:
     if not meanflow: delt[0] = simul.dt * dfile
 
-"""
-delt : Pyticles time step
-subtstep : number of time step between frames
-"""
 dt = delt[0] / subtstep
 dfct = 1. / subtstep * np.abs(dfile)
 
@@ -224,9 +220,11 @@ def advance_3d(subrange,out,step):
 
     for it in range(subtstep):
         
-        fct = (subtime-tim0) / delt[0] * np.abs(dfile)
-        #print('debug it fct', it, fct, dfct)
-        #print('debug, dt, subtime', dt, subtime)
+        fct = (subtime-tim0) / delt[0] * np.min([1, np.abs(dfile)]) 
+        if debug_time:
+            print('debug it fct', it, fct, dfct)
+            print('debug, dt, subtime', dt, subtime)
+            print('')
 
         istep_F += 1; #print 'istep is', istep, istep_F
         
@@ -240,14 +238,14 @@ def advance_3d(subrange,out,step):
             partF.timestep_rk2(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,
                                mask_s,dz,dt,ng,nq,i0,j0,k0)
 
-
         elif timestep=='RK4':
-        
-            print('---> ')
-            print('debug px0', px_F[:3])
-            print('debug py0', py_F[:3])
-            print('debug others itim,fct,dfct,dt,ng,nq,i0,j0,k0')
-            print('debug others', itim,fct,dfct,dt,ng,nq,i0,j0,k0)
+            
+            if debug_time: 
+                print('---> ')
+                print('debug px0', px_F[:3])
+                print('debug py0', py_F[:3])
+                print('debug others itim,fct,dfct,dt,ng,nq,i0,j0,k0')
+                print('debug others', itim,fct,dfct,dt,ng,nq,i0,j0,k0)
             
             partF.timestep_rk4(px_F,py_F,pz_F,u,v,w,itim,fct,dfct,pm_s,pn_s,
             	                   mask_s,dz,dt,ng,nq,i0,j0,k0)
@@ -308,8 +306,6 @@ def advance_3d(subrange,out,step):
     step.put(istep_F)     
         
     px[subrange],py[subrange],pz[subrange]=px_F,py_F,pz_F
-
-
 
 
 ###################################################################################
