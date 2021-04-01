@@ -4020,7 +4020,7 @@ class files(object):
             self.tstart=0
             self.tend=1000
           
-        elif 'apero' in simul:
+        elif 'aperoXXX' in simul:
             
             self.realyear = True
             self.realyear_origin = datetime(1999,1,1)

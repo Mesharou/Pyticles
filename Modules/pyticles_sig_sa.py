@@ -1122,7 +1122,7 @@ def map_varw(simul,var0,px,py,pz,**kwargs):
         
     [j0,j1,i0,i1]=coord; k0=0; nqmx=px.shape[0]
     
-    pvar0 = partF.interp_3dw(px,py,pz,var0,nqmx,i0,j0,k0)
+    pvar0 = partF.interp_3d_w(px,py,pz,var0,nqmx,i0,j0,k0)
 
 
     return pvar0
