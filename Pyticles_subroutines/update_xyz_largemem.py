@@ -1,8 +1,8 @@
+# - 2021-04 Added carthesian = False parameter to force advection on sigma levels
 ###################################################################################
 #Read velocities
 ###################################################################################
 
-##LM
 if sedimentation or sedimentation_only: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
     w_sed = w_sed0/(3600.*24.)
@@ -10,7 +10,6 @@ if sedimentation or sedimentation_only:
     print(' ===========> Vitesse de sedimentation :')
     print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
     print(' ')
-##LM
 
 timing = False #timing for this subroutine
 timing = True #timing for this subroutine
@@ -74,7 +73,7 @@ if np.isnan(pm_s[0,0]):
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-                coord=subcoord)
+                coord=subcoord, carthesian=False)
         if sedimentation:
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
         elif sedimentation_only:
@@ -128,7 +127,7 @@ if subtiming: tstart = tm.time()
 if adv3d:
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-            coord=subcoord)
+            coord=subcoord, carthesian=False)
     if sedimentation:
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
     elif sedimentation_only:
@@ -207,7 +206,7 @@ def advance_3d(subrange,out,step):
     subtime = tim0 + alpha_time * delt[0]/np.abs(dfile)
 
     #subtime = tim0 + alpha_time * simul.dt
-    debug_time = True
+    debug_time = False
     if debug_time:
         print("tim0, alpha_time, delt[0]", tim0, alpha_time, delt[0])
         print("subtime", subtime)

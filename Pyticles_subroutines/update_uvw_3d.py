@@ -1,4 +1,7 @@
 '''
+04-2021 JC - added carthesian parameter key to determine whether pw is omega or
+     carthesian vertical velocity
+
 JC added 3D uvw in no surface case
  Question why deleting only u,v,w and not u2,v2,w2
 
@@ -38,11 +41,13 @@ if simul.simul[-4:]=='surf':
         v = linear(v, v2, alpha_time)
 else:
     [u, v, w] = part.get_vel_io(simul, x_periodic=x_periodic, 
-                                y_periodic=y_periodic, ng=ng, coord=coord)
+                                y_periodic=y_periodic, ng=ng, coord=coord, 
+                                carthesian=carthesian)
     if not meanflow and alpha_time != 0:
         simul.update(next_time)
         [u2, v2, w2] = part.get_vel_io(simul, x_periodic=x_periodic,
-                y_periodic=y_periodic, ng=ng, coord=coord)
+                        y_periodic=y_periodic, ng=ng, coord=coord,
+                        carthesian=carthesian)
         simul.update(prev_time)
         u = linear(u, u2, alpha_time)
         v = linear(v, v2, alpha_time)
@@ -52,7 +57,14 @@ else:
 
 pu[:] = partF.interp_3d_u(px, py, pz, u, ng, nq, i0, j0, k0)
 pv[:] = partF.interp_3d_v(px, py, pz, v, ng, nq, i0, j0, k0)
-pw[:] = partF.interp_3d_w(px, py, pz, w, ng, nq, i0, j0, k0) + w_sed0 / 3600 / 24
+if carthesian:
+    # w vertical velocity in carthesian coordinates
+    pw[:] = partF.interp_3d(px, py, pz, w, ng, nq, i0, j0, k0) \
+            + w_sed0 / 3600 / 24
+else:
+    # omega vertical velocity
+    pw[:] = partF.interp_3d_w(px, py, pz, w, ng, nq, i0, j0, k0)\
+            + w_sed0 / 3600 / 24
 
 
 ###################################################################################

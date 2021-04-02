@@ -36,9 +36,9 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -12
-start_file = 60 #3750
-end_file = 0 #3490
+dfile = -1
+start_file = 1003 #3750
+end_file = 1000 #3490
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,7 +63,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'POLGYR_xios_1h_avg'
+my_simul = 'styx'
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
 parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
@@ -79,7 +79,7 @@ timestep = 'RK4' # Choices are
                # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
                # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
 
-nsub_steps = 10 # Number of time steps between 2 roms time steps
+nsub_steps = 360# Number of time steps between 2 roms time steps
 
 # Spatial interpolation
 # Default is linear
@@ -119,7 +119,7 @@ if not adv3d:
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
 sedimentation_only = False
-w_sed0 = -50 # vertical velocity for particles sedimentation (m/d)
+w_sed0 = 0 # vertical velocity for particles sedimentation (m/d)
 
 if sedimentation_only:
     sedimentation = False
@@ -141,9 +141,12 @@ write_topo = True
 if advzavg: 
     write_topo = True # Needed to keep track when water column intersects with
                       # bathymetry (topo > |advdepth| - z_thick/2)
-write_uv = True
+write_uv = False
 write_ts = False
 write_uvw = True
+# True : pw is w-vertical velocity in z-coordinates
+# False : pw is omega velocity in sigma-coordinates
+carthesian = True
 
 if write_uvw:
     write_uv = False
@@ -154,11 +157,12 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'debug_new_freq'
+config = 'puv-carthesian-test'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
-folderout = '/home2/datawork/jcollin/Pyticles/update_xios/'
+folderout = '/home2/datawork/jcollin/Pyticles/debug_w_interp/'
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
+folderout = '/scratch/Jcollin/Pyticles/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -221,7 +225,8 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 #x_ic = part.find_points(simul.x,simul.y, -16.5, 49)[0]
 #y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 #[ic,jc] = [x_ic,y_jc]
-[ic,jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
+#[ic,jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
+[ic, jc] = [500, 700]
 #[ic,jc] = [1418,467] # sw site
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
