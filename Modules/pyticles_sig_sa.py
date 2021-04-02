@@ -141,9 +141,9 @@ def kick(pz,nz):
   
 #@profile   
 def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
-               y_periodic=False, ng=0, carthesian=False, **kwargs):
-    " returns u, v, omega if carthesian = False "
-    "          u, v, w_vlcy if carthesian = True"
+               y_periodic=False, ng=0, cartesian=False, **kwargs):
+    " returns u, v, omega if cartesian = False "
+    "          u, v, w_vlcy if cartesian = True"
 
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
@@ -241,7 +241,7 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     ################################
 
     try:
-        if carthesian:
+        if cartesian:
             w_name = 'w'
         else:
             w_name = 'omega'
@@ -257,7 +257,7 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
         pn = periodize2d_fromvar(simul, simul.pn, coord, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng)
         
-        if carthesian:
+        if cartesian:
             w = partF.get_wvlcty(u, v, z_r, z_w, pm, pn)
         else:
             w = partF.get_omega(u, v, z_r, z_w, pm, pn)

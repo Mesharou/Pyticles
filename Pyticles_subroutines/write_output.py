@@ -181,7 +181,7 @@ nc.x_periodic = int(x_periodic)
 nc.y_periodic = int(y_periodic)
 nc.timestep = timestep
 nc.sedimentation = int(sedimentation)
-nc.carthesian = int(carthesian)
+nc.cartesian = int(cartesian)
 
 if continuous_injection : nc.dt_injection = dt_injection
 

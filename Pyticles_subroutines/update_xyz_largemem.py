@@ -1,4 +1,4 @@
-# - 2021-04 Added carthesian = False parameter to force advection on sigma levels
+# - 2021-04 Added cartesian = False parameter to force advection on sigma levels
 ###################################################################################
 #Read velocities
 ###################################################################################
@@ -73,7 +73,7 @@ if np.isnan(pm_s[0,0]):
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-                coord=subcoord, carthesian=False)
+                coord=subcoord, cartesian=False)
         if sedimentation:
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
         elif sedimentation_only:
@@ -127,7 +127,7 @@ if subtiming: tstart = tm.time()
 if adv3d:
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-            coord=subcoord, carthesian=False)
+            coord=subcoord, cartesian=False)
     if sedimentation:
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
     elif sedimentation_only:

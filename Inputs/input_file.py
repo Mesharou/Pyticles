@@ -146,7 +146,7 @@ write_ts = False
 write_uvw = True
 # True : pw is w-vertical velocity in z-coordinates
 # False : pw is omega velocity in sigma-coordinates
-carthesian = True
+cartesian = True
 
 if write_uvw:
     write_uv = False
@@ -157,7 +157,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'puv-carthesian-test'
+config = 'puv-cartesian-test'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
 folderout = '/home2/datawork/jcollin/Pyticles/debug_w_interp/'
