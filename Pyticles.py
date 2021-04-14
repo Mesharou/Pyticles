@@ -154,7 +154,6 @@ from R_files import load
 from itertools import product
 
 import seeding_part
-#from R_tools_fort import rho1_eos # JC 
 # Input file with Pyticles parameters
 from input_file import *
 
@@ -629,7 +628,7 @@ def plot_rect(rect, line='k'):
 
 def plot_selection(alldomain=True):
 
-    plt.figure(figsize=(6.0,4.0))  
+    plt.figure()  
     ax1 = plt.subplot(1,1,1)
 
     nc = Dataset(simul.ncfile, 'r')
@@ -647,10 +646,12 @@ def plot_selection(alldomain=True):
         [ny1,ny2,nx1,nx2] = np.array(coord)-ng
 
         if adv3d or advdepth==0:
-            sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,-1,ny1:ny2,nx1:nx2]))
+            sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,
+                                                           -1,ny1:ny2,nx1:nx2]))
         else:
             [z_r,z_w] = part.get_depths(simul,coord=[ny1,ny2,nx1,nx2])
-            temp =  simul.Forder(np.squeeze(nc.variables['temp'][simul.infiletime,:,ny1:ny2,nx1:nx2]))
+            temp =  simul.Forder(np.squeeze(nc.variables['temp'][simul.infiletime,
+                                                              :,ny1:ny2,nx1:nx2]))
             sst = part.vinterp(temp, [advdepth], z_r,z_w)[:,:,0]
             sst[sst==0.] = np.nan
         sst *= simul.mask[nx1:nx2,ny1:ny2]
@@ -663,16 +664,22 @@ def plot_selection(alldomain=True):
     plt.colorbar(shrink=0.25);
 
     if not adv3d and advdepth<-topo.min():
-        plt.contourf(topo.T,[0,-advdepth],cmap = col.LinearSegmentedColormap.from_list('my_colormap',['white','lightgray'],256))
-        plt.contourf(topo.T,[0,topo.min()],cmap = col.LinearSegmentedColormap.from_list('my_colormap',['Gainsboro','gray'],256))
+        plt.contourf(topo.T,[0,-advdepth],
+                     cmap = col.LinearSegmentedColormap.from_list('my_colormap',
+                                                      ['white','lightgray'],256))
+        plt.contourf(topo.T,[0,topo.min()],
+                cmap = col.LinearSegmentedColormap.from_list('my_colormap',
+                    ['Gainsboro','gray'],256))
         plt.contour(topo.T,[topo.min()],colors=('k',),linewidths=(0.5,));
         plt.contour(topo.T,[-advdepth],colors=('k',),linewidths=(0.2,));
 
     if alldomain:
-        plt.plot(px[::1]+0.5,(py[::1]+0.5),'o', markersize=2, markeredgecolor='k', markerfacecolor='k');
+        plt.plot(px[::1]+0.5,(py[::1]+0.5),'o', markersize=2,
+                 markeredgecolor='k', markerfacecolor='k');
         plt.axis([0,sst.shape[0]-1,0,sst.shape[1]-1]);
     else:
-        plt.plot(px[::1]-coord[2]+0.5,(py[::1]-coord[0]+0.5),'o', markersize=1, markerfacecolor='white');
+        plt.plot(px[::1]-coord[2]+0.5,(py[::1]-coord[0]+0.5),'o', markersize=1,
+                 markerfacecolor='white');
         #plt.axis('scaled');
         #plt.axis([nx1-coord[2]+0.5,nx2-coord[2]+0.5,ny1-coord[0]+0.5,ny2-coord[0]+0.5]);
     
@@ -686,10 +693,8 @@ def plot_selection(alldomain=True):
     '''
 
     color = 'w'; box = 'round,pad=0.1'; props = dict(boxstyle=box, fc=color, ec='k', lw=1, alpha=1.)
-  #JC  ax1.text(0.95,0.05,simul.date[:-8], horizontalalignment='right', verticalalignment='bottom', bbox=props, transform=ax1.transAxes)
-
     plt.title(format(np.sum(px>0)) + ' pyticles ' )
-    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
+    plt.savefig(folderout + simulname + '_' + format(nproc) + '_' + '{0:04}'.format(time+dfile) +'.png', dpi=150,bbox_inches='tight'); plt.clf()
     
 
 
@@ -719,7 +724,7 @@ def plot_selection_sub(alldomain=True):
         plot_rect(subcoord_saves[sub],'k--')
         
         plt.title(format(np.sum(px>0)) + ' pyticles ' )
-        plt.savefig(folderout + simulname + '_sub_ '+ format(sub) +'_' + '{0:04}'.format(time+dfile) +'.png', size=None, figure=None, magnification='auto', dpi=150,bbox_inches='tight'); plt.clf()
+        plt.savefig(folderout + simulname + '_sub_ '+ format(sub) +'_' + '{0:04}'.format(time+dfile) +'.png', dpi=150,bbox_inches='tight'); plt.clf()
 
 ################################################################################
 # Create output netcdf file for pyticles
@@ -740,6 +745,7 @@ print (' ')
 tstart = tm.time()
 
 coord = part.subsection(px, py, nx=nx, ny=ny, offset=50)
+time = timerange[0]
 if plot_part:
     run_process(plot_selection)
 
