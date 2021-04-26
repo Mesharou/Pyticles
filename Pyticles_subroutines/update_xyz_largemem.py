@@ -78,6 +78,7 @@ if np.isnan(pm_s[0,0]):
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
         elif sedimentation_only:
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] * 0 +  w_sed 
+    
     elif simul.simul[-4:]=='surf':
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
@@ -101,12 +102,10 @@ if np.isnan(pm_s[0,0]):
     if adv3d:
         z_w = part.get_depths_w(simul, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng, coord=subcoord)
-
         dz[:,:,:,itim[0]] = z_w[:,:,1:] - z_w[:,:,:-1]
     
     if subtiming: print(('Computing dz at t1.............', tm.time()-tstart))
     if subtiming: tstart = tm.time()
-
 
 
 ###################################################################################
@@ -114,9 +113,11 @@ if np.isnan(pm_s[0,0]):
 
 if not meanflow:
     if dfile > 0: 
+        if debug_time: print('u1 time :', np.int(np.floor(time) + simul.dtime))
         simul.update(np.int(np.floor(time)+simul.dtime))
     else:
         simul.update(np.int(np.ceil(time)+simul.dtime))
+        if debug_time: print('u1 time :', np.int(np.ceil(time) + simul.dtime))
 
 # JC
 tim1 = simul.oceantime
@@ -132,6 +133,7 @@ if adv3d:
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
     elif sedimentation_only:
             w[:, :, :, itim[0]] = w[:,:,:,itim[1]] * 0 + w_sed 
+
 elif simul.simul[-4:]=='surf':
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
                                        timing=subtiming, x_periodic=x_periodic,
@@ -143,7 +145,6 @@ elif advzavg:
             y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
             coord=subcoord)
 ### JC
-
 else:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
                                       pn=pn_s, timing=subtiming,
@@ -238,7 +239,6 @@ def advance_3d(subrange,out,step):
                                mask_s,dz,dt,ng,nq,i0,j0,k0)
 
         elif timestep=='RK4':
-            
             if debug_time: 
                 print('---> ')
                 print('debug px0', px_F[:3])
@@ -365,7 +365,8 @@ for i in range(nproc):
         subranges.append(subsubrange[i*(nslice+1) : np.nanmin([(i+1)*(nslice+1), nq])])
     else:
         j = i - remain
-        subranges.append(subsubrange[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice, nq])])
+        subranges.append(subsubrange[i_shift + j * nslice : np.nanmin([i_shift + (j+1) * nslice,
+                         nq])])
     
     if len(subranges[-1]) > 0: nprocs.append(i)
 

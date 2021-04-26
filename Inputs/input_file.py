@@ -37,7 +37,7 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = -1
-start_file = 1003 #3750
+start_file = 1010 #3750
 end_file = 1000 #3490
 
 ######
@@ -79,7 +79,7 @@ timestep = 'RK4' # Choices are
                # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
                # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
 
-nsub_steps = 360# Number of time steps between 2 roms time steps
+nsub_steps = 20 # Number of time steps between 2 roms time steps
 
 # Spatial interpolation
 # Default is linear
@@ -106,7 +106,7 @@ if advzavg:
                    # Around advdepth
 # Else 2D advection using (u,v) interpolated at advdepth 
 if not adv3d:
-    advdepth = -4000.
+    advdepth = -1000.
 
 '''
         NOTE that advdepths is used as follows:
@@ -119,7 +119,7 @@ if not adv3d:
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = True
 sedimentation_only = False
-w_sed0 = 0 # vertical velocity for particles sedimentation (m/d)
+w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
 
 if sedimentation_only:
     sedimentation = False
@@ -131,7 +131,7 @@ if not adv3d:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = False
+plot_part = True
 
 #Write lon,lat,topo,depth
 write_lonlat = True
@@ -146,7 +146,7 @@ write_ts = False
 write_uvw = True
 # True : pw is w-vertical velocity in z-coordinates
 # False : pw is omega velocity in sigma-coordinates
-cartesian = True
+cartesian = False
 
 if write_uvw:
     write_uv = False
@@ -157,12 +157,12 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'puv-cartesian-test'
+config = '12h_real_w'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
 folderout = '/home2/datawork/jcollin/Pyticles/debug_w_interp/'
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
-folderout = '/scratch/Jcollin/Pyticles/'
+folderout = '/scratch/Jcollin/Pyticles/pw_interp/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -204,15 +204,15 @@ tstart = tm.time()
 #Time all subparts of the code 
 timing = True
 
+# number of sub-time steps for advection
 subtstep = np.int(nsub_steps * np.abs(dfile))
-#subtstep = np.int(nsub_steps)
 
 ################################################################################
 # Define Particle seeding (to be edited)
 ################################################################################
 
 #Initial Particle release
-nqmx = 1000 # maximum number of particles
+nqmx = 1000000 # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
@@ -237,8 +237,8 @@ preserved_meter = True
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 2 # number of intervals in x-dir
-    ny_box = 2      
+    nx_box = 80 # number of intervals in x-dir
+    ny_box = 80      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
