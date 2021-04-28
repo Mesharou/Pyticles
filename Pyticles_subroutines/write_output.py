@@ -90,11 +90,11 @@ try:
         tcf = time - np.floor(time)
     else:
         tcf = time - np.ceil(time)
-    
+   
     nc.variables['ocean_time'][itime]= simul.oceantime + tcf * simul.dt
-except:
+except :
     print('no simul.oceantime')
-    nc.variables['ocean_time'][itime]= time * delt
+    nc.variables['ocean_time'][itime]= np.nan  
 
 #JC write_out
 nc.w_sed0 = w_sed0

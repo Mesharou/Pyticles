@@ -19,19 +19,12 @@ timing = True #timing for this subroutine
 tstart = tm.time()  
 
 ###################################################################################
-'''
-
-coord, nx_s, ny_s
-
-'''
+# Create variables here to be able to release memory completely
 
 nx_s, ny_s = subcoord[3]-subcoord[2], subcoord[1]-subcoord[0]
 i0 = subcoord[2]
 j0 = subcoord[0]
 
-
-###################################################################################
-# Create variables here to be able to release memory completely
 if adv3d:
     u = shared_array(nx_s-1, ny_s, nz, 2)
     v = shared_array(nx_s, ny_s-1, nz, 2)  
@@ -41,7 +34,6 @@ else:
     u = shared_array(nx_s-1, ny_s, 2)
     v = shared_array(nx_s, ny_s-1, 2)  
 
-
 pm_s = shared_array(nx_s,ny_s)
 pn_s = shared_array(nx_s,ny_s)
 mask_s = shared_array(nx_s,ny_s)
@@ -49,16 +41,19 @@ mask_s = shared_array(nx_s,ny_s)
 print(('Create u,v,w shared arrays...............', tm.time()-tstart))
 tstart = tm.time()   
     
-###################################################################################      
-
-
 ###################################################################################
 # LOADING ROMS FIELD
 ###################################################################################
 subtiming = False
 
-tim0 = simul.oceantime
+# Total number of time steps:
+istep = shared_array(1,prec='int',value=-1)
 
+# Index of the  previous (itim[0]) and next(itim[1]) time-step for u,v,w,dz
+itim = shared_array(2, prec='int')
+itim[:] = [0, 1]
+
+tim0 = simul.oceantime
 
 if debug_time:
     print('-->')
@@ -120,9 +115,9 @@ if np.isnan(pm_s[0,0]):
 
 if not meanflow:
     if dfile > 0: 
-        simul.update(np.int(np.floor(time)+simul.dtime))
+        simul.update(np.int(np.floor(time) + simul.dtime))
     else:
-        simul.update(np.int(np.ceil(time)+simul.dtime))
+        simul.update(np.int(np.ceil(time) + simul.dtime))
     
     if debug_time:
         print('u1 time :', simul.time)
@@ -188,10 +183,10 @@ if timing: tstart = tm.time()
 ########################
 
 # Integrate in time to the next frame
-if 'POLGYR_xios_6h' in simul.simul:
-    if not meanflow: delt[0] = simul.ncname.dtfile * np.sign(dfile) 
-else:
-    if not meanflow: delt[0] = simul.dt * np.sign(dfile)
+#if 'POLGYR_xios_6h' in simul.simul:
+#    if not meanflow: delt[0] = simul.ncname.dtfile * np.sign(dfile) 
+#else:
+if not meanflow: delt[0] = simul.dt * np.sign(dfile)
 
 dt = delt[0] / nsub_steps
 dfct = 1. / nsub_steps
@@ -321,7 +316,7 @@ def advance_3d(subrange,out,step):
 # Multiprocess for the advance_2d part   
 ###################################################################################
 #@profile
-
+#FIXME not sure 2D was tested with dfile = -1/N
 def advance_2d(subrange,out,step):
     
     global px, py, u, v, pm_s, pn_s, mask_s, dt, dfct, ng, nq, i0, j0, tim0, delt, subtstep, nx, ny, istep, iab, itim
