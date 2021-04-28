@@ -942,8 +942,9 @@ for time in timerange:
     ############################################################################
 
     if (not meanflow) and (np.abs(time - timerange[-1]) >= np.abs(dfile) * 1e-2)\
-    and (np.abs(np.round(time+dfile) - (time+dfile) <= np.abs(dfile)*1e-2)):
+    and (np.abs(np.round(time+dfile) - (time+dfile)) <= np.abs(dfile)*1e-2):
         simul.update(np.round(time + dfile));
+        if debug: print("Pyticles time loop update")
     
     print('Total computation of px,py,pz............', tm.time()-tstart)
     tstart = tm.time()
