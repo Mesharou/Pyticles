@@ -768,24 +768,15 @@ example: for an interactive session:
         except:
             if self.simul[:4]=='natl': self.dt = 24. * 3600
             elif self.simul =='atlbig_mean2': self.dt = 24. * 3600 * 5.
+            #HOTFIX
+            elif self.simul in 'POLGYR_xios_6h': self.dt = simul.ncname.dtfile
             else: self.dt = 0
-        
-        
 
         ncfile.close()
-
 
 ###################################################################################
 #END CLASS LOAD
 ###################################################################################
-
-
-
-
-
-
-
-
 
 ###################################################################################
 # FILES 
