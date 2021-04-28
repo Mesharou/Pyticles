@@ -488,19 +488,19 @@ else: # restart = True
 ################################################################################
 
 # Time between 2 frames (in seconds)
-if simul.simul in 'POLGYR_xios_6h_avg':
-    delt = shared_array(2, value = simul.ncname.dtfile * np.abs(dfile)) 
-else:
-    delt = shared_array(2, value = simul.dt * dfile) 
+#if simul.simul in 'POLGYR_xios_6h_avg':
+#    delt = shared_array(2, value = simul.ncname.dtfile * np.abs(dfile)) 
+#else:
 
+delt = shared_array(2, value = simul.dt * dfile) 
 maxvel = shared_array(2, prec='double', value=maxvel0)
 
 # Total number of time steps:
-istep = shared_array(1,prec='int',value=-1)
+#istep = shared_array(1,prec='int',value=-1)
 
 # Index of the  previous (itim[0]) and next(itim[1]) time-step for u,v,w,dz
-itim = shared_array(2, prec='int')
-itim[:] = [0, 1]
+#itim = shared_array(2, prec='int')
+#itim[:] = [0, 1]
 
 ################################################################################
 #If using a Adams-Bashforth method we need to have access to previous velocity
