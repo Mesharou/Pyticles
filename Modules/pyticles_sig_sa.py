@@ -258,6 +258,17 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
                 y_periodic=y_periodic, ng=ng)
         
         if cartesian:
+            # JC_debug
+            #print('getting w in get_vel_io')
+            #print('u.shape, u[10,10,10], v.shape, v[10,10,10]',
+            #       u.shape, u[10,10,10], v.shape, v[10,10,10])
+            #print('z_r.shape, z_r[10,10,10], z_w.shape, z_w[10,10,10]',
+            #       z_r.shape, z_r[10,10,10], z_w.shape, z_w[10,10,10])
+            #print('pm.shape, pm[0,0], pn.shape, pn[0,0]',
+            #       pm.shape, pm[10,10], pn.shape, pn[10,10])
+            #for ix in range(3):
+            #    for iy in range(3):
+            #        print(10+ix-1, 10+iy-1, pm[10+ix-1, 10+iy-1])
             w = partF.get_wvlcty(u, v, z_r, z_w, pm, pn)
         else:
             w = partF.get_omega(u, v, z_r, z_w, pm, pn)
@@ -586,7 +597,9 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(
+                                                   np.squeeze(nc.variables['surf_u'][
+                                                       simul.infiletime, ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
     
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 

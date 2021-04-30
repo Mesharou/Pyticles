@@ -17,7 +17,8 @@ def interp_3d_depth(subrange):
     
     global px,py,pz,z_w,nq,ng,i0,j0,k0,pdepth
 
-    pdepth[subrange] = partF.interp_3d_w(px[subrange],py[subrange],pz[subrange],z_w,ng,nq,i0,j0,k0)
+    pdepth[subrange] = partF.interp_3d_w(px[subrange],py[subrange],pz[subrange],
+                                         z_w,ng,nq,i0,j0,k0)
 
 ###################################################################################
 #create shared arrays
@@ -26,7 +27,7 @@ z_w = shared_array(nx_s, ny_s, nz+1);
 
 #Load depth
 
-z_w[:] = part.get_depths_w(simul, x_periodic=x_periodic, y_periodic=y_periodic,\
+z_w[:] = part.get_depths_w(simul, x_periodic=x_periodic, y_periodic=y_periodic,
                            ng=ng, coord=coord)
 
 # JC dfile
