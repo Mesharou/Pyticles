@@ -37,7 +37,7 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = -1
-start_file = 1010 #3750
+start_file = 1004 #3750
 end_file = 1000 #3490
 
 ######
@@ -79,7 +79,7 @@ timestep = 'RK4' # Choices are
                # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
                # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
 
-nsub_steps = 20 # Number of time steps between 2 roms time steps
+nsub_steps = 360 # Number of time steps between 2 roms time steps
 
 # Spatial interpolation
 # Default is linear
@@ -146,7 +146,7 @@ write_ts = False
 write_uvw = True
 # True : pw is w-vertical velocity in z-coordinates
 # False : pw is omega velocity in sigma-coordinates
-cartesian = False
+cartesian = True
 
 if write_uvw:
     write_uv = False
@@ -157,7 +157,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = '12h_real_w'
+config = 'bwd_2h_hotfix'
 
 #folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
 folderout = '/home2/datawork/jcollin/Pyticles/debug_w_interp/'
@@ -237,8 +237,8 @@ preserved_meter = True
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 80 # number of intervals in x-dir
-    ny_box = 80      
+    nx_box = 20 # number of intervals in x-dir
+    ny_box = 10      
     nnlev = 1  
 else:
     dx_m = 2000. # distance between 2 particles [in m]
