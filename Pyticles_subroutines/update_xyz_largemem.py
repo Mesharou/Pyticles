@@ -3,7 +3,7 @@
 #Read velocities
 ###################################################################################
 
-debug_time = True
+debug_time = False
 
 if sedimentation or sedimentation_only: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
@@ -199,7 +199,7 @@ dfct = 1. / nsub_steps
 def advance_3d(subrange,out,step):
     
     global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, \
-    j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim
+    j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim, debug_time
     
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,dpz,iab
@@ -210,8 +210,6 @@ def advance_3d(subrange,out,step):
     istep_F = istep[0]
     subtime = tim0 + alpha_time * delt[0] 
 
-    #subtime = tim0 + alpha_time * simul.dt
-    debug_time = True
     if debug_time:
         print("tim0, alpha_time, delt[0]", tim0, alpha_time, delt[0])
         print("subtime", subtime)
