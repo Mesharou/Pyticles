@@ -90,11 +90,11 @@ try:
         tcf = time - np.floor(time)
     else:
         tcf = time - np.ceil(time)
-    
+   
     nc.variables['ocean_time'][itime]= simul.oceantime + tcf * simul.dt
-except:
+except :
     print('no simul.oceantime')
-    nc.variables['ocean_time'][itime]= time * delt
+    nc.variables['ocean_time'][itime]= np.nan  
 
 #JC write_out
 nc.w_sed0 = w_sed0
@@ -181,6 +181,8 @@ nc.x_periodic = int(x_periodic)
 nc.y_periodic = int(y_periodic)
 nc.timestep = timestep
 nc.sedimentation = int(sedimentation)
+nc.cartesian = int(cartesian)
+
 if continuous_injection : nc.dt_injection = dt_injection
 
 # Close netcdf file

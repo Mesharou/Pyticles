@@ -1,5 +1,7 @@
 *.so
 *.log
+*.swp
+*.f
 
 Divers/
 env_pyticles/
@@ -15,6 +17,12 @@ Modules/Python_Modules_examples/
 Modules/R_tools.py
 Modules/__pycache__/
 Modules/pyticles_3d_sig_sa.f
+Modules/Make_tools
+Modules/R_files_xios.py
+Modules/R_smooth.py
+Modules/R_tools_fort.F
+Modules/R_tools_fort_lu/*
+Modules/R_vars.py
 
 Postprocessing/Vic_routines/
 

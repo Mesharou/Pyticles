@@ -8,6 +8,8 @@
 !
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
+! 01/04/21:
+      - added carthsian parameter to get_vel to get w-velocity in z-coordinates
 ! 05/10/16:
 !     - modify map_var to handle automatically u-,v- grids
 ! 16/01/26:
@@ -139,7 +141,9 @@ def kick(pz,nz):
   
 #@profile   
 def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
-               y_periodic=False, ng=0, **kwargs):  
+               y_periodic=False, ng=0, cartesian=False, **kwargs):
+    " returns u, v, omega if cartesian = False "
+    "          u, v, w_vlcy if cartesian = True"
 
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
@@ -237,17 +241,38 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     ################################
 
     try:
-        w = periodize3d_fromnc(simul, 'omega', coord, x_periodic=x_periodic,
+        if cartesian:
+            w_name = 'w'
+        else:
+            w_name = 'omega'
+
+        w = periodize3d_fromnc(simul, w_name, coord, x_periodic=x_periodic,
                                y_periodic=y_periodic, ng=ng)
     except:
-        print('no omega in file, computing')
+        print('no ', w_name, ' in file, computing')
         [z_r, z_w] = get_depths(simul, coord=coord, x_periodic=x_periodic,
                                y_periodic=y_periodic, ng=ng)
         pm = periodize2d_fromvar(simul, simul.pm, coord, x_periodic=x_periodic, 
                                  y_periodic=y_periodic, ng=ng)
         pn = periodize2d_fromvar(simul, simul.pn, coord, x_periodic=x_periodic,
-                                 y_periodic=y_periodic, ng=ng)                         
-        w = partF.get_omega(u, v, z_r, z_w, pm, pn)
+                y_periodic=y_periodic, ng=ng)
+        
+        if cartesian:
+            # JC_debug
+            #print('getting w in get_vel_io')
+            #print('u.shape, u[10,10,10], v.shape, v[10,10,10]',
+            #       u.shape, u[10,10,10], v.shape, v[10,10,10])
+            #print('z_r.shape, z_r[10,10,10], z_w.shape, z_w[10,10,10]',
+            #       z_r.shape, z_r[10,10,10], z_w.shape, z_w[10,10,10])
+            #print('pm.shape, pm[0,0], pn.shape, pn[0,0]',
+            #       pm.shape, pm[10,10], pn.shape, pn[10,10])
+            #for ix in range(3):
+            #    for iy in range(3):
+            #        print(10+ix-1, 10+iy-1, pm[10+ix-1, 10+iy-1])
+            w = partF.get_wvlcty(u, v, z_r, z_w, pm, pn)
+        else:
+            w = partF.get_omega(u, v, z_r, z_w, pm, pn)
+        
         w[np.isnan(w)] = 0.
         if x_periodic and nx1<ng and nx2>nx2tot-nx1tot+ng: 
             w[0, :, :] = w[nx2tot, :, :]
@@ -261,93 +286,6 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
 
     return u, v, w
 
-###################################################################################
-'''
-#@profile   
-def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0, **kwargs):  
-
-
-    if 'coord' in  kwargs:
-        coord = kwargs['coord']
-    else: 
-        coord = simul.coord[0:4]
-    
-    [ny1tot,ny2tot,nx1tot,nx2tot] = simul.coord[0:4]
-    
-    if timing: tstart2 = tm.time()     
-  
-    nc = Dataset(simul.ncfile, 'r')
-    [ny1,ny2,nx1,nx2] = coord
-
-    ################################
-    mask = copy(simul.mask)
-    mask[np.isnan(mask)]=0
-    ################################
-
-    u = np.zeros((nx2-nx1-1,ny2-ny1))*np.nan
-    v = np.zeros((nx2-nx1,ny2-ny1-1))*np.nan
-
-    ################################
-
-    nw = min(ng,nx1); ne = min(ng,nx2tot-nx1tot+2*ng-nx2)
-    ns = min(ng,ny1); nn = min(ng,ny2tot-ny1tot+2*ng-ny2)
-
-    # Fill inside points [if x periodic shift one index right in netcdf file]
-    if x_periodic: iper=1
-    else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,-1,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
-    
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
-
-    # Fill inside points [if y periodic shift one index north in netcdf file]
-    if y_periodic: jper=1
-    else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,-1,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
-
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
-
-    ################################
-    # Filling Ghost points
-    ################################
-
-    if nw<ng and x_periodic:
-        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,-1,ny1-ns:ny2-2*ng+nn,nx1tot]))
-        for i in range(1,ng):
-            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,-1,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
-        for i in range(ng):
-            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,-1,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
-        nw=ng 
-
-    if ne<ng and x_periodic:
-        for i in range(ng):
-            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,-1,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
-        for i in range(ng):
-            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,-1,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
-        ne=ng
-
-    if ns<ng and y_periodic:
-        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,-1,ny1tot,nx1-nw:nx2-2*ng+ne]))
-        for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,-1,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
-        for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,-1,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
-
-    if nn<ng and y_periodic:
-        for i in range(ng):
-            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,-1,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
-        for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,-1,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
-
-
-    ################################
-
-    if timing: print 'get u,v from file....', tm.time()-tstart2
-    if timing: tstart2 = tm.time()    
-
-    ################################
-
-    return u,v
-'''
 ###################################################################################
 
 #@profile   
@@ -659,7 +597,9 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(
+                                                   np.squeeze(nc.variables['surf_u'][
+                                                       simul.infiletime, ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
     
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 
@@ -1122,7 +1062,7 @@ def map_varw(simul,var0,px,py,pz,**kwargs):
         
     [j0,j1,i0,i1]=coord; k0=0; nqmx=px.shape[0]
     
-    pvar0 = partF.interp_3dw(px,py,pz,var0,nqmx,i0,j0,k0)
+    pvar0 = partF.interp_3d_w(px,py,pz,var0,nqmx,i0,j0,k0)
 
 
     return pvar0
@@ -1172,9 +1112,6 @@ def map_var2d(simul,var2d,px,py,ng=0,**kwargs):
     elif var2d.shape==(i1-i0,j1-j0-1):
         pvar = partF.interp_2d_v(px,py,var2d,ng,px.shape[0],i0,j0)
 
-        
-
-    #
 
     return pvar
     
@@ -1197,6 +1134,51 @@ def map_lonlat(simul,px,py,ng=0,**kwargs):
     plat = partF.interp_2d(px,py,simul.y,ng,px.shape[0],i0,j0)
 
     return plon,plat
+
+########################################
+
+"""
+def get_wvclty(simul, pm=None, pn=None, timing=False, x_periodic=False,
+               y_periodic=False, ng=0, **kwargs):
+    get w vertical velocity in Z-coordinates - different from omega which is
+    also denoted w
+
+    if 'coord' in  kwargs:
+        coord = kwargs['coord'][0:4]
+    else:
+        coord = simul.coord[0:4]
+
+    try:
+        wlcty = periodize3d_fromnc(simul, 'w', coord, x_periodic=x_periodic,
+                                   y_periodic=y_periodic, ng=ng)
+    except:
+        print('no w in file, computing')
+        u, v = 
+
+    [ny1tot, ny2tot, nx1tot, nx2tot] = simul.coord[0:4]
+
+    if timing: tstart2 = tm.time()
+
+    nc = Dataset(simul.ncfile, 'r')
+    [ny1, ny2, nx1, nx2] = coord
+    nz = len(simul.coord[4])
+
+    ################################
+    mask = copy(simul.mask)
+    mask[np.isnan(mask)] = 0
+    ################################
+
+    u = np.zeros((nx2-nx1-1, ny2-ny1, nz))*np.nan
+    v = np.zeros((nx2-nx1, ny2-ny1-1, nz))*np.nan
+    #w = np.zeros((nx2-nx1, ny2-ny1, nz+1))*np.nan
+
+    ################################
+
+    nw = min(ng, nx1)
+    ne = min(ng, nx2tot-nx1tot+2*ng-nx2)
+    ns = min(ng, ny1)
+    nn = min(ng, ny2tot-ny1tot+2*ng-ny2)
+"""
 
 ###################################################################################
 # Some analytical veloticy field
