@@ -19,9 +19,32 @@ conda install matplotlib
 conda install netCDF4
 
 
+################################################
+# py-eddy-tracker env:
+################################################
 
 
+module load anaconda-py3.6/4.7.12
 
+# create new env
+conda create --name eddy
+
+conda init tcsh
+conda activate eddy
+
+conda update -n base -c defaults conda
+
+## install modules
+
+conda install numpy scipy netCDF4 matplotlib pyyaml pyproj 
+
+conda install opencv-python pint polygon3
+
+
+conda install matplotlib netCDF4 numba numpy requests scipy zarr
+conda install -c conda-forge opencv pyyaml pint
+conda install -c tofuproject polygon3
+conda install cftime
 
 
 

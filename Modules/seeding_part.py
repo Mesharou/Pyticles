@@ -109,7 +109,7 @@ def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
              nny=1, nnlev=1):
     '''
 
-    Spatial box for seeding partciles in sigma coordinates located at
+    Spatial box for seeding particles in sigma coordinates located at
     psi_w points
     If initial_depth : z will be redefined at depths0
     
@@ -156,7 +156,7 @@ def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
                  dx_box=2000, simul=None, ng=1, debug=False):
     '''
 
-    Spatial box for seeding partciles in sigma coordinates located at
+    Spatial box for seeding particles in sigma coordinates located at
     psi_w points
     If initial_depth : z will be redefined at depths0
 
@@ -191,8 +191,10 @@ def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
         print(f"dx_box {dx_box}")
 
     return z, y, x
-
+    
+    
 ##############################################################################
+
 def ini_surf(simul, rho0, x, y, z, rho, ng=0):
     ''' Interpolate sigma-levels onto rho0-isosurface 
 
