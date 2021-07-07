@@ -63,8 +63,8 @@ class ionetcdf(object):
         if isinstance(data,int) or isinstance(data,float):
 
             if name not in list(newnc.variables.keys()):
-		        newnc.createVariable(name, 'f', (dim0,) )
-            newnc.variables[name][nctime]=data
+                newnc.createVariable(name, 'f', (dim0,) )
+                newnc.variables[name][nctime]=data
             
         else:
 
@@ -140,9 +140,9 @@ class ionetcdf(object):
                 
 
 
-	    newnc.variables['ocean_time'][nctime]=simul.oceantime
+                newnc.variables['ocean_time'][nctime]=simul.oceantime
 
-        newnc.close()
+            newnc.close()
 
 
 
