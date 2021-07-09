@@ -2,6 +2,7 @@
 """
 
 """
+from __future__ import print_function
 
 
 
@@ -9,6 +10,7 @@
 #Load some common modules
 ###################################################################################
 
+#from builtins import object
 import sys
 
 #for netcdf files
@@ -30,7 +32,7 @@ class ionetcdf(object):
 #   Main 
 ###################################################################################
 
-    def __init__(self,newfile,simul,var,nctime=None,name='var',shape = [0,0,1],coord=[0,None,0,None,0,None],netcdf_format='NETCDF4',zlib=False,**kwargs):
+    def __init__(self,newfile,simul,var,nctime=None,name='var',shape = [0,0,1],coord=[0,None,0,None,0,None],netcdf_format='NETCDF4_CLASSIC',zlib=False,static=False,**kwargs):
 
         """
 
@@ -64,7 +66,8 @@ class ionetcdf(object):
 
             if name not in list(newnc.variables.keys()):
                 newnc.createVariable(name, 'f', (dim0,) )
-                newnc.variables[name][nctime]=data
+                
+            newnc.variables[name][nctime]=data
             
         else:
 
@@ -73,34 +76,44 @@ class ionetcdf(object):
                 print('name not in newnc.variables.keys()')
                 if netcdf_format=='NETCDF3_CLASSIC':
                     print('netcdf_format==NETCDF3_CLASSIC')
-                    if len(data.shape)>2:
-                        print('len(data.shape)>2')
-                        newnc.createVariable(name, 'f', (dim0,dim3[kmin],dim2[jmin],dim1[imin],))
+                    if static:
+                        newnc.createVariable(name, 'f', (dim2[jmin],dim1[imin],) )
                     else:
-                        print('len(data.shape)=2')
-                        newnc.createVariable(name, 'f', (dim0,dim2[jmin],dim1[imin],) )
-                        print('ok')
+                        if len(data.shape)>2:
+                            print('len(data.shape)>2')
+                            newnc.createVariable(name, 'f', (dim0,dim3[kmin],dim2[jmin],dim1[imin],))
+                        else:
+                            print('len(data.shape)=2')
+                            newnc.createVariable(name, 'f', (dim0,dim2[jmin],dim1[imin],) )
+                            print('ok')
                 else:  
                     print('netcdf_format==NETCDF4')
-                    if len(data.shape)>2:
-                        print('len(data.shape)>2')
-                        #newnc.createVariable(name, 'f4', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) ,zlib=zlib,chunksizes = (1,1,700,600))
-                        newnc.createVariable(name, 'f4', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) ,zlib=zlib)
+                    if static:
+                        newnc.createVariable(name, 'f', (dim2[jmin],dim1[imin],) ,zlib=zlib)
                     else:
-                        print('len(data.shape)=2')
-                        #newnc.createVariable(name, 'f4', (dim0,dim2[jmin],dim1[imin],) ,zlib=zlib,chunksizes = (1,700,600))                  
-                        newnc.createVariable(name, 'f4', (dim0,dim2[jmin],dim1[imin],) ,zlib=zlib) 
+                        if len(data.shape)>2:
+                            print('len(data.shape)>2')
+                            #newnc.createVariable(name, 'f4', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) ,zlib=zlib,chunksizes = (1,1,700,600))
+                            newnc.createVariable(name, 'f4', (dim0,dim3[kmin],dim2[jmin],dim1[imin],) ,zlib=zlib)
+                        else:
+                            print('len(data.shape)=2')
+                            #newnc.createVariable(name, 'f4', (dim0,dim2[jmin],dim1[imin],) ,zlib=zlib,chunksizes = (1,700,600))
+                            newnc.createVariable(name, 'f4', (dim0,dim2[jmin],dim1[imin],) ,zlib=zlib)
+                        
             if len(data.shape)>2:
-                 print('newnc.variables[name][:].shape',newnc.variables[name][:].shape)
-                 print('data.shape',data.shape)
+                 #print 'newnc.variables[name][:].shape',newnc.variables[name][:].shape
+                 #print 'data.shape',data.shape
                  newnc.variables[name][nctime,iz1:iz2,iy1:iy2,ix1:ix2]=data.T
             else:
-                 print('data.T.shape',data.T.shape)
-                 print('[ix1,ix2,iy1,iy2,iz1,iz2]',[ix1,ix2,iy1,iy2,iz1,iz2])
-                 print('imin,jmin,nctime',imin,jmin,nctime)                   
-                 print('newnc.variables[name][:].shape',newnc.variables[name][:].shape)
-                 print('imin,jmin,nctime',imin,jmin,nctime)    
-                 newnc.variables[name][nctime,iy1:iy2,ix1:ix2]=data.T
+                 if static:
+                     newnc.variables[name][iy1:iy2,ix1:ix2]=data.T
+                 else:
+                     #print 'data.T.shape',data.T.shape
+                     #print '[ix1,ix2,iy1,iy2,iz1,iz2]',[ix1,ix2,iy1,iy2,iz1,iz2]
+                     #print 'imin,jmin,nctime',imin,jmin,nctime
+                     #print 'newnc.variables[name][:].shape',newnc.variables[name][:].shape
+                     #print 'imin,jmin,nctime',imin,jmin,nctime
+                     newnc.variables[name][nctime,iy1:iy2,ix1:ix2]=data.T
 
 
 
@@ -140,9 +153,9 @@ class ionetcdf(object):
                 
 
 
-                newnc.variables['ocean_time'][nctime]=simul.oceantime
+        if not static: newnc.variables['ocean_time'][nctime]=simul.oceantime
 
-            newnc.close()
+        newnc.close()
 
 
 
@@ -150,7 +163,7 @@ class ionetcdf(object):
 #   Create netcdf file
 ###################################################################################
 
-    def create(self,newfile,simul,netcdf_format='NETCDF3_CLASSIC',**kwargs):
+    def create(self,newfile,simul,netcdf_format='NETCDF4_CLASSIC',**kwargs):
 
         """
 
@@ -185,7 +198,7 @@ class ionetcdf(object):
 
 
     @staticmethod
-    def get(ncfile,varname,simul,netcdf_format='NETCDF3_CLASSIC',**kwargs):
+    def get(ncfile,varname,simul,netcdf_format= 'NETCDF4_CLASSIC',**kwargs):
 
         """
 
@@ -226,7 +239,7 @@ class ionetcdf(object):
             var[var==nc.variables[varname]._FillValue] = np.nan
         except:
             try: 
-                var[var==nc.variables[varname].fill_value] = np.nan
+                var[var==nc.variables[varname].fill_value] = np.nan          
             except:       
                 #print 'no FillValue in file'
                 pass
@@ -244,7 +257,7 @@ class ionetcdf(object):
 ###################################################################################
 
     @staticmethod
-    def write(newfile,var,nctime=None,name='var',shape = [0,0,0],netcdf_format='NETCDF3_CLASSIC',zlib=False,**kwargs):
+    def write(newfile,var,nctime=None,name='var',shape = [0,0,0],netcdf_format= 'NETCDF4_CLASSIC',zlib=False,**kwargs):
 
         """
 
@@ -346,7 +359,7 @@ class ionetcdf(object):
 ###################################################################################
 
     @staticmethod
-    def create_man(newfile,shape,netcdf_format='NETCDF3_CLASSIC',**kwargs):
+    def create_man(newfile,shape,netcdf_format= 'NETCDF4_CLASSIC',**kwargs):
 
         """
 

@@ -597,16 +597,14 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(
-                                                   np.squeeze(nc.variables['surf_u'][
-                                                       simul.infiletime, ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
     
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
 
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
 
@@ -615,32 +613,32 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
     ################################
 
     if nw<ng and x_periodic:
-        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot]))
+        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot]))
         for i in range(1,ng):
-            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
+            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
         for i in range(ng):
-            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
+            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
         nw=ng 
 
     if ne<ng and x_periodic:
         for i in range(ng):
-            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
+            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
         for i in range(ng):
-            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['surf_v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
+            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
         ne=ng
 
     if ns<ng and y_periodic:
-        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = simul.Forder(np.squeeze(nc.variables['surf_v'][simul.infiletime,ny1tot,nx1-nw:nx2-2*ng+ne]))
+        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1tot,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['surf_v'][simul.infiletime,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
+            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
 
     if nn<ng and y_periodic:
         for i in range(ng):
-            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['surf_v'][simul.infiletime,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
+            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['surf_u'][simul.infiletime,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
 
 
     ################################
@@ -928,10 +926,10 @@ def get_ts_io_surf(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
     nc = Dataset(simul.ncfile, 'r')
     [ny1,ny2,nx1,nx2] = coord; 
 
-    temp = periodize2d_fromnc(simul,'surf_t',coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+    temp = periodize2d_fromnc(simul,'temp',coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
 
     try:
-        salt = periodize2d_fromnc(simul,'surf_s',coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+        salt = periodize2d_fromnc(simul,'salt',coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
     except:
         salt = np.zeros(temp.shape)
 
@@ -1542,6 +1540,14 @@ def find_points(x,y,lon,lat):
 
     print(i,j)
     return i[0],j[0]
+
+
+####
+
+def find_nearest(x,y,lon, lat):
+   dist = (x-lon)**2 + (y-lat)**2
+   return np.unravel_index(dist.argmin(),dist.shape)
+
 
 #############################
 

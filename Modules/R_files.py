@@ -48,6 +48,7 @@ Check "dir(my_simul)" to see what has been loaded:
 17/11/01 : add option realyear and modify oceandate function
            
 """
+from __future__ import print_function
 
 
 
@@ -55,6 +56,7 @@ Check "dir(my_simul)" to see what has been loaded:
 #Load some common modules
 ###################################################################################
 
+#from builtins import object
 import sys
 
 #for netcdf files
@@ -67,7 +69,7 @@ import time as tm
 
 from datetime import datetime, timedelta
 
-
+import socket
 
 
 ###################################################################################
@@ -78,99 +80,144 @@ class load(object):
 ###################################################################################
 #   Main 
 ###################################################################################
-    def __init__(self,simulname=None,time=None, floattype=np.float,**kwargs):
+    def __init__(self,simulname=None,time=None, floattype=np.float, light = False, touchfile=True, output =True, **kwargs):
 
         """
 
         """
+        if output: print('simulname is',simulname)
+
         #define type of variables
         self.floattype = floattype
 
         #get simulation parameters from arguments
         if 'simul' in  kwargs: 
-            self.load_file(kwargs['simul'].split(' '))
+            self.load_file(kwargs['simul'].split(' '),output = output)
         #elif len(sys.argv)>0:
         #    self.load_file(sys.argv)
         else: 
-            self.load_file([simulname])
-
+            self.load_file([simulname],output = output)
+        
         #for time in range(self.time0, self.ncname.tend, self.dtime ):
         if time==None: time = self.time0
         self.time = np.int(time)
-
+        
+        self.ncname=files(self.simul, time=self.time, output = output)
+        
         if self.ncname.model in ['ucla','croco']:
-            print('time of simulation is:', self.time)
+            if output: print('time of simulation is:', self.time)
             self.infiletime=self.time%self.ncname.tfile
             self.filetime=self.time-self.infiletime
             if self.ncname.digits==4:
                 self.ncfile = self.ncname.his+'{0:04}'.format(self.filetime) + self.ncname.fileformat
             elif self.ncname.digits==5:
                 self.ncfile = self.ncname.his+'{0:05}'.format(self.filetime) + self.ncname.fileformat
+            elif self.ncname.digits==6:
+                self.ncfile = self.ncname.his+'{0:06}'.format(self.filetime) + self.ncname.fileformat
             elif self.ncname.digits==0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
         elif self.ncname.model == 'agrif_jc':
-            dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec// (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 \
-            * 3600 + self.time * dsec ) // (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))//dsec
+            dsec = 30*24*3600 /self.ncname.tfile #dt in seconds between 2 outputs
+            month = (self.ncname.Mstart + self.time * dsec/ (30*24*3600) - 1 )%12 + 1
+            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) / (360*24*3600)
+            self.infiletime = (self.time * dsec % (30*24*3600))/dsec
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month) + self.ncname.fileformat
-        elif self.ncname.model == 'croco_xios' or self.ncname.model == 'croco_gigatl1':
+            if output: print('file is ',self.ncfile)
+        elif self.ncname.model == 'croco_lionel':
+            date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
+            year = date.year
+            month = date.month
+            self.infiletime = self.time%self.ncname.tfile
+            self.filetime = self.time
+            self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+'{0:02}'.format(month) + '.' +'{0:04}'.format(self.filetime) + self.ncname.fileformat
+            if output: print('file is ',self.ncfile)
+        elif self.ncname.model == 'croco_xios' or 'croco_gigatl1' in self.ncname.model:
             # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
             time1 = self.time - self.time%self.ncname.tfile
             date1 = self.ncname.realyear_tstart + timedelta(seconds=time1*self.ncname.dtfile)
             year1 = date1.year
             month1 = date1.month
             day1 = date1.day
-
+            hour1 = date1.hour
+            
             time2 = time1 + self.ncname.tfile #- 1
 
-            date2 = self.ncname.realyear_tstart\
-                    + timedelta(seconds=time2*self.ncname.dtfile) # JC fix -timedelta(days=1)
+            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile)
+
+            ###############
+            if 'rrexnum' not in self.simul and\
+                'brazil' not in self.simul: date2 = date2 -timedelta(days=1)
+            ###############
+            
             year2 = date2.year
             month2 = date2.month
             day2 = date2.day
+
+ 
+            #fix for GIGATL3_6h_knl! shifted by one day.
+            if (self.simul == 'gigatl3_6h' and self.time>=1550)\
+                 or 'gigatl6_1h_tides' in self.simul:
+                if output: print('fix for GIGATL3_6h_knl and GIGATL6_1h_tides')
+                date1 = date1 - timedelta(days = 1)
+                year1 = date1.year
+                month1 = date1.month
+                day1 = date1.day
+
+            
+
             self.infiletime = self.time%self.ncname.tfile
             self.filetime = self.time
             
             if self.ncname.model == 'croco_xios':
                 self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1)\
-                        + '-' +'{0:02}'.format(day1) + '-'\
-                        + '{0:04}'.format(year2) + '-' + '{0:02}'.format(month2)\
-                        + '-' +'{0:02}'.format(day2) + self.ncname.fileformat
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)\
+                   + '-'+ '{0:04}'.format(year2)+'-'+'{0:02}'.format(month2) + '-' +'{0:02}'.format(day2)\
+                        + self.ncname.fileformat
             elif self.ncname.model == 'croco_gigatl1':
                 self.ncfile = self.ncname.his\
                         + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
+            elif self.ncname.model == 'croco_gigatl1_hours':
+                self.ncfile = self.ncname.his\
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1)\
+                        + '-' +'{0:02}'.format(day1)+ '-' +'{0:02}'.format(hour1)\
+                        + self.ncname.fileformat
 
-        print('file is ',self.ncfile)
-
-
-        try: 
-            self.oceandate() #define self.date and self.oceantime
-        except:
-            print("no time in file")
+        if touchfile:
+            try:
+                self.oceandate() #define self.date and self.oceantime
+            except:
+                if output: print("no time in file")
 
         try:
-            print('coord')
-            self.coord=self.get_domain(self.ncfile,self.ncname.grd,self.domain,time)
-            print('coordmax')
-            self.coordmax=self.get_domain(self.ncfile,self.ncname.grd,'[0,1e9,0,1e9,[1,1e9,1]]',time)
-            print('cst')
-            self.cst();
-            print('dt')
-            self.dt()
+            if touchfile:
+                if output: print('coord')
+                self.coord=self.get_domain(self.ncfile,self.ncname.grd,self.domain\
+                            ,time,output = output)
+                if output: print('coordmax')
+                self.coordmax=self.get_domain(self.ncfile, self.ncname.grd,\
+                            '[0,1e9,0,1e9,[1,1e9,1]]', time ,output = output)
+                if output: print('cst')
+                self.cst(output=output);
+                if output: print('dt')
+                self.dt(output=output)
+            else:
+                self.coord=[0,-1,0,-1,[0]]
+                if output: print(self.ncfile)
+                if output: print("not touching _his file, loading _grd anyway")
         except:
             self.coord=[0,-1,0,-1,[0]]
-            print(self.ncfile)
-            print("no _his file, loading _grd anyway")     
+            if output: print(self.ncfile)
+            if output: print("no _his file, loading _grd anyway")
             
         self.getin() #load some data from .in file
      
         #self.grd = [self.topo,self.pm,self.pn,self.f,self.y,self.x]
-        [self.topo,self.mask,self.pm,self.pn,self.f,self.y,self.x,self.angle] = self.variables_grd()
+        if light:
+            [self.mask,self.pm,self.pn,self.x,self.y] = self.variables_grd(output = output, light=True)
+        else:
+            [self.topo,self.mask,self.pm,self.pn,self.f,self.x,self.y,self.angle] = self.variables_grd(output = output)
 
         if self.simul in ['shing','reshing','filam','dilam','filam_avg','dilam_avg','slope','hatt2','gulfs']: 
             self.topo_corrected = self.variables_grd_corrected()
@@ -178,7 +225,7 @@ class load(object):
 ###################################################################################
 #   Update time 
 ###################################################################################
-    def update(self,time=None):
+    def update(self,time=None, output =True):
 
         """
         
@@ -191,51 +238,68 @@ class load(object):
         if time==None: self.time += 1
         else: self.time = np.int(time)
         
-        self.ncname=files(self.simul, time=self.time)
+        self.ncname=files(self.simul, time=self.time,output = output)
 
 
         if self.ncname.model in ['ucla','croco']:
-            print('time of simulation is:', self.time)
+            if output: print('time of simulation is:', self.time)
             self.infiletime=self.time%self.ncname.tfile
             self.filetime=self.time-self.infiletime
             if self.ncname.digits==4:
                 self.ncfile = self.ncname.his+'{0:04}'.format(self.filetime) + self.ncname.fileformat
             elif self.ncname.digits==5:
                 self.ncfile = self.ncname.his+'{0:05}'.format(self.filetime) + self.ncname.fileformat
+            elif self.ncname.digits==6:
+                self.ncfile = self.ncname.his+'{0:06}'.format(self.filetime) + self.ncname.fileformat
             elif self.ncname.digits==0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
         elif self.ncname.model == 'agrif_jc':
-            dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec// (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 \
-            * 3600 + self.time * dsec ) // (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))//dsec
+            dsec = 30*24*3600 /self.ncname.tfile #dt in seconds between 2 outputs
+            month = (self.ncname.Mstart + self.time * dsec/ (30*24*3600) - 1 )%12 + 1
+            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) / (360*24*3600)
+            self.infiletime = (self.time * dsec % (30*24*3600))/dsec
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
-            print('file is ',self.ncfile)
-
-        elif self.ncname.model == 'croco_xios' or self.ncname.model == 'croco_gigatl1':
+            if output: print('file is ',self.ncfile)
+        elif self.ncname.model == 'croco_lionel':
+            date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
+            year = date.year
+            month = date.month
+            self.infiletime = self.time%self.ncname.tfile
+            self.filetime = self.time
+            self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+'{0:02}'.format(month) + '.' +'{0:04}'.format(self.filetime) + self.ncname.fileformat
+            if output: print('file is ',self.ncfile)
+        elif self.ncname.model == 'croco_xios' or 'croco_gigatl1' in self.ncname.model:
             # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
             time1 = self.time - self.time%self.ncname.tfile
             date1 = self.ncname.realyear_tstart + timedelta(seconds=time1*self.ncname.dtfile)
             year1 = date1.year
             month1 = date1.month
             day1 = date1.day
-
+            hour1 = date1.hour
+            
             time2 = time1 + self.ncname.tfile #- 1
-            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile) #-timedelta(days=1)
+            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile)
+            
+            
+            ###############
+            if 'rrexnum' not in self.simul and\
+                'brazil' not in self.simul: date2 = date2 -timedelta(days=1)
+            ###############
+                
             year2 = date2.year
             month2 = date2.month
             day2 = date2.day
-
+            
             self.infiletime = self.time%self.ncname.tfile
             self.filetime = self.time-self.infiletime
-
-            print((self.simul,format(self.time)))
+            
+            if output: print((self.simul,format(self.time)))
             #fix for GIGATL3_6h_knl! shifted by one day.
-            if self.simul == 'gigatl3_6h' and self.time>=1550:
-                print('fix for GIGATL3_6h_knl')
+            if (self.simul == 'gigatl3_6h' and self.time>=1550)\
+                 or 'gigatl6_1h_tides' in self.simul:
+                if output: print('fix for GIGATL3_6h_knl and GIGATL6_1h_tides')
                 date1 = date1 - timedelta(days = 1)
                 year1 = date1.year
                 month1 = date1.month
@@ -249,18 +313,25 @@ class load(object):
             elif self.ncname.model == 'croco_gigatl1':
                 self.ncfile = self.ncname.his\
                         + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
+            elif self.ncname.model == 'croco_gigatl1_hours':
+                self.ncfile = self.ncname.his\
+                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1)\
+                        + '-' +'{0:02}'.format(day1)+ '-' +'{0:02}'.format(hour1)\
+                        + self.ncname.fileformat
+            
+            if output: print('self.time is ',self.time)
 
+            ############################
+            
+        #print('cst not updated anymore')
+        #self.cst();
 
-            print('self.time is ',self.time)
-
-        self.cst();
-
-        print(self.ncfile)
+        if output: print(self.ncfile)
         
         try:
             self.oceandate()
         except: 
-            print("no oceantime in file")
+            if output: print("no oceantime in file")
             
 
 ###################################################################################
@@ -268,15 +339,22 @@ class load(object):
 ###################################################################################
 
 
-    def load_file(self,*args):
+    def load_file(self, *args, **kwargs):
 
-        print('args',args)
-        print('args[0]',args[0])
-        print('len(args[0])',len(args[0]))
+        if 'output' in  kwargs:
+            output = kwargs['output']
+        else:
+            output = True
+
+        if output:
+            print('args',args)
+            print('args[0]',args[0])
+            print('len(args[0])',len(args[0]))
+
         ########################
         if len(args[0])==0:
 
-            print("""
+            if output: print("""
 Try again with:
             1. Simulation name 
             2. domain location
@@ -293,23 +371,29 @@ example: for an interactive session:
             raise Exception("No args provided")
 
         elif len(args[0])==1:
+
             self.simul=args[0][0]
             self.domain='[0,10000,0,10000,[1,1000,1]]'
-            self.ncname=files(self.simul, time=0)
-            self.time0=self.ncname.tstart
+            self.ncname=files(self.simul, time=0, output = output)
+            try:
+                self.time0=self.ncname.tstart
+            except:
+                self.time0=0
 
         else:
             self.simul=args[0][0]
             self.domain=args[0][1]
             self.time0=int(args[0][2])
-            self.ncname=files(self.simul, time=self.time0)
+            self.ncname=files(self.simul, time=self.time0, output = output)
 
 
         if len(args[0])>3: 
             self.dtime=int(args[0][3])
             if len(args[0])>4: 
                 self.ncname.tend=int(args[0][4])
+
         else: self.dtime=1000
+
 
     
 ###################################################################################
@@ -317,20 +401,20 @@ example: for an interactive session:
 ###################################################################################
 
     @staticmethod
-    def get_domain(ncname,ncname0,domainname,time,*args):
+    def get_domain(ncname,ncname0,domainname,time, output =True,*args):
 
-        print('loading', ncname0)
+        if output: print('loading', ncname0)
         ncfile0 = Dataset(ncname0, 'r')
-        print('loading', ncname)
+        if output: print('loading', ncname)
         ncfile = Dataset(ncname, 'r')
         
-        print('get domain', domainname, domainname[:5])
+        if output: print('get domain', domainname, domainname[:5])
         
         if domainname[:5] in ['filam','shing','slope']:
             
             import simulations_old as oldsim
 
-            print('loading custom domain using old scripts')
+            if output: print('loading custom domain using old scripts')
             [ny1,ny2,nx1,nx2,depths]=oldsim.domain(ncfile0,domainname,time)
 
         else:
@@ -344,13 +428,13 @@ example: for an interactive session:
                 depths=np.arange(eval(domainname)[4][0],int(np.min([len(ncfile.dimensions['s_rho']),eval(domainname)[4][1]]))+1,eval(domainname)[4][2])
               except:
                 depths=[0]
-        
+
         if ny1==ny2: ny1=ny1-1; ny2=ny2+2
         if nx1==nx2: nx1=nx1-1; nx2=nx2+2
 
         nx2 = int(np.min([nx2,len(ncfile0.dimensions['xi_rho'])]))
         ny2 = int(np.min([ny2,len(ncfile0.dimensions['eta_rho'])]))
-        
+
         ncfile0.close()
         ncfile.close()
 
@@ -362,66 +446,69 @@ example: for an interactive session:
 #Load grd variables
 ###################################################################################
 
-    def variables_grd(self):
+    def variables_grd(self, light = False, output =True):
 
-        print(self.coord)
+        if output: print(self.coord)
 
         [ny1,ny2,nx1,nx2] = self.coord[0:4]
         #ncfile0 = NetCDFFile(ncname,'r')
         ncfile0 = Dataset(self.ncname.grd, 'r')
     
-        print('ncname0,ny1,ny2,nx1,nx2')
-        print(self.ncname.grd,ny1,ny2,nx1,nx2)
+        if output: print('ncname0,ny1,ny2,nx1,nx2')
+        if output: print(self.ncname.grd,ny1,ny2,nx1,nx2)
 
 
         if ny2==-1 and nx2==-1:
             [ny2,nx2] = ncfile0.variables['h'].shape
             self.coord[0:4] = [ny1,ny2,nx1,nx2]
 
-        topo = self.Forder(ncfile0.variables['h'][ny1:ny2,nx1:nx2])
-        
+        pm = self.Forder(ncfile0.variables['pm'][ny1:ny2,nx1:nx2])
+        pn = self.Forder(ncfile0.variables['pn'][ny1:ny2,nx1:nx2])
+
+
         try:
             mask = self.Forder(ncfile0.variables['mask_rho'][ny1:ny2,nx1:nx2])
         except:
-            mask =  topo*0.+1.
-            
-            
-        #topo[mask==0] = 0.
+            mask =  pm*0.+1.; 
+
         mask[mask==0] = np.nan
 
-        pm = self.Forder(ncfile0.variables['pm'][ny1:ny2,nx1:nx2])
-        pn = self.Forder(ncfile0.variables['pn'][ny1:ny2,nx1:nx2])
-        f = self.Forder(ncfile0.variables['f'][ny1:ny2,nx1:nx2])
-        try:
-            angle = self.Forder(ncfile0.variables['angle'][ny1:ny2,nx1:nx2])
-        except:
-            angle = f*0.
-            
+        
         if 'lon_rho' in list(ncfile0.variables.keys()):
             lon = self.Forder(ncfile0.variables['lon_rho'][ny1:ny2,nx1:nx2])
             lat = self.Forder(ncfile0.variables['lat_rho'][ny1:ny2,nx1:nx2])
         else:
             lon = self.Forder(ncfile0.variables['x_rho'][ny1:ny2,nx1:nx2])
             lat = self.Forder(ncfile0.variables['y_rho'][ny1:ny2,nx1:nx2])
+
+        if not light: 
+            topo = self.Forder(ncfile0.variables['h'][ny1:ny2,nx1:nx2])
+            f = self.Forder(ncfile0.variables['f'][ny1:ny2,nx1:nx2])
+            try:
+                angle = self.Forder(ncfile0.variables['angle'][ny1:ny2,nx1:nx2])
+            except:
+                angle = f*0.
+            
        
         ncfile0.close()
 
-        print('[topo,pm,pn,f,lat,lon] have just been loaded')
-        print('----------------------------------------------------------')
-        print('All arrays are now Fortran ordered and indices are [i,j,k]')
-        print('----------------------------------------------------------')
+        if output: print('[topo,pm,pn,f,lat,lon] have just been loaded')
+        if output: print('----------------------------------------------------------')
+        if output: print('All arrays are now Fortran ordered and indices are [i,j,k]')
+        if output: print('----------------------------------------------------------')
 
-        print(topo.shape)
-
-        return [topo,mask,pm,pn,f,lat,lon,angle]
-
+        if output and not light: print(topo.shape)
+        
+        if not light:
+            return [topo,mask,pm,pn,f,lon,lat,angle]
+        else:
+            return [mask,pm,pn,lon,lat]
 
 ###################################################################################
 #Load grd variables
 ###################################################################################
 
-    def variables_grd_corrected(self):
-
+    def variables_grd_corrected(self, output =True):
 
         [ny1,ny2,nx1,nx2] = self.coord[0:4]
         ncfile0 = Dataset(self.ncname.grd_corrected, 'r')
@@ -430,39 +517,42 @@ example: for an interactive session:
 
         return topo
     
+    
+    
 ###################################################################################
 #Load some constant
 ###################################################################################
 
 
-    def cst(self):
+    def cst(self, output =True):
 
         try:
             ncfile = Dataset(self.ncfile, 'r')
         except:
-            print('cannot find: ', self.ncfile)
+            if output: print('cannot find: ', self.ncfile)
 
         try:
-            self.rho0 = ncfile.rho0
+            self.rho0 = ncfile.rho0 
             self.g = 9.81
             self.hc = ncfile.hc
             self.dt_model = ncfile.dt
         except:
             pass
 
+
         try:
             self.Cs_r = self.Forder(ncfile.variables['Cs_r'][:])
             self.Cs_w = self.Forder(ncfile.variables['Cs_w'][:])
             self.sc_r = self.Forder(ncfile.variables['sc_r'][:])
             self.sc_w = self.Forder(ncfile.variables['sc_w'][:])
-            print('read Cs_r in ncfile.variables')
+            if output: print('read Cs_r in ncfile.variables')
         except:
             try:
                 self.Cs_r = self.Forder(ncfile.Cs_r)
                 self.Cs_w = self.Forder(ncfile.Cs_w)
                 self.sc_r = self.Forder(ncfile.sc_r)
                 self.sc_w = self.Forder(ncfile.sc_w)
-                print('read Cs_r in ncfile.Cs_r')
+                if output: print('read Cs_r in ncfile.Cs_r')
 
             except:
                 try:
@@ -470,33 +560,25 @@ example: for an interactive session:
                     self.Cs_r = self.Forder(grdfile.variables['Cs_r'][:])
                     self.Cs_w = self.Forder(grdfile.variables['Cs_w'][:])
                     grdfile.close()
-                    print('read Cs_r in grdfile.variables')
+                    if output: print('read Cs_r in grdfile.variables')
                 except:
                     try:
                         grdfile = Dataset(self.ncname.grd, 'r')
                         self.Cs_r = self.Forder(grdfile.Cs_r)
                         self.Cs_w = self.Forder(grdfile.Cs_w)
                         grdfile.close()
-                        print('read Cs_r in grdfile.Cs_r')
+                        if output: print('read Cs_r in grdfile.Cs_r')
                     except:
-                        if 'POLGYR_xios' in self.simul:
-                            cs_name = '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/polgyr_his.00100.nc'
-                            cs_file = Dataset(cs_name, 'r')         
-                            self.Cs_r = self.Forder(cs_file.Cs_r)
-                            self.Cs_w = self.Forder(cs_file.Cs_w)
-                            self.sc_r = self.Forder(cs_file.sc_r)
-                            self.sc_w = self.Forder(cs_file.sc_w)     
-                            cs_file.close() 
-                        else:
-                            pass
+                        pass
         try:
             if np.ndim(self.Cs_r)==2:
                 self.Cs_r = self.Cs_r[:,0]
                 self.Cs_w = self.Cs_w[:,0]
 
+            
             #ugly fix for now because of wrong xios files
             if self.Cs_r.max()>1:
-                print('really??')
+                if output: print('really??')
                 try:
                     grdfile = Dataset(self.ncname.grd, 'r')
                     self.Cs_r = self.Forder(grdfile.Cs_r)
@@ -509,7 +591,8 @@ example: for an interactive session:
                     grdfile.close()
         except:
             pass
-       
+            
+
         try:
             self.rdrg = ncfile.rdrg
         except:
@@ -537,7 +620,7 @@ example: for an interactive session:
                 pass
 
         try:
-            self.visc2 = ncfile.visc2
+            self.visc2 = ncfile.visc2       
         except:
             self.visc2 = None
 
@@ -548,13 +631,13 @@ example: for an interactive session:
                 self.R0 = ncfile.R0
         except:
             pass
-
+        
         try:
             self.Zob = ncfile.Zob
         except:
-            print('no Zob in job ... using Zob = 0.01')
+            if output: print('no Zob in job ... using Zob = 0.01')
             self.Zob = 0.01
-
+        
         try:
             self.VertCoordType = ncfile.VertCoordType
         except:
@@ -698,21 +781,21 @@ example: for an interactive session:
 
         ncfile = Dataset(self.ncfile, 'r')
 
-        if self.ncname.model == 'ucla':
+        if self.ncname.model in ['ucla','croco_lionel']:
             self.oceantime = int(np.array(ncfile.variables['ocean_time'][self.infiletime]))
-        elif self.ncname.model == 'croco':
-            self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
-        elif self.ncname.model == 'agrif_jc':
-            self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
         else:
             try:
-                self.oceantime = int(np.array(ncfile.variables['time'][self.infiletime]))
+                self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
             except:
-                self.oceantime = int(np.array(ncfile.variables['time_centered'][self.infiletime]))
+                try:
+                    self.oceantime = int(np.array(ncfile.variables['time'][self.infiletime]))
+                except:
+                    self.oceantime = int(np.array(ncfile.variables['time_centered'][self.infiletime]))
+
 
         if not self.ncname.realyear:
         
-            self.year = np.floor(self.oceantime//(360*24*3600))
+            self.year = int(np.floor(self.oceantime/(360*24*3600)))
             
             self.oceantime = self.oceantime%(360*24*3600)
 
@@ -751,32 +834,47 @@ example: for an interactive session:
 # get ocean date from file and convert it to '%m/%d - %H:00'
 ###################################################################################
 
-    def dt(self):
+    def dt(self,output=True):
 
         ncfile = Dataset(self.ncfile, 'r')
-        print('dt is read in ',self.ncfile)
+        if output: print('dt is read in ',self.ncfile)
         try:
-            if self.ncname.model == 'ucla':
+            if self.ncname.model in ['ucla','croco_lionel']:
                 self.dt = np.array(ncfile.variables['ocean_time'][1]) \
                         - np.array(ncfile.variables['ocean_time'][0])
             elif  self.ncname.model in ['croco','agrif_jc']:
                 self.dt = np.array(ncfile.variables['scrum_time'][1]) \
                         - np.array(ncfile.variables['scrum_time'][0])
-            elif self.ncname.model is 'croco_xios':
+            elif  self.ncname.model in ['croco_xios']:
+                self.dt = np.array(ncfile.variables['time_counter'][1]) \
+                        - np.array(ncfile.variables['time_counter'][0])
+            else:
                 self.dt = np.array(ncfile.variables['time'][1]) \
-                        - np.array(ncfile.variables['time'][0]) 
+                        - np.array(ncfile.variables['time'][0])
         except:
             if self.simul[:4]=='natl': self.dt = 24. * 3600
             elif self.simul =='atlbig_mean2': self.dt = 24. * 3600 * 5.
-            #HOTFIX
-            elif self.simul in 'POLGYR_xios_6h': self.dt = simul.ncname.dtfile
             else: self.dt = 0
+        
+        # Just a check
+        if 'hourly' in self.simul or 'surf' in self.simul: 
+            print(self.ncname.model)
+            print('in dt: ',self.dt)      
 
         ncfile.close()
+
 
 ###################################################################################
 #END CLASS LOAD
 ###################################################################################
+
+
+
+
+
+
+
+
 
 ###################################################################################
 # FILES 
@@ -797,10 +895,10 @@ class files(object):
 ###################################################################################
 
 
-    def __init__(self, simul, time=0):
+    def __init__(self, simul, time=0, output =True):
 
 
-        #print 'simul',simul
+
         #ROMSSISMS is defined in the ~/bashrc file
         ROMSSIMS=os.environ.get("ROMSSIMS")
         ROMSSIMSC=os.environ.get("ROMSSIMSC")
@@ -837,14 +935,7 @@ class files(object):
         #Temporary fix while shirma unavailable
         shirma = cherokee
 
-        ###################################################
 
-        if ROMSSIMS==None: 
-            ROMSSIMS= shirma + '/gula/ROMS/Simulations'
-        if ROMSSIMSC==None: 
-            ROMSSIMSC= celtic + '/gula/ROMS/Simulations'
-        if ROMSSIMSK==None:
-            ROMSSIMSK= kamiya + '/gula/ROMS/Simulations'
 
         ###################################################
         # UBO computers       
@@ -852,6 +943,20 @@ class files(object):
 
         libra='/net/libra/local/tmp/1/'
         capella='/net/capella/local/tmp/2/'
+        #print 'where is libra', libra
+
+        krypton='/data0/project/meddle/'
+
+        ###################################################
+
+        if ROMSSIMS==None: 
+            #ROMSSIMS= shirma + '/gula/ROMS/Simulations'
+            ROMSSIMS= libra + '/gula/ROMS/Simulations'
+        if ROMSSIMSC==None: 
+            ROMSSIMSC= celtic + '/gula/ROMS/Simulations'
+        if ROMSSIMSK==None:
+            ROMSSIMSK= krypton + '/gula/ROMS/Simulations'
+
 
         ###################################################
         # Curie      
@@ -871,7 +976,7 @@ class files(object):
         self.realyear = False # False means using 360 days and 30 days per month
 
         ##################
-        
+
         if simul=='gulfs':
             #self.his=ROMSSIMS+'/GULFS/HIS/gulfs_his.'
             self.his=avatar + '/nmolem/batavia/GULFS/HIS/gulfs_his.'
@@ -910,7 +1015,7 @@ class files(object):
             self.his='/mnt/avatar/nmolem/HATT2/HIS/hatt2_his.'            
             self.grd=ROMSSIMS+'/HATT2/hatt2_grd.nc'  
             self.grd_corrected=ROMSSIMS+'/HATT2/hatt2_grd.nc'
-            print(ROMSSIMS+'/HATT2/hatt2_grd.nc')              
+            if output: print(ROMSSIMS+'/HATT2/hatt2_grd.nc')
             self.Z0=ROMSSIMS+'/HATT2/Z/hatt2_his_z0.'
             self.frc=ROMSSIMS+'/HATT2/hatt2_frc.nc'
             self.wind=ROMSSIMS+'/HATT2/hatt2_frc.nc'
@@ -1019,8 +1124,9 @@ class files(object):
             ncks -A dilam_avg.0250.a.nc dilam_avg.0250.nc
             '''
         ################## FAMILY 2
-        elif simul=='atlbig':
 
+        elif simul=='atlbig':
+            if output: print('simul',simul)
             '''
             folder='/mnt/inca/gula'
             #folder='/shirma/gula/ROMS/Simulations'
@@ -1034,7 +1140,7 @@ class files(object):
             '''
 
             #folder=avatar + '/nmolem'
-            folder=ROMSSIMS
+            folder=ROMSSIMSK
             self.his=folder + '/ATLBIG/DHIS/atlbig_dhis.'
             self.grd=folder + '/ATLBIG/atlbig_grd.nc'  
             self.frc=folder + '/ATLBIG/atlbig_frc.nc'
@@ -1157,9 +1263,7 @@ class files(object):
             self.tend=300              
       
       
-      
-      
-      
+          
         elif simul=='nwat':
             folder=ROMSSIMS
             self.his=folder + '/NWAT/DHIS/nwat_dhis.'
@@ -1169,7 +1273,21 @@ class files(object):
             self.tfile=5
             self.tstart=0
             self.tend=1229
+              
+      
+      
+        elif simul=='nwat_sfc':
+            folder='/data0/project/meddle/gula/ROMS/Simulations'
+            self.his=folder + '/NWAT/sfc/nwat_sfc.'
+            folder=ROMSSIMS
+            self.grd=folder + '/NWAT/nwat_grd.nc'  
+            self.frc=folder + '/NWAT/nwat_frc.nc'
+            self.wind=folder + '/NWAT/nwat_frc_wind.nc'
+            self.tfile=5
+            self.tstart=0
+            self.tend=1229
             
+
         elif simul=='nwatml':
             folder=cherokee+'/gula/ROMS/Simulations'
             #folder=shirma+'/gula/ROMS/Simulations'           
@@ -2146,7 +2264,8 @@ class files(object):
             self.tend=0 
 
         elif simul=='pacbig':
-            folder='/mnt/comanche/nmolem'
+            #folder='/mnt/comanche/nmolem'
+            folder='/data0/project/meddle/gula/ROMS/Simulations'
             self.his=folder + '/PACBIG/HIS/pacbig_his.'
             self.grd=folder + '/PACBIG/pacbig_grd_nw_dig.nc'  
             self.frc=folder + '/PACBIG/pacbig_frc.nc'
@@ -2227,10 +2346,10 @@ class files(object):
             self.tfile=1
             self.tstart=0
             self.tend=0
-            print(self.grd)
+            if output: print(self.grd)
         elif simul=='cuc':
             folder=avatar + '/nmolem'
-            #folder = libra + '/gula/ROMS/Simulations/'
+            folder = libra + '/gula/ROMS/Simulations/'
             self.his=folder + '/CUC/RUN3/HIS/cuc_his.'
             self.grd=folder + '/CUC/cuc_grd.nc'  
             self.frc=folder + '/CUC/cuc_frc.nc'
@@ -2326,6 +2445,7 @@ class files(object):
             self.realyear_origin = datetime(1994,1,1)
             
             folder= '/mnt/inca/akanc'
+            folder = libra + '/gula/ROMS/Simulations/'
             self.his=folder + '/MidCal/L3/03_out_winter2006/usw3_avg.'
             self.grd=folder + '/MidCal/L3/02_input/usw3_grd.nc'
             self.frc=folder + '/MidCal/L3/02_input/usw2_wnd.nc'
@@ -2354,6 +2474,7 @@ class files(object):
             self.realyear_origin = datetime(1994,1,1)
             
             folder= '/mnt/inca/akanc'
+            folder = libra + '/gula/ROMS/Simulations/'
             self.his=folder + '/MidCal/L3/04_out_spring2007/usw3_avg.'
             self.grd=folder + '/MidCal/L3/02_input/usw3_grd.nc'
             self.frc=folder + '/MidCal/L3/02_input/usw2_wnd.nc'
@@ -2393,7 +2514,7 @@ class files(object):
             self.tstart=0
             self.tend=1000 
             
-           
+            
         elif simul=='ideal':
             folder=shirma + '/gula/ROMS/Simulations'
             self.his=folder + '/IDEAL/his.'
@@ -2408,17 +2529,6 @@ class files(object):
         ################## 
         # JC simulations
 
-        elif simul=='Case_1':  
-            folder= '/home2/datawork/jcollin/Pyticles/TEST'
-            self.model = 'croco'
-            self.his=folder + '/chaba_his.'
-            self.grd=folder + '/chaba_grd.nc'
-            self.frc=folder + '/chaba_frc.nc'
-            self.wind=folder + '/NATL/natl6_frc.nc'
-            self.tfile=5
-            self.tstart=1550
-            self.tend=1555
-
         elif simul=='aacc':
             self.model = 'agrif_jc'
             folder= libra + '/gula/ROMS/Simulations/AACC'
@@ -2429,19 +2539,8 @@ class files(object):
             self.tfile=10
             self.tstart=0
             self.tend=1000
-        
-        elif simul == 'x_periodic':
-            self.model = 'agrif_jc'
-            folder = '/home/jeremy/Bureau/Data/ROMS/X_periodic' 
-            self.his=folder + '/roms_his_'
-            self.grd=folder + '/roms_his_Y10M2.nc'
-            self.frc=folder + '/roms_his_Y10M2.nc'
-            self.wind=folder + '/roms_his_Y10M2.nc'
-            self.tfile=10
-            self.tstart=0
-            self.tend=100
-            self.Ystart=10
-            self.Mstart=2
+
+            if output: print('AACC ', self.grd)
 
 
         elif simul=='aacc_8k':
@@ -2492,39 +2591,194 @@ class files(object):
         elif simul=='natl_GS':
             '''read only first month for test, needs to increment year and month'''
 
-            folder= '/net/krypton/data0/project/meddle/gula/GS/'
-            self.his=folder + '/AVG_Y2000M01/natl_avg_Y2000M01.'
+            self.model = 'croco_lionel'
+            self.realyear = True
+            self.realyear_origin = datetime(2000,1,1)
+
+            folder= '/data0/project/meddle/gula/ROMS/Simulations/GS/'
+            self.his=folder + '/all/natl_his_'
             self.grd=folder + 'natl6_grd_agrifV2.nc'
-            self.frc=folder + '/AVG_Y2000M01/natl_avg_Y2000M01.0861.nc'
-            self.wind=folder + '/AVG_Y2000M01/natl_avg_Y2000M01.0861.nc'
+            self.frc=folder + '/AVG_Y2000M01/natl_his_Y2000M01.0861.nc'
+            self.wind=folder + '/AVG_Y2000M01/natl_his_Y2000M01.0861.nc'
             self.tfile=1
-            self.tstart=861
-            self.tend=893
+            self.tstart=862
+            self.tend=3053
+        
+        
+        ##################
+        
+        elif 'polgyr_natl_mean' in simul:
+
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 0
+            
+            if os.getenv('HOSTNAME') is None:
+                folder= '/net/libra/local/tmp/1/gula/ROMS/Simulations/POLGYR_NATL/'
+                self.his=folder + '/mean_2002_2008'
+                self.grd=folder + '/polgyr_natl_grd.nc'
+            
+            self.tfile=20
+            self.tstart=0
+            self.tend=1000
         
         ##################
         
         elif 'polgyr_natl' in simul:
-            '''read only first month for test, needs to increment year and month'''
 
             self.model = 'croco'
             self.digits = 5
 
-            if 'mean' in simul:
-                folder= '/net/krypton/data0/project/meddle/lecorre/POLGYR_NATL/'
-                self.his=libra +'/gula/ROMS/Simulations/POLGYR/polgyr_natl_avg.mean'
-                self.digits = 0
+            if os.getenv('HOSTNAME') is None:
+                if 'mean' in simul:
+                    folder= '/data0/project/meddle/lecorre/POLGYR_NATL/'
+                    self.his=libra +'/gula/ROMS/Simulations/POLGYR/polgyr_natl_avg.mean'
+                    self.digits = 0
+                else:
+                    folder= '/data0/project/meddle/lecorre/POLGYR_NATL/'
+                    self.his=folder + '/HIS/polgyr_his.'
+                self.grd=libra +'/gula/ROMS/Simulations/POLGYR/polgyr_natl_grd.nc'
             else:
-                folder= '/net/krypton/data0/project/meddle/lecorre/POLGYR_NATL/'
+                folder= '/ccc/store/cont003/gen7638/lecorrem/POLGYR_EDDY/'
                 self.his=folder + '/HIS/polgyr_his.'
-
-            self.grd=libra +'/gula/ROMS/Simulations/POLGYR/polgyr_natl_grd.nc'
+                self.grd='/ccc/store/cont003/gen7638/lecorrem/INIT_NATL/polgyr_natl_grd.nc'
 
             self.frc=folder + '/HIS/polgyr_his.00000.nc'
             self.wind=folder + '/HIS/polgyr_his.00000.nc'
-            self.tfile=1
+            self.tfile=20
+            self.tstart=0
+            self.tend=4000
+
+        ##################
+        
+        elif 'polgyr_mean' in simul:
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 0
+            
+            if os.getenv('HOSTNAME') is None:
+                folder= '/net/libra/local/tmp/1/gula/ROMS/Simulations/POLGYR/'
+                self.his=folder + '/mean_2002_2008'
+                self.grd=folder + '/polgyr_grd.nc'
+            
+            self.tfile=20
             self.tstart=0
             self.tend=1000
 
+        ##################
+        
+        elif 'rockall_mean' in simul:
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 0
+            
+            if os.getenv('HOSTNAME') is None:
+                folder= '/net/libra/local/tmp/1/gula/ROMS/Simulations/POLGYR/'
+                if 'winter2' in simul:
+                    self.his=folder + '/mean_2011_winter2'
+                elif 'winter' in simul:
+                    self.his=folder + '/mean_2011_winter'
+                else:
+                    self.his=folder + '/mean_2011'
+                    
+                self.grd=folder + '/polgyr_grd.nc'
+            
+            self.tfile=20
+            self.tstart=0
+            self.tend=1000
+            
+        ##################
+        
+        elif 'polgyr' in simul:
+        
+            '''
+            time 00000 is 2001-01-10 14:53:20
+            time 06511 is 2009-12-10 02:53:20
+            
+            conversion to uncompressed for 2006 = from 3620 to ...
+            '''
+            
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 5
+
+            if os.getenv('HOSTNAME') is None:
+                folder= ROMSSIMS + '/POLGYR/'
+                self.grd= folder + 'polgyr_grd.nc'
+            else:
+                folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+                self.grd='/home/datawork-lops-osi/jgula/POLGYR/polgyr_grd.nc'
+
+
+            self.his=folder +'polgyr_his.'
+
+            self.frc=folder + '/polgyr_his.04000.nc'
+            self.wind=folder + '/polgyr_his.04000.nc'
+            self.tfile=20
+            self.tstart=0
+            self.tend=1000
+
+        ##################
+        
+        elif 'rockall_natl' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 5
+
+            if os.getenv('HOSTNAME') is None:
+                folder= ROMSSIMS + '/POLGYR_NATL/'
+                self.grd=folder + 'rockall_natl_grd.nc'
+            else:
+                folder= '/home/datawork-lops-osi/mlecorre/ROCKALL/PRT/HIS/'
+                self.grd=folder + 'rockall_his.00000.nc'
+                
+            if 'sig' in simul:
+                self.his=folder + 'vrtz/rockall_natl_sig_uv_chunked.'
+            else:
+                self.his=folder + 'rockall_his.'
+                
+            self.frc=folder + 'rockall_his.00000.nc'
+            self.wind=folder + 'rockall_his.00000.nc'
+            self.tfile=20
+            self.tstart=0
+            self.tend=1100
+
+        ##################
+        
+        elif 'rockall' in simul or 'ROCK_chd' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 5
+
+            if os.getenv('HOSTNAME') is None:
+                folder= ROMSSIMS + '/POLGYR/'
+                self.grd= folder + 'polgyr_grd.nc'
+            else:
+                folder= '/home/datawork-lops-osi/mlecorre/ROCKALL/CHD/HIS/'
+                self.grd='/home/datawork-lops-osi/jgula/POLGYR/polgyr_grd.nc'
+
+
+            self.his=folder +'rockall_his.'
+
+            self.frc=folder + '/rockall_his.00000.nc'
+            self.wind=folder + '/rockall_his.00000.nc'
+            self.tfile=20
+            self.tstart=0
+            self.tend=1460
+
+
+        
         ##################
         
         elif simul=='natl':
@@ -2698,23 +2952,7 @@ class files(object):
             self.tfile=1
             self.tstart=861
             self.tend=2687
-
-        ##################
-
-        elif simul=='weddell6':
-            '''
-            CV and CB: Weddell Sea at 6-km resolution for 1 year  
-            '''
-            self.model = 'croco'
-            self.digits = 4
-            folder='/home/datawork-lops-osi/cbucking/CROCO/CIOP06_1YR/'
-            self.his=folder + 'OUT/ciop06_his.'
-            self.grd=folder + 'INIT/ciop06_grd.nc'
-            self.frc=folder + '' # dunno where the forcing files are 
-            self.wind=folder + ''
-            self.tfile=10
-            self.tstart=0
-            self.tend=330 
+            
             
         ################## Test case (to test online features)
     
@@ -2884,35 +3122,67 @@ class files(object):
         ################## Test case (to test online features)
     
             
-        elif simul[:10] =='gulfstream':
+        elif 'gulfstream' in simul:
             
             code = 'croco'
             self.model = 'croco'
             self.digits = 0
             
-            folder = libra + '/gula/ROMS/test_roms/test_budget_gulfstream'
+            if 'mycroco' in simul:
+                folder = libra + '/gula/ROMS/test_roms/test_budget_gulfstream_mycroco'
+            elif 'dev_megatl' in simul:
+                folder = libra + '/gula/ROMS/test_roms/test_budget_gulfstream_dev_megatl'
+            elif 'tracer' in simul:
+                folder = libra + '/gula/ROMS/test_roms/test_budget_gulfstream_tracer'
+            else:
+                folder = libra + '/gula/ROMS/test_roms/test_budget_gulfstream'
 
-
-            self.grd=folder + '/ROMS_FILES/roms_grd.nc'
-            self.frc=folder + '/ROMS_FILES/roms_frc.nc'
+            self.grd=folder + '/CROCO_FILES/croco_grd.nc'
+            self.frc=folder + '/CROCO_FILES/croco_frc.nc'
             self.wind=self.frc
             self.tfile=10000
             self.tstart=0
             self.tend=2000
 
-            
-            if 'vrt' in simul:
-                self.his = folder + '/roms_diags_vrt'
-            elif 'ek' in simul:
-                self.his = folder + '/roms_diags_ek'
-            elif 'uv' in simul:
-                self.his = folder + '/roms_diaM'
-            elif 'ts' in simul:
-                self.his = folder + '/roms_dia'
+            if 'RSUP3' in simul: out = '/OUT_RSUP3'
+            elif 'RSUP5' in simul: out = '/OUT_RSUP5'
+            elif 'UP3' in simul and 'NOTSADV' in simul: out = '/OUT_UP3_NOTSADV'
+            elif 'UP3' in simul: out = '/OUT_UP3'
+            elif 'UP5' in simul: out = '/OUT_UP5'
+            elif 'WENO5' in simul: out = '/OUT_WENO5'
+            else: out = '/OUT'
+
+            if 'avg' in simul:
+                if 'vrt' in simul:
+                    self.his = folder + out + '/croco_diags_vrt_avg'
+                elif 'ek' in simul:
+                    self.his = folder + out + '/croco_diags_ek_avg'
+                elif 'uv' in simul:
+                    self.his = folder + out + '/croco_diaM_avg'
+                elif 'ts' in simul:
+                    self.his = folder + out + '/croco_dia_avg'
+                elif 'pv' in simul:
+                    self.his = folder + out + '/croco_diags_pv_avg'
+                else:
+                    self.his = folder + out + '/croco_avg'
             else:
-                self.his = folder + '/roms_his'
+                if 'vrt' in simul:
+                    self.his = folder + out + '/croco_diags_vrt'
+                elif 'ek' in simul:
+                    self.his = folder + out + '/croco_diags_ek'
+                elif 'uv' in simul:
+                    self.his = folder + out + '/croco_diaM'
+                elif 'ts' in simul:
+                    self.his = folder + out + '/croco_dia'
+                elif 'pv' in simul:
+                    self.his = folder + out + '/croco_diags_pv'
+                else:
+                    self.his = folder + out + '/croco_his'
+
 
         ################## Test case (to test online features)
+    
+            
     
             
         elif simul[:8] =='caldeira':
@@ -2921,13 +3191,12 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
 
-            try:
-                if 'datarmor' in os.getenv('HOSTNAME'):
-                    folder_code = '/home/datawork-lops-osi/jgula/SEAMOUNT'
-            except:
-                folder_code = libra + '/gula/ROMS/test_roms/test_pv_budget_caldeira'
-            folder_code = '/home/datawork-lops-osi/jgula/SEAMOUNT'
-
+            if os.getenv('HOSTNAME') is None:
+                #folder_code = libra + '/gula/ROMS/test_roms/test_pv_budget_caldeira'
+                folder_code = libra + '/gula/ROMS/Simulations/Seamount'
+            else:
+                folder_code = '/home/datawork-lops-osi/jgula/SEAMOUNT'
+   
 
             if 'SW' in simul:
                 if 'noS' in simul: 
@@ -2939,16 +3208,92 @@ class files(object):
                     folder = folder_code +'/Config_croco_SW_GLS_large'
                 elif 'dz' in simul and 'GLS' in simul:                 
                     folder = folder_code +'/Config_croco_SW_GLS_dz'
+                elif 'HHR' in simul:
+                    if 'KPP0' in simul:
+                        if '_U' in simul:
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0_HHR_U/case1'
                 elif 'VHR' in simul:
-                    if 'GLS' in simul:    
+                    if 'KPP0' in simul:
+                        if '_U' in simul:
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0_VHR_U/case1'
+                    elif 'GLS' in simul:    
                         folder = folder_code +'/Config_croco_SW_GLS_VHR'
                     else:               
                         folder = folder_code +'/Config_croco_SW_VHR'
+                elif 'HRzz' in simul:
+                    if 'KPP0' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0_HRzz_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPP0_VHR_U'
+                elif 'HRz' in simul:
+                    if 'KPP0' in simul:
+                        if '_U' in simul:
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0_HRz_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPP0_VHR_U'
                 elif 'HR' in simul:
-                    if 'GLS' in simul:    
-                        folder = folder_code +'/Config_croco_SW_GLS_HR'
-                    else:               
-                        folder = folder_code +'/Config_croco_SW_HR'
+                    if 'GLSD' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_GLSD_HR_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_GLSD_HR_U'
+                            else:
+                                folder = folder_code +'/Config_croco_SW_GLSD_HR_U/case1'
+                    elif 'GLS0' in simul:    
+                        if '_U' in simul: 
+                            folder = folder_code +'/Config_croco_SW_GLS0_HR_U/case1'
+                    elif 'KPP0D' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0D_HR_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPP0D_HR_U'
+                    elif 'KPPDNOKT' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPPDNOKT_HR_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPPDNOKT_HR_U'
+                    elif 'KPPD' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPPD_HR_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPPD_HR_U'
+                    elif 'KPP0DNOKT' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0DNOKT_HR_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPP0DNOKT_HR_U'
+                    elif 'KPP0' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_KPP0_HR_U/case1'
+                                #folder = '/home2/scratch/jgula/Seamount/Config_croco_SW_N_KPP0_HR_U'
+                            else:
+                                folder = folder_code +'/Config_croco_SW_KPP0_HR_U/case1'
+                        else:          
+                            folder = folder_code +'/Config_croco_SW_KPP_HR'
+                    elif 'KPPNOR' in simul:    
+                        if '_U' in simul: 
+                            folder = folder_code +'/Config_croco_SW_KPPNOR_HR_U/case1'
+                    elif 'KPP' in simul:    
+                        if '_U' in simul: 
+                            folder = folder_code +'/Config_croco_SW_KPP_HR_U/case1'
+                    elif 'GLS' in simul:    
+                        if '_U' in simul: 
+                            if 'N' in simul:
+                                folder = folder_code +'/Config_croco_SW_N_GLS_HR_U/case1'
+                            else:
+                                folder = folder_code +'/Config_croco_SW_GLS_HR_U/case1'
+                        else:          
+                            folder = folder_code +'/Config_croco_SW_GLS_HR'
+                    else:   
+                        if '_U' in simul:    
+                            folder = folder_code +'/Config_croco_SW_HR_U/case1'
+                        else:          
+                            folder = folder_code +'/Config_croco_SW_HR'
+                   
                 elif 'wind' in simul:                 
                     if 'GLS' in simul:
                         if 'nodiff' in simul:
@@ -3055,8 +3400,8 @@ class files(object):
 
             if '1h' in simul:
                 if 'withdiag' in simul:
-                    folder = libra + '/gula/ROMS/Simulations/NESEA/HIS1h_withdiags'
-                    #folder = ROMSSIMSK + '/NESEA/HIS/HIS1h_withdiags'
+                    #folder = libra + '/gula/ROMS/Simulations/NESEA/HIS1h_withdiags'
+                    folder = ROMSSIMSK + '/NESEA/HIS/HIS1h_withdiags'
                 else:
                     folder = ROMSSIMSK + '/NESEA/HIS/HIS1h'
             else:
@@ -3122,14 +3467,115 @@ class files(object):
 
             self.tend=10000
 
-          ################## AGULHAS TEST CASE
-    
+        ##################
+        
+        elif 'nesev' in simul:
+            
+            code = 'croco'
+            self.model = 'croco'
+            self.digits = 5
 
+            if 'KPP' in simul or 'kpp' in simul:
+
+                if 'libra' in socket.gethostname() or 'lpo' in socket.gethostname():
+                    folder = ROMSSIMSK + '/NESEV/NESEV_KPP'
+                else:
+                    folder = '/home/datawork-lops-osi/jgula/NESEV_KPP_28_16/OUT'
+                    
+            elif 'KEPS1' in simul or 'keps1' in simul:
+
+                if 'libra' in socket.gethostname() or 'lpo' in socket.gethostname():
+                    folder = ROMSSIMSK + '/NESEV/NESEV_KEPS1'
+                else:
+                    folder = '/home/datawork-lops-osi/jgula/NESEV_KEPS1_28_16/OUT'
+                    
+            else:
+
+                if 'libra' in socket.gethostname() or 'lpo' in socket.gethostname():
+                    folder = ROMSSIMSK + '/NESEV/NESEV'
+                else:
+                    folder = '/home/datawork-lops-osi/jgula/NESEV_28_16/OUT'
+
+
+            self.grd = folder + '/nesea_grd.nc'
+            self.frc = folder + '/nesea_frc.nc'
+            self.wind = self.frc
+
+            self.tstart=0
+            self.tend=2000
+
+            if 'mean' in simul:
+            
+                self.tfile=1
+                self.digits = 0
+
+                if 'vrt' in simul:
+                    self.his = folder + '/nesev_diags_vrt_avg.mean'
+                elif 'ek' in simul:
+                    self.his = folder + '/nesev_diags_ek_avg.mean'
+                elif 'uv' in simul:
+                    self.his = folder + '/nesev_uv_avg.mean'
+                elif 'ts' in simul:
+                    self.his = folder + '/nesev_ts_avg.mean'
+                elif 'pv' in simul:
+                    self.his = folder + '/nesev_diags_pv_avg.mean'
+                elif 'eddy' in simul:
+                    self.his = folder + '/nesev_diags_eddy_avg.mean'
+                elif 'his500' in simul:
+                    #self.his = folder + '/nesev_his.mean.00250-00949'
+                    self.his = folder + '/nesev_his.mean.00500-01399'
+                elif 'his800' in simul:
+                    self.his = folder + '/nesev_his.mean.00800-00899'
+                elif 'avg33' in simul:
+                    self.his = folder + '/nesev_avg.mean_033_132'
+                elif 'his' in simul:
+                    self.his = folder + '/nesev_his.mean.00250-00949'
+                else:
+                    self.his = folder + '/nesev_avg.mean'
+                
+                
+            elif 'avg' in simul:
+            
+                self.tfile=1
+                
+                if 'vrt' in simul:
+                    self.his = folder + '/nesec_diags_vrt_avg.'
+                elif 'ek' in simul:
+                    self.his = folder + '/nesev_diags_ek_avg.'
+                elif 'uv' in simul:
+                    self.his = folder + '/nesev_uv_avg.'
+                elif 'ts' in simul:
+                    self.his = folder + '/nesev_ts_avg.'
+                elif 'pv' in simul:
+                    self.his = folder + '/nesev_diags_pv_avg.'
+                elif 'eddy' in simul:
+                    self.his = folder + '/nesev_diags_eddy_avg.'
+                else:
+                    self.his = folder + '/nesev_avg.'
+                    
+            elif 'uvbot' in simul:
+
+                self.his = folder + '/nesev_uvbot.'
+                self.tfile= 2
+                    
+            else:
+            
+                if (time<224):
+                    self.tfile=8
+                else:
+                    self.tfile=2
+                    
+                self.his = folder + '/nesev_his.'
+                
+
+                
+        ################## AGULHAS TEST CASE
+    
 
         elif simul=='woes5':
 
             self.model = 'agrif_jc'
-            folder=  '/net/krypton/data0/project/vortex/Master_stage_tedesco2017/SCRATCH_RUN_WOES5/'
+            folder=  '/data0/project/vortex/Master_stage_tedesco2017/SCRATCH_RUN_WOES5/'
             self.his=folder + '/roms_avg_'
             self.fileformat='.nc.2'
             self.grd=folder + '/roms_grd.nc.2'
@@ -3194,13 +3640,13 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/CHABAM/'
                     self.grd=folder + 'chaba_grd.nc'
                     self.tstart=0
             except:
-                folder=libra +'/gula/ROMS/Simulations/CHABAM/'
-                self.grd=libra +'/gula/ROMS/Simulations/CHABAM/chaba_grd.nc'
+                folder=krypton +'/gula/ROMS/Simulations/CHABAM/'
+                self.grd=krypton +'/gula/ROMS/Simulations/CHABAM/chaba_grd.nc'
                 self.tstart=250
 
             self.frc=folder + 'chaba_frc_monthly.nc'
@@ -3208,13 +3654,17 @@ class files(object):
             self.tfile=5
             self.tend=1820
 
-            if 'surf' in simul:
-                self.his = folder + 'chabam_surf.'
+            if 'surf_avg' in simul:
+                self.his = folder + '/sfc/chabam_surf_avg.'
+                self.tfile=30
+                self.tend=9480
+            elif 'surf' in simul:
+                self.his = folder + '/sfc/chabam_surf.'
                 self.tfile=30
                 self.tend=9480
             else:
                 if 'sig' in simul:
-                    self.his='/net/krypton/data0/project/meddle/gula/ROMS/Simulations/CHABAM/iso/chabam_sig_uv.'
+                    self.his='/data0/project/meddle/gula/ROMS/Simulations/CHABAM/iso/chabam_sig_uv.'
                     self.digits = 4
                 else:
                     self.his=folder + 'chabam_his.'
@@ -3225,28 +3675,31 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/CHABAH/'
                     self.grd=folder + 'chaba_grd.nc'
                     self.tstart=0
             except:
-                folder=libra +'/gula/ROMS/Simulations/CHABAH/'
-                self.grd=libra +'/gula/ROMS/Simulations/CHABA/chaba_grd.nc'
+                folder=krypton +'/gula/ROMS/Simulations/CHABAH/'
+                self.grd=krypton +'/gula/ROMS/Simulations/CHABAH/chaba_grd.nc'
                 self.tstart=250
-
             
             self.frc=folder + '../CHABAT/chabat_frc_1h.nc'
             self.wind=self.frc
             self.tfile=5
             self.tend=1820
 
-            if 'surf' in simul:
+            if 'surf_avg' in simul:
+                self.his = folder + '/sfc/chabah_surf_avg.'
+                self.tfile=30
+                self.tend=9480
+            elif 'surf' in simul:
                 self.his = folder + 'chabah_surf.'
                 self.tfile=30
                 self.tend=9480
             else:
                 if 'sig' in simul:
-                    self.his='/net/krypton/data0/project/meddle/gula/ROMS/Simulations/CHABAH/iso/chabah_sig_uv.'
+                    self.his='/data0/project/meddle/gula/ROMS/Simulations/CHABAH/iso/chabah_sig_uv.'
                     self.digits = 4
                 else:
                     self.his=folder + 'chabah_his.'
@@ -3258,13 +3711,13 @@ class files(object):
             self.digits = 5
 
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/CHABAT/'
                     self.grd=folder + 'chaba_grd.nc'
                     self.tstart=0
 
             except:
-                folder=libra +'/gula/ROMS/Simulations/CHABAT/'
+                folder=krypton +'/gula/ROMS/Simulations/CHABAT/'
                 self.grd=libra +'/gula/ROMS/Simulations/CHABA/chaba_grd.nc'
                 self.tstart=250
             
@@ -3273,13 +3726,17 @@ class files(object):
             self.tfile=5
             self.tend=1820
 
-            if 'surf' in simul:
-                self.his = folder + 'chabat_surf.'
+            if 'surf_avg' in simul:
+                self.his = folder + '/sfc/chabat_surf_avg.'
+                self.tfile=30
+                self.tend=9480
+            elif 'surf' in simul:
+                self.his = folder + '/sfc/chabat_surf.'
                 self.tfile=30
                 self.tend=9480
             else:
                 if 'sig' in simul:
-                    self.his='/net/krypton/data0/project/meddle/gula/ROMS/Simulations/CHABAT/iso/chabat_sig_uv.'
+                    self.his='/data0/project/meddle/gula/ROMS/Simulations/CHABAT/iso/chabat_sig_uv.'
                     self.digits = 4
                 else:
                     self.his=folder + 'chabat_his.'
@@ -3313,7 +3770,7 @@ class files(object):
 
         elif simul in ['sarga','SARGA']:
 
-            folder= '/net/krypton/data0/project/meddle/gula/ROMS/Simulations'
+            folder= '/data0/project/meddle/gula/ROMS/Simulations'
             self.model = 'croco'
             self.digits = 5
             self.his=folder + '/SARGA/HIS/sarga_his.'
@@ -3326,7 +3783,7 @@ class files(object):
 
         elif simul=='sargo':
 
-            folder= '/net/krypton/data0/project/meddle/gula/ROMS/Simulations'
+            folder= '/data0/project/meddle/gula/ROMS/Simulations'
             self.model = 'croco'
             self.digits = 5
             self.his=folder + '/SARGA/HIS/sargo_his.'
@@ -3339,7 +3796,7 @@ class files(object):
             
         elif simul in ['sargasurf']:
 
-            folder= '/net/krypton/data0/project/meddle/gula/ROMS/Simulations'
+            folder= '/data0/project/meddle/gula/ROMS/Simulations'
             self.model = 'croco'
             self.digits = 5
             self.his=folder + '/SARGA/HIS/sarga_surf.'
@@ -3352,7 +3809,7 @@ class files(object):
 
         elif simul=='sargosurf':
 
-            folder= '/net/krypton/data0/project/meddle/gula/ROMS/Simulations'
+            folder= '/data0/project/meddle/gula/ROMS/Simulations'
             self.model = 'croco'
             self.digits = 5
             self.his=folder + '/SARGA/HIS/sargo_surf.'
@@ -3370,7 +3827,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/vicc/LUCKY/'
                     self.his=folder + 'HIS/lucky_his.'
                     self.tstart=0
@@ -3389,7 +3846,7 @@ class files(object):
 
             self.model = 'croco'
             self.digits = 4
-            folder= '/net/krypton/data0/project/meddle/cvic/ROMS/Simulations/RIDGE/'
+            folder= '/data0/project/meddle/cvic/ROMS/Simulations/RIDGE/'
             self.his=folder + 'HIS/ridge_his.'
             self.tstart=0
             self.grd=folder + 'ridge_grd.nc'
@@ -3405,7 +3862,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/vicc/LUCKY/'
             except:
                 folder= libra +'/gula/ROMS/Simulations/LUCKY/'
@@ -3424,7 +3881,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/vicc/LUCKYT/'
                     self.grd=folder + 'luckyt_grd.nc'
                     self.his=folder + 'HIS/luckyt_his.'
@@ -3446,7 +3903,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/vicc/LUCKYT/'
                     self.grd=folder + 'luckyt_grd.nc'
             except:
@@ -3467,7 +3924,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/lahayen/LUCKYTO/'
                     self.grd=folder + 'luckyto_grd.nc'
                     self.his=folder + 'HIS/luckyto_his.'
@@ -3490,7 +3947,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/lahayen/LUCKYM2/'
                     self.grd=folder + 'luckym2_grd.nc'
                     self.his=folder + 'HIS/luckym2_his.'
@@ -3514,7 +3971,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/lahayen/LUCKYM2s/'
                     self.grd=folder + 'luckyto_grd.nc'
                     self.his=folder + 'HIS/luckyto_his.'
@@ -3535,13 +3992,13 @@ class files(object):
 
         ##################
 
-        elif 'ratlbig' in simul:
+        elif 'ratlbig' in simul and 'gigatl6' not in simul:
 
             self.model = 'croco'
             self.digits = 5
 
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     if 'gls' in simul:
                         folder='/ccc/store/cont003/gen7638/gulaj/RATLBIG_GLS/'
                     else:
@@ -3594,13 +4051,13 @@ class files(object):
 
             self.model = 'croco'
             self.digits = 4
-            folder ='/net/krypton/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN/INPUT/' 
+            folder ='/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN/INPUT/'
  
             self.grd=folder + 'nbimin_grd.nc'  
             self.frc=folder + 'nbimin_frc.nc'
             self.wind=folder + 'nbimin_frc.nc'
 
-            folder= '/net/krypton/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN2/EXP_H_dt3_nft50_OBC2DSPEC3DSPEC_SPGnuintwidthnam_5d/'
+            folder= '/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN2/EXP_H_dt3_nft50_OBC2DSPEC3DSPEC_SPGnuintwidthnam_5d/'
 
             self.his=folder + 'HIS/nbimin_his.'  
 
@@ -3613,13 +4070,13 @@ class files(object):
 
             self.model = 'croco'
             self.digits = 4
-            folder ='/net/krypton/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN/INPUT/' 
+            folder ='/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN/INPUT/'
  
             self.grd=folder + 'nbimin_grd.nc'  
             self.frc=folder + 'nbimin_frc.nc'
             self.wind=folder + 'nbimin_frc.nc'
 
-            folder= '/net/krypton/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN2/EXP_NHMG_dt3_nft50_OBC2DSPEC3DSPEC_SPGnuintwidthnam_5d/'
+            folder= '/data0/project/nhmg/ducousso/CROCO-NH/NBIMIN2/EXP_NHMG_dt3_nft50_OBC2DSPEC3DSPEC_SPGnuintwidthnam_5d/'
 
             self.his=folder + 'HIS/nbimin_his.'  
 
@@ -3637,7 +4094,7 @@ class files(object):
             self.grd=folder + 'bimin_grd.nc'  
 
             if 'mean' in simul:
-                self.his= '/net/krypton/data0/project/nhmg/gula/biminh_his.mean'
+                self.his= '/data0/project/nhmg/gula/biminh_his.mean'
                 self.digits = 0
             elif 'sig' in simul:
                 self.his=folder + 'HIS/biminh_sig_uv.'  
@@ -3661,7 +4118,7 @@ class files(object):
             self.grd=folder + 'bimin_grd.nc'
 
             if 'mean' in simul:
-                self.his= '/net/krypton/data0/project/nhmg/gula/biminnh_his.mean'
+                self.his= '/data0/project/nhmg/gula/biminnh_his.mean'
                 self.digits = 0
             elif 'sig' in simul:
                 self.his=folder + 'HIS/biminnh_sig_uv.'  
@@ -3685,7 +4142,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/SISMI/'
             except:
                 folder= libra +'/gula/ROMS/Simulations/SISMI/'
@@ -3705,10 +4162,11 @@ class files(object):
             self.digits = 5
 
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/SISMO/'
             except:
-                folder= libra +'/gula/ROMS/Simulations/SISMO/'
+                folder= '/data0/project/meddle/gula/ROMS/Simulations/SISMO/'
+                #folder= libra +'/gula/ROMS/Simulations/SISMO/'
 
             self.grd=folder + 'sismo_grd.nc'
 
@@ -3742,7 +4200,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/SISMU/'
             except:
                 folder= libra +'/gula/ROMS/Simulations/SISMU/'
@@ -3761,7 +4219,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/SISMU/'
             except:
                 folder= libra +'/gula/ROMS/Simulations/SISMU/'
@@ -3780,7 +4238,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/BAHAZ/'
             except:
                 folder= libra +'/gula/ROMS/Simulations/BAHAZ/'
@@ -3806,7 +4264,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/BAHAZR/'
             except:
                 folder= libra +'/gula/ROMS/Simulations/BAHAZR/'
@@ -3832,7 +4290,7 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/BAHAZ_GLS/'
                     self.grd='/ccc/store/cont003/gen7638/gulaj/BAHAZ/bahaz_grd.nc'
             except:
@@ -3857,6 +4315,8 @@ class files(object):
 
         elif 'megatl9' in simul:
 
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
             self.model = 'croco'
             self.digits = 5
             
@@ -3881,7 +4341,7 @@ class files(object):
                     folder_name = 'MEGATL9_CLIM/'
 
             try:
-                if 'curie' in os.getenv('HOSTNAME'):
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
                     folder='/ccc/store/cont003/gen7638/gulaj/' + folder_name
             except:
                 folder= libra +'/gula/ROMS/Simulations/MEGATL/MEGATL9/' + folder_name
@@ -3907,6 +4367,8 @@ class files(object):
 
         elif 'megatl6' in simul:
 
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
             self.model = 'croco'
             self.digits = 5
             
@@ -3919,6 +4381,17 @@ class files(object):
                     folder_name = 'MEGATL6_ERAI_v2/'
                 else:
                     folder_name = 'MEGATL6_ERAI/'
+            elif 'cfsr6h_on' in simul:
+                    folder_name = 'MEGATL6_N50_CFSR6h_on/'
+            elif 'cfsr1h_on_full' in simul:
+                if 'tides' in simul:
+                    folder_name = 'MEGATL6_N50_CFSR1h_on_full_tides/'
+                elif 'v2' in simul:
+                    folder_name = 'MEGATL6_N50_CFSR1h_on_full_v2/'
+                elif 'v3' in simul:
+                    folder_name = 'MEGATL6_N50_CFSR1h_on_full_v3/'
+                else:
+                    folder_name = 'MEGATL6_N50_CFSR1h_on_full/'
             elif 'cfsr' in simul:
                 if 'n50' in simul:
                     if 'v2' in simul:
@@ -3945,25 +4418,44 @@ class files(object):
                 else:
                     folder_name = 'MEGATL6_CLIM/'
 
-            #try:
-            #    if 'curie' in os.getenv('HOSTNAME'):
-            #        folder='/ccc/store/cont003/gen7638/gulaj/' + folder_name
-            #except:
-            #    folder= libra +'/gula/ROMS/Simulations/MEGATL/MEGATL6/' + folder_name
-            folder= '/home/datawork-lops-osi/jgula/' + folder_name
 
-
+            if os.getenv('HOSTNAME') is None:
+                #folder= libra +'/gula/ROMS/Simulations/MEGATL/MEGATL6/' + folder_name
+                folder= '/home/gula/datarmor/megatl/MEGATL6/OUT/' + folder_name
+            elif 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
+                folder='/ccc/store/cont003/gen7638/gulaj/' + folder_name
+            else:
+                folder= '/home/datawork-lops-osi/jgula/' + folder_name
 
             if 'newgrd' in simul:
                 self.grd= folder + '../megatl6_newgrd.nc'
             else:
                 self.grd= folder + '../megatl6_grd.nc'
 
-            if 'mean' in simul:
+            
+            if 'mean_short' in simul:
+                self.his=folder + 'megatl6_avg.mean_short'
+                self.avg=folder + 'megatl6_avg.mean_short'
+                self.vrt=folder + 'megatl6_diags_vrt_avg.mean_short'
+                self.ek=folder + 'megatl6_diags_ek_avg.mean_short'
+                self.digits = 0
+            elif 'mean_2002' in simul:
+                self.his=folder + 'megatl6_avg.mean_2002'
+                self.digits = 0
+            elif 'mean' in simul:
                 self.his=folder + 'megatl6_avg.mean'
+                self.avg=folder + 'megatl6_avg.mean'
+                self.vrt=folder + 'megatl6_diags_vrt_avg.mean'
+                self.ek=folder + 'megatl6_diags_ek_avg.mean'
                 self.digits = 0
             else:
-                self.his=folder + 'megatl6_his.'
+                if 'avg' in simul:
+                    self.his=folder + 'megatl6_avg.'
+                else:
+                    self.his=folder + 'megatl6_his.'
+                self.avg=folder + 'megatl6_avg.'
+                self.vrt=folder + 'megatl6_diags_vrt_avg.'
+                self.ek=folder + 'megatl6_diags_ek_avg.'
 
             self.frc=folder + 'megatl6_frc.nc'
             self.wind=folder + 'megatl6_frc.nc'
@@ -3971,182 +4463,537 @@ class files(object):
             self.tstart=0
             self.tend=10000
 
+
         ##################        
 
+        elif 'megatl3' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.model = 'croco'
+            self.digits = 5
+
+            folder_name = 'MEGATL3_v2/'
+
+            if os.getenv('HOSTNAME') is None:
+                folder= libra +'/gula/ROMS/Simulations/MEGATL/MEGATL3/' + folder_name
+            elif 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
+                folder='/ccc/store/cont003/gen7638/gulaj/MEGATL3/' + folder_name
+            else:
+                folder= '/home/datawork-lops-osi/jgula/' + folder_name
+
+            self.grd= folder + '../megatl3_grd.nc'
+
+            self.his=folder + 'megatl3_his.'
+
+            self.tfile=5
+            self.tstart=0
+            self.tend=10000
+
+        ##################        
+
+
+        elif 'megatl' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.model = 'croco'
+            self.digits = 5
+            
+            folder= libra +'/gula/ROMS/Simulations/MEGATL/MEGATL/'
+
+            self.grd= folder + 'megatl_grd.nc'
+
+            self.his=folder + 'megatl_his.'
+
+            self.tfile=24
+            self.tstart=0
+            self.tend=10000
+
+
+        
+        ##################
+
+
+        elif 'gigatl1' in simul:
+        
+
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2004,1,15)
+
+            self.model = 'croco'
+            self.digits = 6
+            
+            if 'gigatl1_1h_tides' in simul:
+                folder_name= 'GIGATL1_1h_tides/'
+            elif 'gigatl1_1h' in simul:
+                folder_name= 'GIGATL1_1h/'
+
+
+            try:
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
+                    folder='/ccc/store/cont003/gen7638/gulaj/GIGATL3/' + folder_name
+                    
+                else:
+                    folder= '/home/datawork-lops-megatl/GIGATL1/' + folder_name
+                    self.grd= '/home/datawork-lops-megatl/GIGATL1/gigatl1_grd.nc'
+            except:
+                #folder= '/data0/project/meddle/gula/ROMS/Simulations/GIGATL/GIGATL1/' + folder_name
+                #self.grd= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL1/gigatl1_grd_masked.nc'
+                folder= '/net/omega/local/tmp/1/gula/GIGATL1/' + folder_name
+                self.grd= '/net/omega/local/tmp/1/gula/GIGATL1/gigatl1_grd.nc'
+
+
+            if 'para' in  simul:
+                if output: print('loading tiles ',simul[-4:])
+                tile = [s for s in simul.split('_') if s.isdigit()][-1]
+                #tile = simul[-4:]
+                
+                self.grd= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL1/INIT_N100_100_100/GRD3/gigatl1_grd_masked.' +  tile + '.nc'
+                
+                if 'surf' in simul:
+                    self.his = folder + 'gigatl1_surf.' + tile
+                    self.tfile=120
+                    self.dtfile=3600
+                    self.tend=100000
+                    
+                elif 'avg' in simul:
+
+                    self.digits = 0
+                    folder= '/data0/project/meddle/gula/ROMS/Simulations/GIGATL/GIGATL1/' + folder_name
+                    
+                    self.tfile=1
+                    self.dtfile=5*24*3600
+                    self.tend=10000
+                    
+                    if 'ek' in simul:
+                        self.his = folder + 'gigatl1_diags_ek_avg.' + tile
+                    elif 'vrt' in simul:
+                        self.his = folder + 'gigatl1_diags_vrt_avg.' + tile
+                    elif 'uv' in simul:
+                        self.his = folder + 'gigatl1_diaM_avg.' + tile
+                    elif 'pv' in simul:
+                        self.his = folder + 'gigatl1_diags_pv_avg.' + tile
+                    elif 'eddy' in simul:
+                        self.his = folder + 'gigatl1_diags_eddy_avg.' + tile
+                    else:
+                        self.his = folder + 'gigatl1_avg.' + tile
+
+                elif 'hourly' in simul:
+                
+                    self.his = folder + 'HIS_1h/gigatl1_his.' + tile + '.'
+                    self.fileformat=  '.nc'
+                    self.tfile=6
+                    self.dtfile=3600
+                    self.tend=50000
+                    
+                    self.model = 'croco_gigatl1_hours'
+                    self.digits = 0
+
+
+                else:
+                
+                    self.his = folder + 'gigatl1_his.'
+                    self.fileformat=  '.' + tile + '.nc'
+                    self.tfile=2
+                    self.dtfile=3*3600
+                    self.tend=10000
+                    
+            else:
+                if 'surf' in simul:
+                
+                    if 'avg' in simul:
+                        self.his = folder + 'SURF/final/gigatl1_surf_avg.'
+                    else:
+                        self.his = folder + 'SURF/final/gigatl1_surf.' #1999-01-25-1999-01-29'
+                        
+                    self.tfile=120
+                    self.dtfile=3600
+                    self.tend=100000
+                    
+                    self.model = 'croco_gigatl1'
+                    self.digits = 0
+
+
+        ##################        
+
+
+
+        elif 'gigatl3' in simul and 'sig' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2004,1,15)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            try:
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
+                    folder='/ccc/work/cont003/gen12051/gulaj/Post/GIGATL/iso'
+                    #if 'gigatl3_1h_tides' in simul:
+                    #    folder = '/ccc/scratch/cont003/gen12051/gulaj/GIGATL3/' + folder_name + 'HIS/'
+                    self.grd= '/ccc/store/cont003/gen12051/gulaj/GIGATL3/gigatl3_grd.nc'
+            except:
+                folder= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL3/'
+                self.grd= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL3/gigatl3_grd.nc'
+
+
+            if 'gigatl3_1h' in simul:
+                self.his = folder + '/gigatl3_1h_sig_uv_chunked.'
+                self.dtfile=12*3600
+                self.tfile=10
+                self.tend=100000
+
+       ##################
+
+        elif 'gigatl3' in simul and 'equator' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2004,1,15)
+
+            self.model = 'croco'
+            self.digits = 5
+
+            folder= '/net/omega/local/tmp/1/gula/GIGATL3/zoom_for_seamount/'
+            self.grd= '/net/omega/local/tmp/1/gula/GIGATL3/zoom_for_seamount/gigatl3_1h_tides_avg_equator.00500.nc'
+
+            if 'mean' in simul:
+                self.his = folder + '/gigatl3_1h_tides_avg_equator.00500-00573'
+                self.tfile=1
+                self.digits = 0
+            elif 'avg' in simul:
+                self.his = folder + '/gigatl3_1h_tides_avg_equator.'
+                self.dtfile=5*24*3600
+                self.tfile=1
+                self.tend=100000
+       ##################
+       
+       
+        elif 'gigatl3' in simul:
+
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2004,1,15)
+
+            self.model = 'croco_xios'
+            self.digits = 0
+            
+            if 'gigatl3_1h_tides' in simul:
+                folder_name= 'GIGATL3_1h_tides/'
+            elif 'gigatl3_1h_UP5' in simul:
+                folder_name= 'GIGATL3_1h_UP5/'
+            elif 'gigatl3_1h' in simul:
+                folder_name= 'GIGATL3_1h/'
+            elif 'gigatl3_6h' in simul:
+                folder_name= 'GIGATL3_6h/'
+
+
+            try:
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
+                    folder='/ccc/store/cont003/gen12051/gulaj/GIGATL3/' + folder_name
+                    #if 'gigatl3_1h_tides' in simul:
+                    #    folder = '/ccc/scratch/cont003/gen12051/gulaj/GIGATL3/' + folder_name + 'HIS/'
+                    self.grd= '/ccc/store/cont003/gen12051/gulaj/GIGATL3/gigatl3_grd.nc'
+            except:
+                folder= '/net/omega/local/tmp/1/gula/GIGATL3/' + folder_name
+                #folder= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL3/' + folder_name
+                self.grd= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL3/gigatl3_grd.nc'
+
+
+            if 'surf' in simul:
+                self.his = folder + 'GIGATL3_1h_inst_surf_' #1999-01-25-1999-01-29'
+                self.tfile=120
+                self.dtfile=3600
+                self.tend=100000
+            elif 'hourly' in simul:
+                self.his = folder + 'GIGATL3_1h_avg_3d_' #1999-01-25-1999-01-29'
+                self.tfile=120
+                self.dtfile=3600
+                self.tend=100000
+            elif 'avg' in simul:
+                self.his = folder + 'GIGATL3_5d_aver_' #1999-01-25-1999-01-29'
+                self.tfile=1
+                self.dtfile=5*24*3600
+                self.tend=10000
+            elif 'M' in simul:
+                self.his = folder + 'GIGATL3_5d_M_' #1999-01-25-1999-01-29'
+                self.tfile=1
+                self.dtfile=5*24*3600
+                self.tend=10000
+            elif 'uvbot' in simul:
+
+                if 'gigatl3_1h_tides' in simul:
+                    self.his = '/net/omega/local/tmp/1/gula/GIGATL3/uvbot/gigatl3_1h_tides_uvbot.'
+                    self.dtfile=3*3600
+                    self.tfile=40
+                elif 'gigatl3_1h' in simul:
+                    if time < 2330:
+                        self.his = '/net/omega/local/tmp/1/gula/GIGATL3/uvbot/gigatl3_1h_UP5_uvbot.'
+                    else:
+                        self.his = '/net/omega/local/tmp/1/gula/GIGATL3/uvbot/gigatl3_1h_uvbot.'
+                    self.dtfile=12*3600
+                    self.tfile=10
+                    
+                self.model = 'croco'
+                self.digits = 5
+                self.tend=100000
+
+            elif 'horiz' in simul:
+
+                if 'gigatl3_1h_tides' in simul:
+                    self.his = '/net/omega/local/tmp/1/gula/GIGATL3/horizontal_section/gigatl3_1h_tides_horizontal_section.'
+                    self.dtfile=3*3600
+                    self.tfile=40
+                elif 'gigatl3_1h' in simul:
+                    if time < 2330:
+                        self.his = '/net/omega/local/tmp/1/gula/GIGATL3/horizontal_section/gigatl3_1h_UP5_horizontal_section.'
+                    else:
+                        self.his = '/net/omega/local/tmp/1/gula/GIGATL3/horizontal_section/gigatl3_1h_horizontal_section.'
+                    self.dtfile=12*3600
+                    self.tfile=10
+
+                self.model = 'croco'
+                self.digits = 5
+                self.tend=100000               
+ 
+            else:
+                if 'mean' in simul:
+                    self.his = folder + 'GIGATL3_5d_aver_2008-2012.mean'
+                    self.dtfile=1
+                    self.tfile=1
+                    self.digits = 0
+                    self.model = 'croco'
+                else:
+
+                    if 'gigatl3_1h_tides' in simul:
+                        self.his = folder + 'GIGATL3_3h_inst_' #1999-01-25-1999-01-29'
+                        self.dtfile=3*3600
+                        self.tfile=40
+                    elif 'gigatl3_1h' in simul:
+                        self.his = folder + 'GIGATL3_12h_inst_' #1999-01-25-1999-01-29'
+                        self.dtfile=12*3600
+                        self.tfile=10
+                    self.tend=100000
+
+       ##################        
+
+
+        elif 'gigatl6' in simul:
+        
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+
+            #self.realyear_tstart = datetime(2004,1,15)
+            self.realyear_tstart = datetime(1999,1,15)
+
+            self.model = 'croco_xios'
+            self.digits = 0
+
+            if 'ratlbig_GLS_devweek_M3FAST_bulk' in simul:
+                folder_name= 'RATLBIG_GLS_devweek_M3FAST_bulk/'
+            elif 'ratlbig_GLS_devweek_M3FAST' in simul:
+                folder_name= 'RATLBIG_GLS_devweek_M3FAST/'
+            elif 'ratlbig_GLS_devweek' in simul:
+                folder_name= 'RATLBIG_GLS_devweek/'
+            elif 'gigatl6_6h_noCFB' in simul:
+                folder_name= 'GIGATL6_6h_noCFB/'
+            elif 'gigatl6_6h' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_6h/'
+            elif 'gigatl6_1h_GEO' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_1h_GEO/'
+            elif 'gigatl6_1h_UP3_GEO' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_1h_UP3_GEO/'
+            elif 'gigatl6_1h_UP3' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_1h_UP3/'
+            elif 'gigatl6_1h_UP5_GEO5' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_1h_UP5_GEO5/'
+            elif 'gigatl6_1h_tides' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_1h_tides/'
+            elif 'gigatl6_1h' in simul:
+                self.realyear_tstart = datetime(2004,1,15)
+                folder_name= 'GIGATL6_1h/'
+            else:
+                folder_name= 'GIGATL6/'
+
+            try:
+                if 'curie' in os.getenv('HOSTNAME') or 'irene' in os.getenv('HOSTNAME'):
+                    #folder='/ccc/store/cont003/gen12051/gulaj/' + folder_name
+                    folder = '/ccc/scratch/cont003/gen12051/gulaj/GIGATL6/' + folder_name + 'HIS/'
+                    if 'atlbig' not in simul:
+                        self.grd= '/ccc/store/cont003/gen12051/gulaj/GIGATL6/gigatl6_grd.nc'
+                    else:
+                        self.grd= '/ccc/store/cont003/gen12051/gulaj/GIGATL6/ratlbig_grd.nc'
+                else: # 'datarmor' in os.getenv('HOSTNAME'):
+                    folder= '/home/datawork-lops-megatl/GIGATL6/' + folder_name + 'HIS/'
+                    if 'atlbig' not in simul:
+                        self.grd= '/home/datawork-lops-megatl/GIGATL6/gigatl6_grd.nc'
+            except:
+                folder= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL6/' + folder_name
+                if 'atlbig' not in simul:
+                    self.grd= libra +'/gula/ROMS/Simulations/GIGATL/GIGATL6/gigatl6_grd.nc'
+                #folder= '/home/gula/datarmor/megatl/GIGATL6/' + folder_name + 'HIS/'
+                #if 'atlbig' not in simul:
+                #    self.grd= '/home/gula/datarmor/megatl/GIGATL6/gigatl6_grd.nc'
+
+
+
+            if 'surf' in simul:
+                self.his = folder + 'GIGATL6_1h_inst_surf_' #1999-01-25-1999-01-29'
+                self.tfile=120
+                self.dtfile=3600
+                self.tend=100000
+            elif 'mean' in simul:
+                self.his=folder + 'GIGATL6_5d_aver_2002.mean'
+                self.model = 'croco'
+                self.digits = 0
+                self.tfile=1; self.dtfile=1; self.tend=11
+            elif 'hourly' in simul:
+                self.his = folder + 'GIGATL6_1h_avg_3d_' 
+                self.tfile=120
+                self.dtfile=3600
+                self.tend=100000
+            elif 'avg' in simul:
+                if 'vrt' in simul:
+                    self.his = folder + '/GIGATL6_5d_VRT_'
+                elif 'KE' in simul:
+                    self.his = folder + '/GIGATL6_5d_KE_'
+                elif 'uv' in simul:
+                    self.his = folder + '/GIGATL6_5d_M_'
+                elif 'ts' in simul:
+                    self.his = folder + '/GIGATL6_5d_TS_'
+                else:
+                    self.his = folder + 'GIGATL6_5d_aver_' #1999-01-25-1999-01-29'
+                self.tfile=1
+                self.dtfile=5*24*3600
+                self.tend=10000
+            else:
+                self.his = folder + 'GIGATL6_12h_inst_' #1999-01-25-1999-01-29'
+                self.tfile=10
+                self.dtfile=12*3600
+                self.tend=10000
+
+
+        ##################
 
         elif simul=='leewa':
 
             self.model = 'croco'
             self.digits = 5
-            folder= libra +'/gula/ROMS/Simulations/LEEWA/'
-            self.grd=folder + 'leewa_grd.nc'
-            self.his=folder + 'leewa_his.'
+
+            self.tfile=24
+            self.tstart=0
+            self.tend=576
+
+            if os.getenv('HOSTNAME') is None:
+                folder= libra +'/gula/ROMS/Simulations/LEEWA/'
+                self.grd=folder + 'leewa_grd.nc'
+                self.his=folder + 'leewa_avg.'
+            else:
+                folder= '/home/datawork-lops-oh/meddle/cdemarez/STAGE_M2/final_v2/'
+                self.his=folder + 'leewa_avg.'
+                self.grd='/home2/datawork/jgula/Post/LEEWA/leewa_grd.nc'
+
             self.frc=folder + 'leewa_frc.nc'
             self.wind=folder + 'leewa_frc.nc'
-            self.tfile=10
-            self.tstart=0
-            self.tend=3096
-
 
         ##################
 
-        elif 'polgyr' in simul:
-
-            self.realyear = True
-            self.realyear_origin = datetime(1999,1,1)
+        elif simul=='leewa_smoothed':
 
             self.model = 'croco'
             self.digits = 5
 
-            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
-
-            self.his=folder +'polgyr_his.'
-
-            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
-
-            self.frc=folder + '/HIS/polgyr_his.00000.nc'
-            self.wind=folder + '/HIS/polgyr_his.00000.nc'
-
-            self.tfile=20
+            self.tfile=24
             self.tstart=0
-            self.tend=1000
-          
-        elif 'aperoXXX' in simul:
-            
-            self.realyear = True
-            self.realyear_origin = datetime(1999,1,1)
-            self.model = 'croco'
-            self.digits = 5
+            self.tend=576
 
-            folder= '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/' 
-            #folder = '/home/datawork-lops-osi/jgula/POLGYR/HIS_uncompressed/'           
-            self.his=folder +'polgyr_his.'
+            if os.getenv('HOSTNAME') is None:
+                folder= libra +'/gula/ROMS/Simulations/LEEWA/'
+                self.grd=folder + 'leewa_grd.nc'
+                self.his=folder + 'leewa_avg.'
+            else:
+                folder= '/home/datawork-lops-oh/meddle/cdemarez/STAGE_M2/LEEWA_smoothed/final/'
+                self.his=folder + 'leewa_avg.'
+                self.grd='/home2/datawork/jgula/Post/LEEWA/leewa_smoothed_grd.nc'
 
-            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
-            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
 
-            self.frc=folder + '/HIS/polgyr_his.00000.nc'
-            self.wind=folder + '/HIS/polgyr_his.00000.nc'
+            self.frc=folder + 'leewa_frc.nc'
+            self.wind=folder + 'leewa_frc.nc'
 
-            self.tfile = 20
-            self.tstart = 0
-            self.tend = 212    
+        ##################
+
+        elif 'rrexnum100' in simul:
         
-        ######################
-        elif 'POLGYR_xios' in simul:
-            
             self.realyear = True
-            self.realyear_origin = datetime(1999,1,1)
-            self.realyear_tstart = datetime(2003,11,16)
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2008,8,26,12)
+
             self.model = 'croco_xios'
             self.digits = 0
-            folder = '/home2/datawork/jgula/Simulations/POLGYR3h/'
-            self.grd = folder + 'polgyr_grd.nc'
-           
-            if '1h' in simul:
-                if 'avg' in simul:
-                    self.his = folder + 'HIS/POLGYR_1h_avg_3d_' 
-                elif 'inst' in simul:
-                    self.his = folder + 'HIS/POLGYR_1h_inst_'
 
-                self.tfile = 120
-                self.dtfile = 3600
-                self.tstart = 0
-                self.tend = 10000
+            folder= '/home/datawork-lops-rrex/cvic/RREXNUM100'
+            self.grd= '/home/datawork-lops-rrex/jgula/RREXNUM100/rrexnum_grd.nc'
+            #self.grd= folder + '/HIS/@expname@_@freq@_grid.nc'
 
-            elif '3h' in simul:
-                self.his = folder + 'HIS/POLGYR_3h_avg_3d_' 
-                self.tfile = 40
-                self.dtfile = 3 * 3600
-                self.tstart = 0
-                self.tend = 10000
- 
-            elif '6h' in simul:
-                self.his = folder + 'HIS/POLGYR_6h_avg_3d_' 
-                self.tfile = 20
-                self.dtfile = 6 * 3600
-                self.tstart = 0
-                self.tend = 10000
- 
-            elif '12h' in simul:
-                self.his = folder + 'HIS/POLGYR_12h_avg_3d_' 
-                self.tfile = 10
-                self.dtfile = 12 * 3600
-                self.tstart = 0
-
-        ######################
-        elif 'uncompressed' in simul:
-            self.realyear = True
-            self.realyear_origin = datetime(1999,1,1)
-
-            self.model = 'croco'
-            self.digits = 5
-
-            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
-            #folder = '/home/datawork-lops-rrex/jgula/POLGYR/HIS_uncompressed/'      
-            self.his=folder +'polgyr_his.'
-
-            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
-            #self.grd='/home2/datawork/lwang/IDYPOP/Data/ROMS/polgyr_grd.nc'
-
-            self.frc=folder + '/HIS/polgyr_his.00000.nc'
-            self.wind=folder + '/HIS/polgyr_his.00000.nc'
-
-            self.tfile = 20
-            self.tstart = 0
-            self.tend = 184
+            if '1d' in simul:
+                self.his = folder + '/HIS/RREXNUM100_1d_avg_' #1999-01-25-1999-01-29'
+                self.tfile=5
+                self.dtfile=86400
+                self.tend=100000
+            elif '1h' in simul:
+                self.his = folder + '/HIS/RREXNUM100_1h_avg_' #1999-01-25-1999-01-29'
+                self.tfile=24
+                self.dtfile=3600
+                self.tend=100000
 
         ##################
 
-        elif 'styx' in simul:
-
+        elif 'brazil' in simul:
+        
             self.realyear = True
-            self.realyear_origin = datetime(1999,1,1)
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2008,2,23,12)
 
-            self.model = 'croco'
-            self.digits = 5
+            self.model = 'croco_xios'
+            self.digits = 0
 
-            folder= '/postproc/BASIN/APERO_MODEL/POLGYR/'
-
-            self.his=folder +'polgyr_his.'
-
-            self.grd=folder + 'polgyr_grd.nc'
-
-            self.frc=folder + '/HIS/polgyr_his.01000.nc'
-            self.wind=folder + '/HIS/polgyr_his.01000.nc'
-
-            self.tfile=20
-            self.tstart=0
-            self.tend=1000
+            if os.getenv('HOSTNAME') is None:
+                folder= libra +'/gula/ROMS/Simulations/BRAZIL/'
+                self.grd=folder + 'brazil_grd.nc'
+            else:
+                folder= '/home/datawork-lops-osi/jgula/BRAZIL'
+                self.grd= folder + '/INIT/brazil_grd.nc'
 
 
-        elif 'zero_vel' in simul:
-
-            self.realyear = True
-            self.realyear_origin = datetime(1999,1,1)
-
-            self.model = 'croco'
-            self.digits = 5
-
-            folder = '/home/datawork-lops-osi/mlecorre/POLGYR/INIT/'
-            folder_his = '/home2/scratch/jcollin/Pyticles/POLGYR/'
-
-            self.his=folder_his +'polgyr_his.'
-            folder= '/postproc/COLLIN/Polgyr_test/'
-
-            self.his=folder +'polgyr_his.'
-
-            self.grd=folder + 'polgyr_grd.nc'
-
-            self.frc=folder + '/HIS/polgyr_his.01000.nc'
-            self.wind=folder + '/HIS/polgyr_his.01000.nc'
-
-            self.tfile=20
-            self.tstart=0
-            self.tend=1000
+            if 'mean' in simul:
+                self.his = folder + '/BRAZIL_5d_aver_mean'
+                self.digits = 0
+                self.model = 'croco'
+                self.tfile=1; self.dtfile=1; self.tend=1
+            elif 'avg' in simul:
+                self.his = folder + '/HIS2/BRAZIL_5d_aver_'
+                self.tfile=1
+                self.dtfile=432000
+                self.tend=100000
+            else:
+                self.his = folder + '/HIS2/BRAZIL_12h_inst_'
+                self.tfile=10
+                self.dtfile=12*3600
+                self.tend=100000
 
         ##################
-
+        
+        
+        
         else:
 
             print("""
@@ -4190,4 +5037,16 @@ Choices are:
 ###################################################################################
 # end class files
 ###################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
 

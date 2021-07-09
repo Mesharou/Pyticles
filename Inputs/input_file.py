@@ -33,12 +33,46 @@ x_periodic = False
 y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
+
+##############################################################################
+# Particles Dynamics
+##############################################################################
+# 3D advection
+adv3d = False # 3d or 2d
+
+# for 2d advection, there are several options: surface only, any arbitraty 2d surface, vertically integrated velocity fields
+if not adv3d:
+    advsurf = True
+    advzavg = False
+else:
+    advsurf = False
+    advzavg = False
+
+if advzavg:
+    z_thick = 100. # water column thickness to average 2D velocity field around
+                   # Around advdepth
+
+# Else 2D advection using (u,v) interpolated at advdepth 
+if not adv3d:
+    advdepth = -4000.
+    if advsurf:  advdepth = 0
+
+'''
+        NOTE that advdepths is used as follows:
+
+        advdepth <= 0 means depths in meters
+        advdepth = 0 means surface
+        advdepth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
+                             ..., Nz = surface [Nz-1 in netcdf file])
+'''
+
+################################################################################
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1
-start_file = 1004 #3750
-end_file = 1000 #3490
+dfile = 1
+start_file = 17280 #1440
+end_file = 96000 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -63,11 +97,21 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'styx'
+my_simul = 'gigatl6_1h_surf'
+
+##########
+if 'surf' in my_simul or advsurf: 
+    advsurf =True
+    light = True # do not load unnecessary files for a pure surface advection
+else:
+    light = False
+
+#########
+
 # user may add my_simul in Module/R_files.py to indicate roms output path and
 # parameters
-parameters = my_simul + ' [0,10000,0,10000,[1,100,1]] '+ format(start_file)
-simul = load(simul = parameters, floattype=np.float64)
+parameters = my_simul + ' [0,15000,0,15000,[1,300,1]] '+ format(start_file)
+simul = load(simul = parameters, light = light, floattype=np.float64)
 
 ##############################################################################
 # Pyticles numerical schemes (TO BE EDITED)
@@ -79,7 +123,7 @@ timestep = 'RK4' # Choices are
                # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
                # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
 
-nsub_steps = 360 # Number of time steps between 2 roms time steps
+nsub_steps = 10 # Number of time steps between 2 roms time steps
 
 # Spatial interpolation
 # Default is linear
@@ -95,29 +139,9 @@ nadv = 1 # deprecated
 
 
 ##############################################################################
-# Particles Dynamics
-##############################################################################
-# 3D advection
-adv3d = True
-advzavg = False
 
-if advzavg:
-    z_thick = 100. # water column thickness to average 2D velocity field around
-                   # Around advdepth
-# Else 2D advection using (u,v) interpolated at advdepth 
-if not adv3d:
-    advdepth = -1000.
-
-'''
-        NOTE that advdepths is used as follows:
-
-        advdepth <= 0 means depths in meters
-        advdepth = 0 means surface
-        advdepth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
-                             ..., Nz = surface [Nz-1 in netcdf file])
-'''
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = True
+sedimentation = False
 sedimentation_only = False
 w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
 
@@ -141,6 +165,10 @@ write_topo = True
 if advzavg: 
     write_topo = True # Needed to keep track when water column intersects with
                       # bathymetry (topo > |advdepth| - z_thick/2)
+
+if light: 
+    write_topo = False
+
 write_uv = False
 write_ts = False
 write_uvw = True
@@ -151,18 +179,20 @@ cartesian = True
 if write_uvw:
     write_uv = False
 
+if adv3d and write_uv:
+    write_uv = False
+    write_uvw = True    
+    
 #Write only Temperature (for simulations with no S)
 write_t = False
 
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'bwd_2h_hotfix'
+config = 'test01_gigatl'
 
-#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/exp10_renew/2d/backward/'
-folderout = '/home2/datawork/jcollin/Pyticles/debug_w_interp/'
-#folderout = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/'
-folderout = '/scratch/Jcollin/Pyticles/pw_interp/'
+
+folderout = './out/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -189,14 +219,13 @@ nx += 2*ng; ny += 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
 k0 = 0
-mask = simul.mask
-maskrho = np.copy(mask)
+maskrho = simul.mask
 maskrho[np.isnan(maskrho)] = 0.
 nsub_x, nsub_y = 1,1 #subtiling, will be updated later automatically
 
-if not adv3d: maskrho[simul.topo<-advdepth] = 0.
+if not adv3d and not advsurf: maskrho[simul.topo<-advdepth] = 0.
 
-topo = simul.topo
+if adv3d: advtopo = simul.topo
 filetime = simul.filetime
 timerange = np.round(np.arange(start_file, end_file + dfile, dfile),3)
 #for timing purpose
@@ -212,7 +241,7 @@ subtstep = np.int(nsub_steps * np.abs(dfile))
 ################################################################################
 
 #Initial Particle release
-nqmx = 1000000 # maximum number of particles
+nqmx = 100000000 # maximum number of particles
 maxvel0 = 5    # Expected maximum velocity (will be updated after the first time step)
 
 ###########
@@ -226,25 +255,31 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
 #y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
 #[ic,jc] = [x_ic,y_jc]
 #[ic,jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
-[ic, jc] = [500, 700]
-#[ic,jc] = [1418,467] # sw site
+
+#lon_center, lat_center = -60, 25 # See Brachetal18
+#ic,jc = part.find_nearest(simul.x,simul.y,lon_center, lat_center)
+
+[ic, jc] = [900, 1100]
+print('ic,jc is ',ic,jc)
+
 barycentric = False  # Automatically modifies patch's center to previsously seeded
                      # Particles After being advected over one time step 
     
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-preserved_meter = True
+preserved_meter = False
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 20 # number of intervals in x-dir
-    ny_box = 10      
+    nx_box = 2 # number of intervals in x-dir
+    ny_box = 2      
     nnlev = 1  
 else:
-    dx_m = 2000. # distance between 2 particles [in m]
-    dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
-    iwd  = 10 * dx0 # half width of seeding patch [in grid points
-    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
+    #dx_m = 1000. # distance between 2 particles [in m]
+    #dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
+    dx0 = 1
+    iwd  = 900 * dx0 # half width of seeding patch [in grid points
+    jwd  = 1100 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
     nnx = 1 * dx0
     nny = 1 * dx0
@@ -268,8 +303,12 @@ else:
 # Therefore if ini_cond = True: initial_depth = False
 
 initial_cond = False # 1036 in Pyticles.py
-initial_depth = True
-initial_surf = False
+initial_depth = False
+initial_iso = False
+
+if advsurf:
+    initial_iso = False
+    initial_depth = False
 
 # start from a Pyticles netcdf file, with forward advection
 # runs backward 3D advection from here
@@ -294,13 +333,12 @@ if continuous_injection:
 # NOT TO BE EDITED
 #########################################
 # bottom to top vertical levels in sigma coordinate
-lev0 = 0
+lev0 = len(depths)
 lev1 = len(depths)
 
 ##########
 # 2D advection at advdepth 
 if not adv3d:
-    initial_depth = True
     lev0 = -1
     lev1 = lev0
     depths0 = [advdepth]

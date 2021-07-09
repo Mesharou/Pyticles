@@ -58,8 +58,8 @@ nprocs : numbers of processors
 !       barycentric = True in input_file
 ! 2019-04-24 [jeremy collin]:
 !     - add possibilty to release particles on isopycanl surface
-!       More generally any iso-surface since varaible is defined at-rho points
-!       initial_surf = True in input_file
+!       More generally any iso-surface since variable is defined at-rho points
+!       initial_iso = True in input_file
 !       USER have to define rho-matrix for surface in Pyticles.py (for now...)
 ! 2019-04-15 [jeremy collin]:
 !     - add input_file: contains all Pyticles parameters
@@ -141,7 +141,11 @@ from netCDF4 import Dataset
 
 # Specific modules needed for pyticles
 # add the Modules folder in your python PATH
-# sys.path.remove("/home2/datahome/jgula/Python_Modules") #just for JG
+try:
+    sys.path.remove("/home2/datahome/jgula/Python_Modules_p3") #just for JG
+except:
+    pass
+
 sys.path.append("./Modules/") 
 sys.path.append("./Inputs/")
 
@@ -185,6 +189,9 @@ print('-----------------------------------')
 # THE FOLLOWING SHOULD NOT BE EDITED BY USER
 ################################################################################
 ################################################################################
+
+time=0 #useful only for plot before timeloop starts
+
 # PRINTING SIMULATION PARAMETERS
 print('=' * 60)
 print(f'MEANFLOW : {meanflow} ')
@@ -197,7 +204,7 @@ if not adv3d: print(f' advdepth: {advdepth}')
 if advzavg: print(f'z_thick : {z_thick}')
 if sedimentation: print(f'w_sed0 : {w_sed0} (m/s)')
 print(f'initial_cond : {initial_cond}')
-if initial_surf: print(f'initial surface :  {rho0}')
+if initial_iso: print(f'initial surface :  {rho0}')
 if initial_depth: print(f'initial depth :  {depths0}')
 
 
@@ -252,9 +259,13 @@ if not restart:
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
     if preserved_meter:
-        z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
-                    nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
-                    simul=simul, ng=ng)
+        z, y, x = seeding_part.seed_meter_sphere(\
+                  lev0=lev0, lev1=lev1,nnlev=nnlev,\
+                  dx_box=dx_box,box_coords=box_coords,\
+                  simul=simul, ng=ng)
+        #z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
+        #            nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+        #            simul=simul, ng=ng)
     else:
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                 lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
@@ -262,7 +273,7 @@ if not restart:
 
     ##############################
     # isosurface
-    if initial_surf:
+    if initial_iso:
         lev1 = len(rho0) - 1
 
     ##############################
@@ -276,7 +287,7 @@ if not restart:
     ##############################
     # Release particles on iso-surfaces of a variable
     # Typically isopycnals
-    if initial_surf:
+    if initial_iso:
         [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
                                       y_periodic = y_periodic, ng=ng)
         [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
@@ -321,7 +332,7 @@ if not restart:
     elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick/2])
 
     # initializing px0, py0, pz0
-    if initial_cond:
+    if initial_cond and adv3d:
         # only true for variables at rho-points
         # maybe not safe nor useful to use i0, j0 ,k0 especially if only load
         # the subdomain for cond (see above)
@@ -353,7 +364,7 @@ if not restart:
         pcond = (prho1 > rho_min) & (prho1 < rho_max)
         #########################
         # Remove particles that do not match condition
-        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=ng, pcond=pcond)
+        ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y, z, px0, py0, pz0, nq, ng=ng, pcond=pcond)
     
     elif part_trap:
         '''
@@ -374,8 +385,10 @@ if not restart:
         '''
         Returns px0.... not in args
         '''
-        
-        ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=ng)
+        if advsurf:
+            ipmx = seeding_part.remove_mask_surf(simul, maskrho, x, y, px0, py0, nq, ng=ng)
+        else:
+            ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y, z, px0, py0, pz0, nq, ng=ng)
 
     del x, y, z
     # Else we need the grid box to compute px0, py0, pz0 at each injection time
@@ -409,17 +422,18 @@ if not restart:
     
     px = shared_array(nq,prec='double')
     py = shared_array(nq,prec='double')
-    pz = shared_array(nq,prec='double')
+    if adv3d: pz = shared_array(nq,prec='double')
     if continuous_injection:
         if part_trap: nq_1 = nq_1save
         px[:nq_1] = px0
         py[:nq_1] = py0
-        pz[:nq_1] = pz0
+        if adv3d: pz[:nq_1] = pz0
     else: 
         px[:] = px0
         py[:] = py0
-        pz[:] = pz0
-        del px0,py0,pz0
+        if adv3d: pz[:] = pz0
+        del px0,py0
+        if adv3d: del pz0
 
     ############################################################################
 else: # restart = True
@@ -431,37 +445,39 @@ else: # restart = True
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time, :]
         py0 = nc.variables['py'][restart_time, :]
-        pz0 = nc.variables['pz'][restart_time, :]
+        if adv3d: pz0 = nc.variables['pz'][restart_time, :]
         nc.close()
 
         nq = len(px0)
         
         px = shared_array(nq,prec='double')
         py = shared_array(nq,prec='double')
-        pz = shared_array(nq,prec='double')
+        if adv3d: pz = shared_array(nq,prec='double')
 
         px[:]=px0
         py[:]=py0
-        pz[:]=pz0
-        del px0, py0, pz0
+        if adv3d: pz[:]=pz0
+        del px0, py0
+        if adv3d: del pz0
         
     else:
         # load px,py,pz from restart_file
         nc = Dataset(restart_file, 'r')
         px0 = nc.variables['px'][restart_time, :]
         py0 = nc.variables['py'][restart_time, :]
-        pz0 = nc.variables['pz'][restart_time, :]
+        if adv3d: pz0 = nc.variables['pz'][restart_time, :]
 
         nq = len(px0)
         
         px = shared_array(nq,prec='double')
         py = shared_array(nq,prec='double')
-        pz = shared_array(nq,prec='double')
+        if adv3d: pz = shared_array(nq,prec='double')
 
         px[:]=px0
         py[:]=py0
-        pz[:]=pz0
-        del px0,py0,pz0
+        del px0,py0
+
+        if adv3d: pz[:]=pz0; del pz0
 
         ##################################
         # determine px0,py0,pz0,nq_injection
@@ -471,7 +487,7 @@ else: # restart = True
 
         px0 = np.array(nc.variables['px'][0, :nq_injection])
         py0 = np.array(nc.variables['py'][0, :nq_injection])
-        pz0 = np.array(nc.variables['pz'][0, :nq_injection])
+        if adv3d: pz0 = np.array(nc.variables['pz'][0, :nq_injection])
         nc.close()
         
         nq_1 = np.nanmin([nq_injection*((restart_time)//dt_injection+1),nqmx])
@@ -511,7 +527,7 @@ if timestep[:2]=='AB':
     ab_order = np.int(timestep[-1])
     dpx = shared_array(nq,ab_order,prec='double')
     dpy = shared_array(nq,ab_order,prec='double')
-    dpz = shared_array(nq,ab_order,prec='double')
+    if adv3d: dpz = shared_array(nq,ab_order,prec='double')
     iab = shared_array(ab_order,prec='int',value=0)
     iab[:]=range(ab_order) # init values of iab
 
@@ -626,44 +642,46 @@ def plot_rect(rect, line='k'):
 ################################################################################
 
 
-def plot_selection(alldomain=True):
+def plot_selection(alldomain=False):
 
-    plt.figure()  
+    plt.figure(figsize=(6.0,4.0))  
     ax1 = plt.subplot(1,1,1)
 
     nc = Dataset(simul.ncfile, 'r')
     if alldomain:
-        if adv3d or advdepth==0:
-            sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,-1,:,:]))
+        if adv3d or advdepth==0 or advsurf:
+            if 'surf' in simul.simul:
+                sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,:,:]))
+            else:
+                sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,-1,:,:]))
         else:
             [z_r,z_w] = part.get_depths(simul)
             temp =  simul.Forder(np.squeeze(nc.variables['temp'][simul.infiletime,:,:,:]))
             sst = part.vinterp(temp, [advdepth], z_r,z_w)[:,:,0]
-            sst[sst==0.] = np.nan
-        sst *= simul.mask
-        topo = simul.topo
+        if not light: topo = simul.topo
     else:
-        [ny1,ny2,nx1,nx2] = np.array(coord)-ng
+        [ny1,ny2,nx1,nx2] = np.array(coord) #-ng
 
-        if adv3d or advdepth==0:
-            sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,
-                                                           -1,ny1:ny2,nx1:nx2]))
+        if adv3d or advdepth==0 or advsurf:
+            if 'surf' in simul.simul:
+                sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,ny1:ny2,nx1:nx2]))
+            else:
+                sst = np.squeeze(simul.Forder(nc.variables['temp'][simul.infiletime,-1,ny1:ny2,nx1:nx2]))
         else:
             [z_r,z_w] = part.get_depths(simul,coord=[ny1,ny2,nx1,nx2])
-            temp =  simul.Forder(np.squeeze(nc.variables['temp'][simul.infiletime,
-                                                              :,ny1:ny2,nx1:nx2]))
+            temp =  simul.Forder(np.squeeze(nc.variables['temp'][simul.infiletime,:,ny1:ny2,nx1:nx2]))
             sst = part.vinterp(temp, [advdepth], z_r,z_w)[:,:,0]
-            sst[sst==0.] = np.nan
-        sst *= simul.mask[nx1:nx2,ny1:ny2]
-        topo = simul.topo[nx1:nx2,ny1:ny2]
+
+        if not light: topo = simul.topo[nx1:nx2,ny1:ny2]
     nc.close()
 
-    sst[sst<0] = 0.
+    #sst[sst<=0] = np.nan
+
     #plt.imshow(sst[:,::1].T); plt.colorbar(shrink=0.25);
     plt.pcolormesh(ma.masked_invalid(sst[:,:].T),cmap='jet',rasterized=True);
     plt.colorbar(shrink=0.25);
 
-    if not adv3d and advdepth<-topo.min():
+    if not advsurf and not adv3d:
         plt.contourf(topo.T,[0,-advdepth],
                      cmap = col.LinearSegmentedColormap.from_list('my_colormap',
                                                       ['white','lightgray'],256))
@@ -700,7 +718,7 @@ def plot_selection(alldomain=True):
 
 ################################################################################
 
-def plot_selection_sub(alldomain=True):
+def plot_selection_sub(alldomain=False):
     
     nc = Dataset(simul.ncfile, 'r', format='NETCDF3_CLASSIC')
     if alldomain:
@@ -983,11 +1001,11 @@ for time in timerange:
         ipmx = 0
         px0 = []
         py0 = []
-        pz0 = []
+        if adv3d: pz0 = []
         ##############################
         # Release particles on iso-surfaces of a variable
         # Typically isopycnals
-        if initial_surf:
+        if initial_iso:
             [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
                                     y_periodic = y_periodic, ng=ng, coord=coord)
             [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
@@ -1022,7 +1040,7 @@ for time in timerange:
             ini_cond = (temp > 14.) & (temp < 16.)
             pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
                                     ini_cond, ng, nq, i0, j0, k0)
-            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
+            ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng, pcond=pcond)
         if part_trap:
             '''
@@ -1040,9 +1058,12 @@ for time in timerange:
             ipmx = nq_1save
 
         else:    
-            ipmx = seeding_part.remove_mask(simul, topolim, x, y, z, px0, py0,
+            if adv3d:
+                ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y, z, px0, py0,
                                             pz0, nq, ng=ng)
-
+            else:
+                ipmx = seeding_part.remove_mask_surf(simul, maskrho, x, y, px0, py0,
+                                             nq, ng=ng)
         del x, y, z
         
         ####################################################################

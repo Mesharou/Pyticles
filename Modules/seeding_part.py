@@ -11,6 +11,7 @@
 
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.interpolate import griddata
 import pyticles_sig_sa as part
 from copy import copy
 from netCDF4 import Dataset
@@ -193,6 +194,99 @@ def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
     return z, y, x
     
     
+    
+##############################################################################
+
+def particles_on_a_sphere(d, lonmin=-180,lonmax=180,latmin=-90,latmax = -90):
+    '''
+    gives lon,lat position for particles on a sphere
+    with a distance of d [ in meters ] between particles
+    '''
+    
+    #earth radius [in m]
+    r = 6371e3
+
+    #####
+    # initialization
+    i = 0
+    plon,plat = [],[]
+    
+    #####
+    Mtheta = np.int(np.pi * r / d)
+    dtheta = np.pi * r / Mtheta
+    dphi = d**2 / dtheta
+
+    for m in range(Mtheta):
+        theta = np.pi * (m + 0.5) / Mtheta
+        Mphi = np.int( 2 * np.pi * r * np.sin(theta) / dtheta)
+
+        for n in range(Mphi):
+            phi = 2 * np.pi * n / Mphi
+            ####
+            plon_tmp = phi * 180 / np.pi - 180.
+            plat_tmp = theta * 180 / np.pi - 90.
+            
+            if lonmax>plon_tmp>lonmin and latmax>plat_tmp>latmin:
+                plon.append(plon_tmp)
+                plat.append(plat_tmp)
+
+            ####
+            i +=1
+
+    return plon,plat
+
+    
+##############################################################################
+def seed_meter_sphere(lev0=0, lev1=1, nnlev=1,\
+                     dx_box=2000,\
+                     box_coords = [-180,180,-90,90],\
+                     simul=None, ng=1, debug=False):
+    '''
+
+    Seeding particles with (approximate) constant distance on a spherical grid:
+
+    returns z, y, x
+    
+    parameters:
+    ic, jc : center location (floats or int)
+    lev0, lev1 : first and final vertical levels (ints)
+    nnlev : seeding vertical density (int)
+    dx_box (meters):  particle's spacing in meters
+    
+    '''
+    
+    # define the domain
+    [lonmin,lonmax,latmin,latmax] = box_coords
+    
+    lonmin = np.min([lonmin,simul.x.min()])
+    lonmax = np.min([lonmax,simul.x.max()])
+    latmin = np.min([latmin,simul.y.min()])
+    latmax = np.min([latmax,simul.y.max()])
+    
+    # define particles positions on lat/lon
+    plon,plat = particles_on_a_sphere(d=dx_box,\
+                                  lonmin=simul.x.min(),lonmax=simul.x.max(),\
+                                  latmin=simul.y.min(),latmax=simul.y.max())
+
+    # project on grid indices
+    y,x = np.meshgrid(range(simul.x.shape[1]),range(simul.x.shape[0]))
+    px = griddata((simul.x.ravel(),simul.y.ravel()), x.ravel(), (plon,plat), method='linear')
+    py = griddata((simul.x.ravel(),simul.y.ravel()), y.ravel(), (plon,plat), method='linear')
+
+    #remove particles outside domain
+    py = py[np.isfinite(px)]; px = px[np.isfinite(px)]
+    px = px[np.isfinite(py)]; py = py[np.isfinite(py)]
+    py = py[np.logical_and(simul.x.shape[0]-1>px , px>0)]
+    px = px[np.logical_and(simul.x.shape[0]-1>px , px>0)]
+    px = px[np.logical_and(simul.x.shape[1]-1>py , py>0)]
+    py = py[np.logical_and(simul.x.shape[1]-1>py , py>0)]
+    
+    z, x = np.meshgrid(range(lev0,lev1+1,nnlev), px)
+    z, y = np.meshgrid(range(lev0,lev1+1,nnlev), py)
+    
+    return z, y, x
+    
+
 ##############################################################################
 
 def ini_surf(simul, rho0, x, y, z, rho, ng=0):
@@ -365,7 +459,7 @@ def ini_trap(trap_file, simul, maskrho, itime_fwd=0, x_periodic=False,
     return nq_1save, ipmx, px0, py0, pz0
 ##############################################################################
 
-def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
+def remove_mask(simul,maskrho, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                 pcond=np.array(False)):
     '''
     Remove particles found in land mask and particles below sea-floor if ADV2D
@@ -382,9 +476,6 @@ def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
     
     eps = 1e-8
 
-    mask = simul.mask
-    maskrho = copy(mask)
-    maskrho[np.isnan(maskrho)] = 0.
     ptopo = part.map_topo(simul,x.reshape(-1),y.reshape(-1))
     pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1)) + eps
     
@@ -422,6 +513,40 @@ def remove_mask(simul, topolim, x, y, z, px0, py0, pz0, nq, ng=0,
                     print(f'ptopo[ip] {ptopo[ip]}')
                     print(f'pmask[ip] {pmask[ip]}')
     return ipcount
+
+
+##############################################################################
+
+def remove_mask_surf(simul,maskrho, x, y, px0, py0, nq, ng=0,
+                pcond=np.array(False)):
+    '''
+    Remove particles found in land mask
+    '''
+    
+    eps = 1e-8
+    pmask = part.map_var2d(simul,maskrho,x.reshape(-1),y.reshape(-1)) + eps
+
+    ipcount = 0
+    if pcond.any():
+
+         for ip in range(len(x.reshape(-1))):
+            if (pmask[ip]>=1.) and (ipcount<nq)\
+            and (pcond[ip]==1.):
+                px0.append(x.reshape(-1)[ip])
+                py0.append(y.reshape(-1)[ip])
+
+                ipcount +=1
+    else:
+
+        for ip in range(len(x.reshape(-1))):
+            if (pmask[ip]>=1.) and (ipcount<nq):
+                px0.append(x.reshape(-1)[ip])
+                py0.append(y.reshape(-1)[ip])
+                ipcount +=1
+
+    return ipcount
+
+
 
 ##############################################################################
 #def from_nc(ncname, itime)

@@ -28,9 +28,9 @@ from netCDF4 import Dataset
 import multiprocessing as mp; import ctypes   
 
 #add the Modules folder in your python PATH
-sys.path.remove("/home2/datahome/jgula/Python_Modules")
+sys.path.remove("/home2/datahome/jgula/Python_Modules_p3")
 sys.path.append("../Modules/")
-sys.path.append("/home2/datahome/jgula/Python_Modules")
+#sys.path.append("/home2/datahome/jgula/Python_Modules")
 #try:
 #    sys.path.remove("/home/gula/Desktop/Work_capella/Python/Python_Modules")
     #sys.path.remove("/home2/datahome/jgula/Python_Modules")

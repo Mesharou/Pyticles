@@ -1,9 +1,8 @@
 #!/bin/bash
 #PBS -q omp
-#PBS -l ncpus=8
-#PBS -l mem=20g
-#PBS -l walltime=00:30:00
-#PBS -o /home2/datahome/jcollin/Pyticles/1h_1h.log
+#PBS -l ncpus=28
+#PBS -l mem=50g
+#PBS -l walltime=24:00:00
 #  COMMENT
 #  Tina ODAKA 06.03.2017
 #  example for using datarmor with 'queue omp' in a personalised way
@@ -24,12 +23,14 @@ source /usr/share/Modules/3.2.10/init/bash
 module load conda/latest
 
 #cd /appli/anaconda/2.7/bin
-source activate /home2/datahome/jcollin/conda-env/my_conda
+source activate /home2/datahome/jgula/conda-env/pyticles
 
 echo $LD_LIBRARY_PATH
 cd $PBS_O_WORKDIR
 
 echo "you use " $OMP_NUM_THREADS "threads for your omp jobs"
 date
-python Pyticles.py $OMP_NUM_THREADS 
+
+python Pyticles.py $OMP_NUM_THREADS >& log_pyticles
+
 date

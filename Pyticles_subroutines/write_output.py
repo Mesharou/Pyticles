@@ -21,7 +21,7 @@ if not os.path.isfile(newfile):
         nc.nx_box = nx_box
         nc.ny_box = ny_box
     else:
-        nc.dx_m = dx_m
+        nc.dx0 = dx0
         nc.iwd = iwd
         nc.jwd = jwd
         nc.nnx = nnx
@@ -92,9 +92,9 @@ try:
         tcf = time - np.ceil(time)
    
     nc.variables['ocean_time'][itime]= simul.oceantime + tcf * simul.dt
-except :
+except:
     print('no simul.oceantime')
-    nc.variables['ocean_time'][itime]= np.nan  
+    nc.variables['ocean_time'][itime]= time * delt
 
 #JC write_out
 nc.w_sed0 = w_sed0
@@ -113,7 +113,7 @@ if preserved_meter:
     nc.nx_box = nx_box
     nc.ny_box = ny_box
 else:
-    nc.dx_m = dx_m
+    nc.dx0 = dx0
     nc.iwd = iwd
     nc.jwd = jwd
     nc.nnx = nnx
