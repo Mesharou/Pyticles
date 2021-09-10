@@ -1,20 +1,74 @@
-
+# Create or open file
 if not os.path.isfile(newfile):
 # If file doesn't exist: Create it.
 
+    # Create file
     nc = Dataset(newfile, 'w', format = 'NETCDF4')
 
-    #JC write_out
+    # Write attributes
     nc.w_sed0 = w_sed0
+    if not adv3d: nc.depth =  advdepth
 
     if meanflow: nc.meanflow = 1
     else: nc.meanflow = 0
     if initial_depth: nc.initial_depth = 1
     else: nc.initial_depth = 0
-    
+
     nc.dfile = dfile
 
+    # particles seeding
+    if preserved_meter:
+        nc.dx_box = dx_box
+        nc.nx_box = nx_box
+        nc.ny_box = ny_box
+    else:
+        nc.dx0 = dx0
+        nc.iwd = iwd
+        nc.jwd = jwd
+        nc.nnx = nnx
+        nc.nny = nny 
+        try:
+            nc.dx_m = dx_m
+        except:pass 
+    nc.nqmx = nqmx
+    nc.nnlev = nnlev
+    nc.depths0 = depths0
+
+    nc.description = 'particles tracking'
+    nc.simulation = parameters
+    nc.sub =  subtstep
+    nc.base =  0
+    nc.ng =  ng
+    if x_periodic: nc.x_periodic =  1
+    else: nc.x_periodic =  0
+    if y_periodic: nc.y_periodic =  1
+    else: nc.y_periodic =  0
+
+    # Options
+    nc.restart = int(restart)
+    nc.dfile = dfile
+    nc.write_uv = int(write_uv)
+    nc.adv3d = int(adv3d)
+    nc.write_lonlat = int(write_lonlat)
+    nc.write_depth = int(write_depth)
+    nc.write_topo = int(write_topo)
+    nc.write_t = int(write_t)
+    nc.write_ts = int(write_ts)
+    nc.initial_cond = int(initial_cond)
+    nc.initial_depth = int(initial_depth)
+    nc.meanflow = int(meanflow)
+    nc.x_periodic = int(x_periodic)
+    nc.y_periodic = int(y_periodic)
+    nc.timestep = timestep
+    nc.sedimentation = int(sedimentation)
+    if continuous_injection : nc.dt_injection = dt_injection
+
     # particles seeding 
+    nc.ic = ic
+    nc.jc = jc
+    nc.lev0 = lev0
+    nc.lev1 = lev1
+
     nc.nqmx = nqmx
     if preserved_meter:
         nc.dx_box = dx_box
@@ -28,14 +82,6 @@ if not os.path.isfile(newfile):
         nc.nny = nny
     nc.nnlev = nnlev
     nc.depth0 = depths0
-
-    nc.description = 'particles tracking'
-    nc.simulation = parameters
-    nc.nsub_steps = nsub_steps 
-    nc.base =  0
-    nc.ng =  ng
-
-    if not adv3d: nc.depth =  advdepth
 
     #Dimensions
     nc.createDimension('time', None) 
@@ -65,6 +111,7 @@ if not os.path.isfile(newfile):
     if write_topo:    
         nc.createVariable('ptopo','d',('time','nq',))
 
+
     if write_uv:
         nc.createVariable('pu','d',('time','nq',))
         nc.createVariable('pv','d',('time','nq',))
@@ -78,58 +125,25 @@ if not os.path.isfile(newfile):
     #nc.createVariable('psalt','d',('time','nq',))
     #nc.createVariable('prho1','d',('time','nq',))
 
+
 else:
     # If file existes: Open it.
     nc = Dataset(newfile, 'a')
 
+
 #########################################################
-    
 # Write Variables into file
 try:
     if  dfile > 0:
         tcf = time - np.floor(time)
     else:
         tcf = time - np.ceil(time)
-   
-    nc.variables['ocean_time'][itime]= simul.oceantime + tcf * simul.dt
+    
+    nc.variables['ocean_time'][itime]= simul.oceantime + tcf * simul.dt 
+
 except:
     print('no simul.oceantime')
     nc.variables['ocean_time'][itime]= time * delt
-
-#JC write_out
-nc.w_sed0 = w_sed0
-
-if meanflow: nc.meanflow = 1
-else: nc.meanflow = 0
-if initial_depth: nc.initial_depth = 1
-else: nc.initial_depth = 0
-
-nc.dfile = dfile
-
-# particles seeding 
-nc.nqmx = nqmx
-if preserved_meter:
-    nc.dx_box = dx_box
-    nc.nx_box = nx_box
-    nc.ny_box = ny_box
-else:
-    nc.dx0 = dx0
-    nc.iwd = iwd
-    nc.jwd = jwd
-    nc.nnx = nnx
-    nc.nny = nny
-nc.nnlev = nnlev
-nc.depth0 = depths0
-
-nc.description = 'particles tracking'
-nc.simulation = parameters
-nc.nsub_steps = nsub_steps
-nc.base =  0
-nc.ng =  ng
-if x_periodic: nc.x_periodic =  1
-else: nc.x_periodic =  0
-if y_periodic: nc.y_periodic =  1
-else: nc.y_periodic =  0
 
 nc.variables['time'][itime] = time
 nc.variables['px'][itime, :] = px
@@ -160,30 +174,6 @@ if write_uvw:
     nc.variables['pu'][itime, :] = pu
     nc.variables['pv'][itime, :] = pv
     nc.variables['pw'][itime, :] = pw
-#Some parameters
-
-nc.w_sed0 = w_sed0
-
-# Options
-nc.restart = int(restart)
-nc.dfile = dfile
-nc.write_uv = int(write_uv)
-nc.adv3d = int(adv3d)
-nc.write_lonlat = int(write_lonlat)
-nc.write_depth = int(write_depth)
-nc.write_topo = int(write_topo)
-nc.write_t = int(write_t)
-nc.write_ts = int(write_ts)
-nc.initial_cond = int(initial_cond)
-nc.initial_depth = int(initial_depth)
-nc.meanflow = int(meanflow)
-nc.x_periodic = int(x_periodic)
-nc.y_periodic = int(y_periodic)
-nc.timestep = timestep
-nc.sedimentation = int(sedimentation)
-nc.cartesian = int(cartesian)
-
-if continuous_injection : nc.dt_injection = dt_injection
 
 # Close netcdf file
 nc.close()
