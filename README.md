@@ -7,7 +7,7 @@ Pyticles is a Python/Fortran hybrid parallelized code for Lagrangian particles 3
 
 
 
-![image info](./Figures/2d_Advection.png)
+![image info](./Figures/2d_advection.png)
 
 
 ## Publications using the Pyticles code
