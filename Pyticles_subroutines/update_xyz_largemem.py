@@ -291,10 +291,14 @@ def advance_3d(subrange,out,step):
         #Remove particles exiting the domain:
         [px_F,py_F,pz_F] = part.cull(px_F, py_F, pz_F, nx, ny, nz,
                            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
-        
+                           
+        #Remove particles below/above (below=True/False) a certain sigma level (klim):
+        [px_F,py_F,pz_F] = part.remove_depth(px_F, py_F, pz_F,klim,below=below)
+                           
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F,nz)
 
+        
         subtime += dt
         
         #print 'debug px', it,np.nanmin(px_F),np.nanmax(px_F)

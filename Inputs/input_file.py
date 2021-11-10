@@ -152,6 +152,13 @@ if not adv3d:
     sedimentation = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
 
+#Remove particles below/above (below=True/False) a certain sigma level (klim):
+remove = True
+if sedimentation and remove:
+    below = False
+    nz = len(simul.coord[4])
+    klim = nz - 10
+
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################

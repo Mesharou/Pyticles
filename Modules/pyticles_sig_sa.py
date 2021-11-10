@@ -136,7 +136,26 @@ def kick(pz,nz):
 
 
     return [pz]
+
+
+###################################################################################
+
    
+#@profile
+def remove_depth(px,py,pz,klim,below=False):
+    """ Remove particles below/above a sigma-level  """
+
+    if below:
+        pz[pz<=klim] = np.nan
+    else:
+        pz[pz>=klim] = np.nan
+
+    py[np.isnan(pz)] = np.nan
+    px[np.isnan(pz)] = np.nan
+
+    return [px,py,pz]
+   
+
 ###################################################################################
   
 #@profile   
