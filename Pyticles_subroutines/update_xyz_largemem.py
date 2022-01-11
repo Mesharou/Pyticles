@@ -201,6 +201,7 @@ def advance_3d(subrange,out,step):
     global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, \
     j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim, debug_time
     
+    from input_file import remove
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,dpz,iab
          
@@ -293,7 +294,8 @@ def advance_3d(subrange,out,step):
                            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
                            
         #Remove particles below/above (below=True/False) a certain sigma level (klim):
-        [px_F,py_F,pz_F] = part.remove_depth(px_F, py_F, pz_F,klim,below=below)
+        if remove:
+            [px_F,py_F,pz_F] = part.remove_depth(px_F, py_F, pz_F,klim,below=below)
                            
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F,nz)
