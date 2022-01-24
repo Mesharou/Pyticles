@@ -509,7 +509,7 @@ else: # restart = True
 #else:
 
 delt = shared_array(2, value = simul.dt * dfile) 
-maxvel = shared_array(2, prec='double', value=maxvel0)
+maxvel = shared_array(3, prec='double', value=maxvel0)
 
 # Total number of time steps:
 #istep = shared_array(1,prec='int',value=-1)

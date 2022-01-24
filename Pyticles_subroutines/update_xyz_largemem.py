@@ -2,18 +2,20 @@
 ###################################################################################
 #Read velocities
 ###################################################################################
+# variables for CFL condition
+from input_file import inline_cfl, umax, vmax, wmax, dzmin, cmax
+
 
 debug_time = False
 
 if sedimentation or sedimentation_only: 
     #w_sed0= -25 not supposed to be defined here but in pyticles
     w_sed = w_sed0/(3600.*24.)
-    print(' ')
-    print(' ===========> Vitesse de sedimentation :')
-    print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
-    print(' ')
+    #print(' ')
+    #print(' ===========> Vitesse de sedimentation :')
+    #print((' w(m/d), w(m/sec) = ',w_sed0, w_sed))
+    #print(' ')
 
-timing = False #timing for this subroutine
 timing = True #timing for this subroutine
 
 tstart = tm.time()  
@@ -44,7 +46,7 @@ tstart = tm.time()
 ###################################################################################
 # LOADING ROMS FIELD
 ###################################################################################
-subtiming = False
+subtiming = True
 
 # Total number of time steps:
 istep = shared_array(1,prec='int',value=-1)
@@ -169,25 +171,29 @@ if subtiming: tstart = tm.time()
 ################################################################################### 
 # Compute maxvel
 
+if subtiming: tstart = tm.time()
 maxvel[0] = np.nanmax(np.abs(u))*1.5
 maxvel[1] = np.nanmax(np.abs(v))*1.5
-
+maxvel[2] = np.nanmax(np.abs(w))*1.5 
 print(('maxvel is', maxvel))
+if subtiming: print(('Computing maxvel.............', tm.time()-tstart))
 
 ###################################################################################
-
-if timing: print('    ')
-if timing: print(('Computing velocity.............', tm.time()-tstart))
-if timing: tstart = tm.time()
-
-########################
-
-# Integrate in time to the next frame
-#if 'POLGYR_xios_6h' in simul.simul:
-#    if not meanflow: delt[0] = simul.ncname.dtfile * np.sign(dfile) 
-#else:
+# set subtime step betwwen two ROMS frames for integration
 if not meanflow: delt[0] = simul.dt * np.sign(dfile)
+if inline_cfl:
+    if umax is None:
+       umax = maxvel[0]
+    if vmax is None:
+       vmax = maxvel[1]
+    if wmax is None:
+       wmax = maxvel[2]
+    
+    nsub_steps = part.get_nsub_steps(simul=simul, cmax=cmax, umax=umax, vmax=vmax,
+                                     wmax=wmax, dzmin=dzmin, coord=subcoord)
+    subtstep = np.int(nsub_steps * np.abs(dfile))
 
+print(f"--> nsub_steps {nsub_steps}")
 dt = delt[0] / nsub_steps
 dfct = 1. / nsub_steps
 
@@ -199,9 +205,12 @@ dfct = 1. / nsub_steps
 def advance_3d(subrange,out,step):
     
     global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, \
-    j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim, debug_time
+    j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim, debug_time, \
+    remove, klim
     
-    from input_file import remove
+    #from input_file import remove
+    #if remove:
+        #from input_file import klim
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,dpz,iab
          

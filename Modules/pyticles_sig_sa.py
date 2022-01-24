@@ -41,6 +41,37 @@ import pyticles_3d_sig_sa as partF
 from copy import copy
 
 ###################################################################################
+
+def get_nsub_steps(simul=None, cmax=0.75, umax=2, vmax=2, wmax=2*1e-3,
+                   dzmin=1, **kwargs):
+    """
+    number of Pyticles subtime steps between two CROCO time frames
+    function designed to respect CFL condition
+
+    cmax: CFL criteria (between 1 to 0.1)
+    simul: load object defined in input_file
+    umax: estimation of maximum zonal velocity (m/s) croco files
+    dzmin: minimum vertical grid spacing
+
+    """
+    #pm = simul.pm
+    #pn = simul.pn
+
+    if 'coord' in kwargs:
+        coord = kwargs['coord']
+        pmmax = np.nanmax(simul.pm[coord])
+        pnmax = np.nanmax(simul.pn[coord])
+    else:
+        pmmax = np.nanmax(simul.pm)
+        pnmax = np.nanmax(simul.pn)
+
+    nsub_steps = np.int(np.ceil((umax*pmmax + vmax*pnmax + wmax*dzmin)\
+                 * simul.dt / cmax))
+    return nsub_steps
+
+###################################################################################
+
+
 #@profile
 def subsection(px,py,dx=1,dy=1,maxvel=[1,1],delt=1,nx=2000,ny=2000,ng=0,nadv=0,**kwargs):
     """ Finds index subrange to move particles around"""

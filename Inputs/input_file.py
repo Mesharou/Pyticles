@@ -38,7 +38,7 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # Particles Dynamics
 ##############################################################################
 # 3D advection
-adv3d = False # 3d or 2d
+adv3d = True # 3d or 2d
 
 # for 2d advection, there are several options: surface only, any arbitraty 2d surface, vertically integrated velocity fields
 if not adv3d:
@@ -71,8 +71,8 @@ if not adv3d:
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 17280 #1440
-end_file = 96000 #8000
+start_file = 3800 #1440
+end_file = 4080 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -97,7 +97,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'gigatl6_1h_surf'
+my_simul = 'uncompressed'
 
 ##########
 if 'surf' in my_simul or advsurf: 
@@ -123,8 +123,28 @@ timestep = 'RK4' # Choices are
                # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
                # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
 
-nsub_steps = 10 # Number of time steps between 2 roms time steps
+####
+# -- Number of time steps between 2 roms time steps determined by CFL condition 
+# sum(u_i/dx_i) < cmax
 
+inline_cfl = False
+dzmin = 1
+cmax = 1
+
+# substeps computed at each pyticles time-step
+if inline_cfl:
+    umax = None
+    vmax = None
+    wmax = None
+# substeps computed at the beginning
+else:
+    umax = 2
+    vmax = 2
+    wmax = 2*1e-3
+    nsub_steps = part.get_nsub_steps(simul=simul, cmax=cmax, umax=umax,
+                                     vmax=vmax, wmax=wmax, dzmin=dzmin) 
+
+####
 # Spatial interpolation
 # Default is linear
 # Available : #define CUBIC_INTERPOLATION
@@ -141,7 +161,7 @@ nadv = 1 # deprecated
 ##############################################################################
 
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = False
+sedimentation = True
 sedimentation_only = False
 w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
 
@@ -159,6 +179,7 @@ if sedimentation and remove:
     nz = len(simul.coord[4])
     klim = nz - 10
 
+print(f"klim is {klim}")
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
@@ -196,10 +217,10 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'test01_gigatl'
+config = 'substep-cfl1-offline'
 
 
-folderout = './out/'
+folderout = '/home/datawork-lemar-apero/jcollin/pyticles/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -241,7 +262,10 @@ tstart = tm.time()
 timing = True
 
 # number of sub-time steps for advection
-subtstep = np.int(nsub_steps * np.abs(dfile))
+if not inline_cfl:
+    subtstep = np.int(nsub_steps * np.abs(dfile))
+else:
+    subtstep = 0
 
 ################################################################################
 # Define Particle seeding (to be edited)
@@ -285,8 +309,8 @@ else:
     #dx_m = 1000. # distance between 2 particles [in m]
     #dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
     dx0 = 1
-    iwd  = 900 * dx0 # half width of seeding patch [in grid points
-    jwd  = 1100 * dx0 # half width of seeding patch [in grid points]
+    iwd  = 10 * dx0 # half width of seeding patch [in grid points
+    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
     nnx = 1 * dx0
     nny = 1 * dx0
@@ -310,7 +334,7 @@ else:
 # Therefore if ini_cond = True: initial_depth = False
 
 initial_cond = False # 1036 in Pyticles.py
-initial_depth = False
+initial_depth = True
 initial_iso = False
 
 if advsurf:
