@@ -71,8 +71,8 @@ if not adv3d:
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 3800 #1440
-end_file = 4080 #8000
+start_file = 1000 #1440
+end_file = 1020 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -97,11 +97,11 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'uncompressed'
+my_simul = 'polgyr'
 
 ##########
 if 'surf' in my_simul or advsurf: 
-    advsurf =True
+    advsurf = True
     light = True # do not load unnecessary files for a pure surface advection
 else:
     light = False
@@ -217,7 +217,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'substep-cfl1-offline'
+config = 'dynamic_injection'
 
 
 folderout = '/home/datawork-lemar-apero/jcollin/pyticles/'
@@ -280,15 +280,6 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 #[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 barycentric = False  # Automatically modifies patch's center to previsously seeded
-                    # Particles After being advected over one time step 
-#[ic, jc] = part.find_points(simul.x,simul.y, -16.5, 49)
-#x_ic = part.find_points(simul.x,simul.y, -16.5, 49)[0]
-#y_jc = part.find_points(simul.x,simul.y, -16.5, 49)[1]
-#[ic,jc] = [x_ic,y_jc]
-#[ic,jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
-
-#lon_center, lat_center = -60, 25 # See Brachetal18
-#ic,jc = part.find_nearest(simul.x,simul.y,lon_center, lat_center)
 
 [ic, jc] = [900, 1100]
 print('ic,jc is ',ic,jc)
@@ -298,7 +289,11 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
     
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-preserved_meter = False
+preserved_meter = True
+
+# --> injection on lon lat
+spheric_injection = False
+
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
@@ -354,11 +349,14 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = False
+continuous_injection = True
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
+
+    # --> compute only once initial particle position to save time
+    static_injection = False
 
 #########################################
 # NOT TO BE EDITED

@@ -24,6 +24,9 @@ nprocs : numbers of processors
     Bug was detetcted at 1020 time in Lu simulation
 
 !---------------------------------------------------------------------------------------------
+! 2022-02-22 [Jeremy Collin]
+      - cfl condition + static_injection
+! 2021-2022 Many missing things in this description
 ! 2020-11-26 [jeremy collin]
 !     - high frequency output supports -1 < dfile < 0
 ! 2020-11-24 [jeremy collin]
@@ -259,13 +262,16 @@ if not restart:
     # (Fast .py version_ fill in order x,y,z)
     ###########################################################################
     if preserved_meter:
-        z, y, x = seeding_part.seed_meter_sphere(\
-                  lev0=lev0, lev1=lev1,nnlev=nnlev,\
-                  dx_box=dx_box,box_coords=box_coords,\
-                  simul=simul, ng=ng)
-        #z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
-        #            nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
-        #            simul=simul, ng=ng)
+        if spheric_injection:
+            z, y, x = seeding_part.seed_meter_sphere(
+                         lev0=lev0, lev1=lev1,nnlev=nnlev,
+                         dx_box=dx_box,box_coords=box_coords,
+                         simul=simul, ng=ng)
+        else:
+            z, y, x = seeding_part.seed_meter(
+                          ic=ic, jc=jc, lev0=lev0, lev1=lev1, nnlev=nnlev,
+                          nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
+                          simul=simul, ng=ng)
     else:
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
                 lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
@@ -975,96 +981,117 @@ for time in timerange:
     ###########################################################################
 
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
+
+        # --> keep initial seeding position to save time       
+        if static_injection:
+            pass
         
-        ###############################################
-        # modify seeding patch center to barycenter of
-        # previously released particules after a time_step of advection
-
-        if barycentric:
-            [ic, jc] = [np.nanmean(px[nq_0:nq_1]), np.nanmean(py[nq_0:nq_1])]
-        ###############################
-        if preserved_meter:
-            z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
-                        nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
-                        simul=simul, ng=ng, debug=debug)
+        # --> recompute particles positions 
         else:
-            z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
-                                            iwd=iwd, jwd=jwd, nx=nx, ny=ny,
-                                            nnx=nnx, nny=nny, nnlev=nnlev)
-        ###############################
-        # Release particles at depths0
-        if initial_depth: 
-            z_w = part.get_depths_w(simul, x_periodic=x_periodic,
-                                    y_periodic=y_periodic, ng=ng)
-            z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
-                                       z_w, ng=ng)
-        ipmx = 0
-        px0 = []
-        py0 = []
-        if adv3d: pz0 = []
-        ##############################
-        # Release particles on iso-surfaces of a variable
-        # Typically isopycnals
-        if initial_iso:
-            [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
-                                    y_periodic = y_periodic, ng=ng, coord=coord)
-            [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
-                                     y_periodic=y_periodic, ng=ng, coord=coord)
-            rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
+            
+            ###############################################
+            # modify seeding patch center to barycenter of
+            # previously released particules after a time_step of advection
 
-            ## temporary box used for sigma-interpolation onto surf0 vector
-            lev1 = rho.shape[2] #  Needed to get all levels
+            if barycentric:
+                [ic, jc] = [np.nanmean(px[nq_0:nq_1]),np.nanmean(py[nq_0:nq_1])]
+            ###############################
             if preserved_meter:
-                z_box, y_box, x_box = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0,
-                                      lev1=lev1, nnlev=nnlev, nx_box=nx_box,
-                                      ny_box=ny_box, dx_box=dx_box,simul=simul, ng=ng)
+                if spheric_injection:
+                    z, y, x = seeding_part.seed_meter_sphere(
+                                  lev0=lev0, lev1=lev1,nnlev=nnlev,
+                                  dx_box=dx_box,box_coords=box_coords,
+                                  simul=simul, ng=ng)
+                else:
+                    z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0,
+                            lev1=lev1, nnlev=nnlev, nx_box=nx_box,
+                            ny_box=ny_box, dx_box=dx_box, simul=simul, ng=ng,
+                            debug=debug)
             else:
-                z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                        lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+                z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
+                                            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx,
+                                            ny=ny, nnx=nnx, nny=nny,
+                                            nnlev=nnlev)
+            ###############################
+            # Release particles at depths0
+            if initial_depth: 
+                z_w = part.get_depths_w(simul, x_periodic=x_periodic,
+                                        y_periodic=y_periodic, ng=ng)
+                z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z,
+                                           z_w, ng=ng)
+            ipmx = 0
+            px0 = []
+            py0 = []
+            if adv3d: pz0 = []
+            ##############################
+            # Release particles on iso-surfaces of a variable
+            # Typically isopycnals
+            if initial_iso:
+                [temp, salt] = part.get_ts_io(simul, x_periodic = x_periodic,
+                                    y_periodic = y_periodic, ng=ng, coord=coord)
+                [z_r, z_w] = part.get_depths(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng, coord=coord)
+                rho = seeding_part.prho(ptemp=temp, psalt=salt, pdepth=z_r)
 
-            map_rho = part.map_var(simul, rho, x_box.reshape(-1),
-                                   y_box.reshape(-1),
-                    z_box.reshape(-1), ng=ng, coord=coord).reshape(x_box.shape)
+                ## temporary box used for sigma-interpolation onto surf0 vector
+                lev1 = rho.shape[2] #  Needed to get all levels
+                if preserved_meter:
+                    z_box, y_box, x_box = seeding_part.seed_meter(ic=ic, jc=jc,
+                                                lev0=lev0, lev1=lev1,
+                                                nnlev=nnlev, nx_box=nx_box,
+                                                ny_box=ny_box, dx_box=dx_box,
+                                                simul=simul, ng=ng)
+                else:
+                    z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc,
+                                              lev0=lev0, lev1=lev1, nnx=nnx,
+                                              nny=nny, iwd=iwd, jwd=jwd, nx=nx,
+                                              ny=ny)
 
-            del z
-            z = np.ndarray(x.shape)
-            z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
+                map_rho = part.map_var(simul, rho, x_box.reshape(-1),
+                              y_box.reshape(-1), z_box.reshape(-1), ng=ng,
+                              coord=coord).reshape(x_box.shape)
 
-        ################################
-        # Add a boolean condition at rho points 
-        # Only particles statisfying condition are released
-        # Should be consistent with initial release
-        if initial_cond:
-            temp = part.get_t_io(simul, x_periodic=x_periodic,
-                                 y_periodic=y_periodic, ng=ng, coord=coord)
-            ini_cond = (temp > 14.) & (temp < 16.)
-            pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1), z.reshape(-1),
-                                    ini_cond, ng, nq, i0, j0, k0)
-            ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y, z, px0, py0,
-                                            pz0, nq, ng=ng, pcond=pcond)
-        if part_trap:
-            '''
-            Particles are released using position of a forward simulation
-            Then advected backwards
-            Here ipmx is used using all particles at it, including nan
-            ipmx has to be changed to nq_1save
-            Need to define a time index corresponding to start of backward
-            simulation
-            '''
+                del z
+                z = np.ndarray(x.shape)
+                z = seeding_part.ini_surf(simul, rho0, x, y, z, map_rho, ng=ng)
 
-            nq_1save, ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file,
-                        simul, maskrho, itime_fwd=itime_trap-itime,
-                        x_periodic=False, y_periodic=False, ng=ng)
-            ipmx = nq_1save
+            ################################
+            # Add a boolean condition at rho points 
+            # Only particles statisfying condition are released
+            # Should be consistent with initial release
+            if initial_cond:
+                temp = part.get_t_io(simul, x_periodic=x_periodic,
+                                     y_periodic=y_periodic, ng=ng, coord=coord)
+                ini_cond = (temp > 14.) & (temp < 16.)
+                pcond = partF.interp_3d(x.reshape(-1), y.reshape(-1),
+                                        z.reshape(-1), ini_cond, ng, nq, i0,
+                                        j0, k0)
+                ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y,
+                                                z, px0, py0, pz0, nq, ng=ng,
+                                                pcond=pcond)
+            if part_trap:
+                '''
+                Particles are released using position of a forward simulation
+                Then advected backwards
+                Here ipmx is used using all particles at it, including nan
+                ipmx has to be changed to nq_1save
+                Need to define a time index corresponding to start of backward
+                simulation
+                '''
 
-        else:    
-            if adv3d:
-                ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, y, z, px0, py0,
-                                            pz0, nq, ng=ng)
-            else:
-                ipmx = seeding_part.remove_mask_surf(simul, maskrho, x, y, px0, py0,
-                                             nq, ng=ng)
-        del x, y, z
+                nq_1save, ipmx, px0, py0, pz0 = seeding_part.ini_trap(trap_file,
+                            simul, maskrho, itime_fwd=itime_trap-itime,
+                            x_periodic=False, y_periodic=False, ng=ng)
+                ipmx = nq_1save
+
+            else:    
+                if adv3d:
+                    ipmx = seeding_part.remove_mask(simul, maskrho, topolim, x, 
+                               y, z, px0, py0, pz0, nq, ng=ng)
+                else:
+                    ipmx = seeding_part.remove_mask_surf(
+                               simul, maskrho, x, y, px0, py0, nq, ng=ng)
+            del x, y, z
         
         ####################################################################
         nq_0 = nq_1

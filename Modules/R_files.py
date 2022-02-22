@@ -2709,12 +2709,12 @@ class files(object):
             self.model = 'croco'
             self.digits = 5
 
-            if os.getenv('HOSTNAME') is None:
-                folder= ROMSSIMS + '/POLGYR/'
-                self.grd= folder + 'polgyr_grd.nc'
-            else:
-                folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
-                self.grd='/home/datawork-lops-osi/jgula/POLGYR/polgyr_grd.nc'
+            #if os.getenv('HOSTNAME') is None:
+                #folder= ROMSSIMS + '/POLGYR/'
+                #self.grd= folder + 'polgyr_grd.nc'
+            #else:
+            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
 
 
             self.his=folder +'polgyr_his.'
