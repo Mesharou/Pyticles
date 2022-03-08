@@ -174,7 +174,8 @@ if subtiming: tstart = tm.time()
 if subtiming: tstart = tm.time()
 maxvel[0] = np.nanmax(np.abs(u))*1.5
 maxvel[1] = np.nanmax(np.abs(v))*1.5
-maxvel[2] = np.nanmax(np.abs(w))*1.5 
+if adv3d:
+    maxvel[2] = np.nanmax(np.abs(w))*1.5 
 print(('maxvel is', maxvel))
 if subtiming: print(('Computing maxvel.............', tm.time()-tstart))
 
