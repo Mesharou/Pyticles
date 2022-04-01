@@ -2528,7 +2528,20 @@ class files(object):
 
         ################## 
         # JC simulations
-
+        elif 'butter' in simul:
+            self.realyear = True
+            self.realyear_origin = datetime(1979, 1, 1)
+            self.realyear_tstart = datetime(2008, 6, 19)
+            self.model = 'croco'
+            self.digits = 0
+            folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/20-km_-60-40x38-50'
+            self.his = folder + '/gigatl_butter_2008-03-21'   
+            self.grd = folder + '/grid_lr.nc'
+            self.dtfile = 3600 * 24
+            self.tfile = 5
+            self.tstart = 0
+            self.tend = 5
+ 
         elif simul=='aacc':
             self.model = 'agrif_jc'
             folder= libra + '/gula/ROMS/Simulations/AACC'

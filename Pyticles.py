@@ -979,7 +979,8 @@ for time in timerange:
     ###########################################################################
     # Realease new pyticles (if continuous injection)
     ###########################################################################
-
+    
+    
     if (continuous_injection) and (nq_1<nqmx) and ((itime+1)%dt_injection)==0:
 
         # --> keep initial seeding position to save time       
@@ -1099,7 +1100,10 @@ for time in timerange:
         px[nq_0: nq_1] = px0
         py[nq_0: nq_1] = py0
         if adv3d: pz[nq_0: nq_1] = pz0
-        
+   
+    print(f"time to seed new particles {tm.time() - tstart}")     
+    tstart = tm.time()
+    
     ############################################################################
     # Plot particles position (+ SST)
         

@@ -38,7 +38,7 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # Particles Dynamics
 ##############################################################################
 # 3D advection
-adv3d = True # 3d or 2d
+adv3d = False # 3d or 2d
 
 # for 2d advection, there are several options: surface only, any arbitraty 2d surface, vertically integrated velocity fields
 if not adv3d:
@@ -70,26 +70,29 @@ if not adv3d:
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = 1
-start_file = 1000 #1440
-end_file = 1020 #8000
+dfile = -1/4
+start_file = 4 
+end_file = start_file - 5
 
+#start_file = 3694 - 32*2 
+#end_file = 3694 + 1
+#start_file = 4664
+#end_file = start_file + 64
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
 # itime_trap = -1 : last time index in forward simulation
-itime_trap = -11 
-trap_file = '/home/wang/Bureau/Data/Pyticles/Trap_fwd/' \
-                    + 'Case_1_Trap_fwd_adv200.0m_6_1510.nc'
+itime_trap = 73 
+trap_file = '/home/datawork-lemar-apero/jcollin/pyticles/' +\
+            'review/polgyr_longer_run_1inj_2_4660.nc'
 
 ###### Restart from a Pyticles output file
 # user should not change start_file
 # restart_time : number of time step since start_file
 restart = False
-restart_time = 28 #nb of time steps in the restart_file
-restart_file = '/home2/datawork/lwang/IDYPOP/Data/Pyticles/debug_high_freq/' \
-               + 'apero_hfo3h_bk3d_06winter_trap1000m_sed50_28_3740.nc' 
-              
-
+restart_time = 32 #nb of time steps in the restart_file
+restart_file = '/home/datawork-lemar-apero/jcollin/pyticles/' +\
+            'review/polgyr_forward_2000m_grid_classic_2_3680.nc'
+ 
 if not restart:
     restart_time = 0
 else:
@@ -97,7 +100,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'polgyr'
+my_simul = 'butter'
 
 ##########
 if 'surf' in my_simul or advsurf: 
@@ -161,9 +164,9 @@ nadv = 1 # deprecated
 ##############################################################################
 
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = True
+sedimentation = False
 sedimentation_only = False
-w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
+w_sed0 = -50 # vertical velocity for particles sedimentation (m/d)
 
 if sedimentation_only:
     sedimentation = False
@@ -173,22 +176,21 @@ if not adv3d:
     w_sed0 = 0. # JC no sedimentation for 2D advection
 
 #Remove particles below/above (below=True/False) a certain sigma level (klim):
-remove = True
+remove = False
 if sedimentation and remove:
     below = False
     nz = len(simul.coord[4])
     klim = nz - 10
-
-print(f"klim is {klim}")
+    print(f"klim is {klim}")
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = True
+plot_part = False
 
 #Write lon,lat,topo,depth
-write_lonlat = True
-write_depth = True
-write_topo = True
+write_lonlat = False
+write_depth = False
+write_topo = False
 
 if advzavg: 
     write_topo = True # Needed to keep track when water column intersects with
@@ -198,8 +200,8 @@ if light:
     write_topo = False
 
 write_uv = False
-write_ts = False
-write_uvw = True
+write_ts = True
+write_uvw = False
 # True : pw is w-vertical velocity in z-coordinates
 # False : pw is omega velocity in sigma-coordinates
 cartesian = True
@@ -217,10 +219,10 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'dynamic_injection'
+config = 'winter_backwd_-60-40x38-50'
 
 
-folderout = '/home/datawork-lemar-apero/jcollin/pyticles/'
+folderout = '/home2/datawork/jcollin/spasso/pyticles/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -279,9 +281,10 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 #[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
-barycentric = False  # Automatically modifies patch's center to previsously seeded
 
-[ic, jc] = [900, 1100]
+[ic, jc] = [680, 1280]
+#[ic, jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
+
 print('ic,jc is ',ic,jc)
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
@@ -296,9 +299,9 @@ spheric_injection = False
 
 
 if preserved_meter:
-    dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 2 # number of intervals in x-dir
-    ny_box = 2      
+    dx_box = 1000  # horizontal particles spacing meters
+    nx_box = 300 # number of intervals in x-dir
+    ny_box = 300      
     nnlev = 1  
 else:
     #dx_m = 1000. # distance between 2 particles [in m]
@@ -344,19 +347,19 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-1000]
+depths0 = [0]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
     N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
 
     # --> compute only once initial particle position to save time
-    static_injection = False
+    static_injection = True
 
 #########################################
 # NOT TO BE EDITED
