@@ -132,22 +132,16 @@ def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
     return z, y, x
 
 ##############################################################################
-def get_dx(jc=0., simul=None):
+def get_dx(ic=0, jc=0., simul=None):
     '''
-    returns zonal dx in meters at jc location
+    returns zonal dx in meters at [jc, ic] location
 
     parameters:
     float jc sigma meridionnal coordinate to compute dx
     R_files.load simul 
 
     '''
-    remainder = np.mod(jc,1)
-    if remainder == 0:
-        dx = 1/simul.pm[0, jc]
-    else:
-        im = np.int(np.floor(jc))
-        ip = np.int(np.ceil(jc))
-        dx = (1-remainder)/simul.pm[0, im] + remainder/simul.pm[0, ip]
+    dx = 1/simul.pm[np.round(jc), np.round(ic)]
     
     return dx
 
@@ -175,7 +169,7 @@ def seed_meter(ic=10, jc=10, lev0=0, lev1=1, nnlev=1, nx_box=10, ny_box=10,
 
     '''
     nx, ny = simul.pm.shape
-    dx = get_dx(jc=jc, simul=simul)
+    dx = get_dx(ic=ic, jc=jc, simul=simul)
     # index for mesh
     j0 = np.max([jc - (ny_box)/2*dx_box/dx, 1])
     j1 = np.min([jc + (ny_box+1)/2*dx_box/dx, ny + ng])
