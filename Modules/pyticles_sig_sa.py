@@ -855,7 +855,7 @@ def periodize2d_fromnc_depth(simul,variable,coord,x_periodic=False,y_periodic=Fa
     mask[np.isnan(mask)]=0
     ################################
 
-    def interp(simul,varname,coord=coord,advdepth=advdepth):
+    def interp(simul,varname,coord=coord,advdepth=None):
 
         coordz = copy(coord)
 
@@ -880,7 +880,8 @@ def periodize2d_fromnc_depth(simul,variable,coord,x_periodic=False,y_periodic=Fa
 
     myvar = np.zeros((nx2-nx1,ny2-ny1))*np.nan
 
-    myvar[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-ng+nn] = interp(simul,variable,coord=[ny1-ns,ny2-2*ng+nn,nx1-nw,nx2-2*ng+ne])
+    myvar[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-ng+nn] = interp(simul,variable,coord=[ny1-ns,ny2-2*ng+nn,nx1-nw,nx2-2*ng+ne],
+                                                           advdepth=advdepth)
 
     myvar[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (myvar[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 

@@ -70,9 +70,9 @@ if not adv3d:
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1/4
-start_file = 4 
-end_file = start_file - 5
+dfile = -1
+start_file = 119 
+end_file = 0
 
 #start_file = 3694 - 32*2 
 #end_file = 3694 + 1
@@ -100,7 +100,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'butter'
+my_simul = 'butter_hourly_ssh1_sst10'
 
 ##########
 if 'surf' in my_simul or advsurf: 
@@ -141,9 +141,9 @@ if inline_cfl:
     wmax = None
 # substeps computed at the beginning
 else:
-    umax = 2
-    vmax = 2
-    wmax = 2*1e-3
+    umax = 4*10
+    vmax = 4*10
+    wmax = 4*1e-3*10
     nsub_steps = part.get_nsub_steps(simul=simul, cmax=cmax, umax=umax,
                                      vmax=vmax, wmax=wmax, dzmin=dzmin) 
 
@@ -219,7 +219,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'winter_backwd_-60-40x38-50'
+config = 'rho_winter_single_hf_small'
 
 
 folderout = '/home2/datawork/jcollin/spasso/pyticles/'
@@ -282,7 +282,20 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 #[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
-[ic, jc] = [680, 1280]
+[ic, jc] = [1280-0.5, 680-0.5]
+
+
+# for swot russian dolls
+#patch_file = '/home2/datawork/jcollin/spasso/pyticles/patch.center.npz'
+#npz_patch = np.load(patch_file)
+#jc = npz_patch['jc']
+#ic = npz_patch['ic']
+#nx_box = npz_patch['nx_box']
+#ny_box = npz_patch['ny_box']
+nx_box = 500
+ny_box = 500
+
+
 #[ic, jc] = np.load('/home2/datahome/jcollin/Pyticles/Inputs/ic_jc.npy')
 
 print('ic,jc is ',ic,jc)
@@ -292,11 +305,10 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
     
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-preserved_meter = True
+preserved_meter = False
 
 # --> injection on lon lat
 spheric_injection = False
-
 
 if preserved_meter:
     dx_box = 1000  # horizontal particles spacing meters
@@ -307,8 +319,8 @@ else:
     #dx_m = 1000. # distance between 2 particles [in m]
     #dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
     dx0 = 1
-    iwd  = 10 * dx0 # half width of seeding patch [in grid points
-    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
+    iwd  = nx_box/2 # half width of seeding patch [in grid points
+    jwd  = ny_box/2 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
     nnx = 1 * dx0
     nny = 1 * dx0

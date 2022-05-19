@@ -860,6 +860,11 @@ example: for an interactive session:
         if 'hourly' in self.simul or 'surf' in self.simul: 
             print(self.ncname.model)
             print('in dt: ',self.dt)      
+        
+        if "butter" in self.simul:
+            self.dt = np.array(ncfile.variables['ocean_time'][1]) \
+                    - np.array(ncfile.variables['ocean_time'][0])
+
 
         ncfile.close()
 
@@ -2528,20 +2533,7 @@ class files(object):
 
         ################## 
         # JC simulations
-        elif 'butter' in simul:
-            self.realyear = True
-            self.realyear_origin = datetime(1979, 1, 1)
-            self.realyear_tstart = datetime(2008, 6, 19)
-            self.model = 'croco'
-            self.digits = 0
-            folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/20-km_-60-40x38-50'
-            self.his = folder + '/gigatl_butter_2008-03-21'   
-            self.grd = folder + '/grid_lr.nc'
-            self.dtfile = 3600 * 24
-            self.tfile = 5
-            self.tstart = 0
-            self.tend = 5
- 
+
         elif simul=='aacc':
             self.model = 'agrif_jc'
             folder= libra + '/gula/ROMS/Simulations/AACC'
@@ -4546,9 +4538,103 @@ class files(object):
             self.tfile=24
             self.tstart=0
             self.tend=10000
+       
+        ##################
+        elif 'butter' in simul:
+            """  gigatl1 daily avergaed butterworth filter data for sst reconstruction """
+            self.realyear = True
+            self.realyear_origin = datetime(1979,1,1)
+            self.realyear_tstart = datetime(2008,3,21,12)
 
+            self.model = 'croco_xios'
+            self.digits = 6
 
-        
+            if 'hourly' in simul:
+                folder_root = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'
+                if 'ssh1_sst10' in simul:
+                    folder = folder_root + 'hourly_qg_filt_4reco-sst10-sla0-km_-67-47x38-43/'
+
+                self.tfile = 120
+                self.dtfile = 3600
+                self.tend = 10000
+                self.dt = 3600
+            
+            self.grd = folder + 'grid_lr.nc'
+            self.his = folder + 'croco_butter_'
+ 
+            """ 
+            OLD stuff moved into agesotrophic folder
+            if '20' in simul:
+                folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/20-km_-60-40x38-50/'
+                self.grd = folder + 'grid_lr.nc'
+                self.his = folder + 'gigatl_butter_'
+            elif 'final5' in simul:
+                folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/20-km_-60-40x38-50/'
+                self.grd = folder + 'grid_lr.nc'
+                self.his = folder + 'gigatl_butter_5km-'
+            elif 'sla' in simul:
+                if '25-25' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/25km-sst-25km-sla/'
+                    self.grd = folder + 'grid_lr.nc'
+                    self.his = folder + 'croco_butter_'
+                if '3-25' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/25km-sst-3km-sla/'
+                    self.grd = folder + 'grid_lr.nc'
+                    self.his = folder + 'croco_butter_'
+                if '0-10' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/10km-sst-0km-uv_croco/'
+                    self.grd = folder + 'grid_lr.nc'
+                    self.his = folder + 'croco_butter_'
+
+                self.tfile = 5
+                self.dtfile = 24*3600
+                self.tend = 10000
+                self.dt = 24*3600
+
+            elif 'hourly' in simul:
+                #hourly croco dataset
+                if 'uv_nofilt_sst10' in simul:
+                    "no filter for uv, 10 km 3rd order butterworth for sst"
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/hr_hf_sst_filt_4reco-sst10-sla0-km/'
+                elif 'qg_ssh1-sst10' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/hourly_qg_filt_4reco-sst10-sla0-km_-60-40x38-43/'
+                elif 'qg_ssh1-sst25' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/hourly_qg_filt_4reco-sst25-sla0-km_-60-40x38-43/'
+                elif 'qg_ssh10-sst10' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'\
+                             + 'hourly_qg_filt_4reco-sst10-sla10-km_-60-40x38-43/'
+                elif 'qg_ssh25-sst25' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'\
+                             + 'hourly_qg_filt_4reco-sst25-sla25-km_-60-40x38-43/'
+                elif 'qg_ssh25-sst10' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'\
+                             + 'hourly_qg_filt_4reco-sst10-sla25-km_-60-40x38-43/'
+                elif 'qg_ssh10-sst25' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'\
+                             + 'hourly_qg_filt_4reco-sst25-sla10-km_-60-40x38-43/'
+                elif 'qg_ssh5-sst5' in simul:
+                    folder = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'\
+                             + 'hourly_qg_filt_4reco-sst5-sla5-km_-60-40x38-43/'
+                
+                
+                self.grd = folder + 'grid_lr.nc'
+                self.his = folder + 'croco_butter_'
+                self.tfile = 120
+                self.dtfile = 3600
+                self.tend = 10000
+                self.dt = 3600
+            elif 'daily-snap' in simul:
+                "daily snapshots"
+                "qg velocity at 2 km and sst at 10 km"
+                folder = "/home2/datawork/jcollin/spasso/geos_current/butter_test/snap_daily_sst10_sla2/"
+                self.grd = folder + 'grid_lr.nc'
+                self.his = folder + 'croco_butter_'
+                self.tfile = 5
+                self.dtfile = 24*3600
+                self.tend = 10000
+                self.dt = 24*3600
+            """
+ 
         ##################
 
 
