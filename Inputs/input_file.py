@@ -70,8 +70,8 @@ if not adv3d:
 # dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
-dfile = -1
-start_file = 119 
+dfile = -1/24
+start_file = 4 
 end_file = 0
 
 #start_file = 3694 - 32*2 
@@ -100,7 +100,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'butter_hourly_ssh1_sst10'
+my_simul = 'butter_daily_sst25_ssh12-60-40x38-43'
 
 ##########
 if 'surf' in my_simul or advsurf: 
@@ -219,7 +219,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'rho_winter_single_hf_small'
+config = 'gulfstream'
 
 
 folderout = '/home2/datawork/jcollin/spasso/pyticles/'

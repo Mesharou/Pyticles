@@ -4541,26 +4541,54 @@ class files(object):
        
         ##################
         elif 'butter' in simul:
-            """  gigatl1 daily avergaed butterworth filter data for sst reconstruction """
+            """ 
+            gigatl1 daily avergaed butterworth filter data for sst reconstruction 
+            simul should be named like this
+            - frequency: hourly, daily, weekly, stationnary
+            - sstX-sshY: butterworth filter cutoff scales
+            - lon-lat  : domain lon lat 
+            """
             self.realyear = True
             self.realyear_origin = datetime(1979,1,1)
-            self.realyear_tstart = datetime(2008,3,21,12)
+            self.realyear_tstart = datetime(2008,3,21)
 
             self.model = 'croco_xios'
             self.digits = 6
 
             if 'hourly' in simul:
-                folder_root = '/home2/datawork/jcollin/spasso/geos_current/butter_test/'
-                if 'ssh1_sst10' in simul:
-                    folder = folder_root + 'hourly_qg_filt_4reco-sst10-sla0-km_-67-47x38-43/'
+                folder_root = '/home2/datawork/jcollin/spasso/geos_current/butter_test'
+                if 'sst10_ssh10-67-47x38-43' in simul:
+                    folder = folder_root + '/hourly_qg_filt_4reco-sst10-sla0-km_-67-47x38-43'
+                elif 'sst10_ssh1-60-40x38-43' in simul:
+                    folder = folder_root + '/hourly_qg_filt_4reco-sst10-sla0-km_-60-40x38-43'
+                elif 'sst25_ssh1-60-40x38-43' in simul:
+                    folder = folder_root + '/hourly_qg_filt_4reco-sst25-sla0-km_-60-40x38-43'
+                elif 'sst10_ssh25-60-40x38-43' in simul:
+                    folder = folder_root + '/hourly_qg_filt_4reco-sst10-sla25-km_-60-40x38-43'
+                elif 'sst25_ssh25-60-40x38-43' in simul:
+                    folder = folder_root + '/hourly_qg_filt_4reco-sst25-sla25-km_-60-40x38-43'
 
+              
                 self.tfile = 120
                 self.dtfile = 3600
                 self.tend = 10000
                 self.dt = 3600
             
-            self.grd = folder + 'grid_lr.nc'
-            self.his = folder + 'croco_butter_'
+            elif 'daily' in simul:
+                folder_root = '/home2/datawork/jcollin/spasso/geos_current/butter_test'
+                if 'daily_sst10_ssh25-67-47x36-41' in simul:
+                    folder = folder_root + '/daily_qg_filt_4reco-sst10-sla25-km_-67-47x36-41'
+               
+                elif 'sst25_ssh12-60-40x38-43' in simul:
+                    folder = folder_root + '/daily_qg_filt_4reco-sst25-sla12-km_-60-40x38-43'
+
+                self.tfile = 5
+                self.dtfile = 24*3600
+                self.tend = 10000
+                self.dt = 24*3600
+
+            self.grd = folder + '/grid_lr.nc'
+            self.his = folder + '/croco_butter_'
  
             """ 
             OLD stuff moved into agesotrophic folder

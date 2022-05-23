@@ -36,6 +36,8 @@ else:
     temp = shared_array(nx_s,ny_s)
     salt = shared_array(nx_s,ny_s)
 
+#JC debug
+print(f"alpha_time is {alpha_time}")
 
 #JC dfile
 if dfile > 0:
