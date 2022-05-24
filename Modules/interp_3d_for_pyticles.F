@@ -17,8 +17,8 @@
 
 !----------------------------------------------------------------------------------------------
 #undef NEW_VERSION
-#define LINEAR_INTERPOLATION
-#undef CUBIC_INTERPOLATION
+#undef LINEAR_INTERPOLATION
+#define CUBIC_INTERPOLATION
 ! #define CRSPL_INTERPOLATION
 ! #define WENO_INTERPOLATION
 !----------------------------------------------------------------------------------------------
@@ -586,9 +586,9 @@
        integer(kind=4)                    ,intent(in)   :: np
        integer(kind=4)                    ,intent(in)   :: i0,j0
        integer(kind=4) ,dimension(0:1)    ,intent(in)   :: itim
-       real(kind=8) ,dimension(nx-1,ny,2),intent(in) :: u
-       real(kind=8) ,dimension(nx,ny-1,2),intent(in) :: v
-       real(kind=8) ,dimension(nx,ny),intent(in)        :: pm,pn
+       real(kind=8),dimension(nx-1,ny,0:1),intent(in) :: u
+       real(kind=8),dimension(nx,ny-1,0:1),intent(in) :: v
+       real(kind=8),dimension(nx,ny),intent(in)        :: pm,pn
        real(kind=8)                       ,intent(in)   :: px,py
        real(kind=8)                       ,intent(out)  :: dpx,dpy
        real(kind=8)                       ,intent(in)   :: dt,fct
@@ -600,8 +600,9 @@
        real(kind=8)                     :: fcx,fcy,fctl
        real(kind=8)                     :: fcx_u,fcy_v
        real(kind=8)                     :: pu,pv,ppm,ppn
+       real(kind=8) ,dimension(4,4) :: f
 
-!f2py intent(in)   u,v
+!f2py entent(in)   u,v
 !f2py intent(in)   px,py
 !f2py intent(out)  dpx,dpy
 !f2py intent(in)   pm,pn,dt,fct
@@ -650,13 +651,41 @@
            ! Compute velocities and level depth at particle position
            !---------------------------------------       
  
+           ! JC modif for cubic 2D algorithm
+           !write(*,*) 'i, j, nx, ny', i, j, nx, ny
 
+# ifdef LINEAR_INTERPOLATION 
            CALL linear_3d(fcx_u,fcy,fctl,wt3)
+           ! todo write wt3 time coefficients 
            pu   = sum(u(i_u:i_u+1,j:j+1,:)*wt3)
-
+           
+           !write(*,*) '---> f(1,1)', f(1,1) 
+           !write (*,*) '--> pu', pu
            CALL linear_3d(fcx,fcy_v,fctl,wt3)
            pv   = sum(v(i:i+1,j_v:j_v+1,:)*wt3)
 
+# elif defined CUBIC_INTERPOLATION
+           !write(*,*) 'fctl', fctl
+           !write(*,*) 'u(i_u-1, j-1, itim(0)), u(i_u-1, j-1, itim(1))',
+           !&                 u(i_u-1, j-1, itim(0)), u(i_u-1, j-1, itim(1))
+           !write(*,*) 'u(i_u-1, j-1, 2)',
+           !&                 u(i_u-1, j-1, 2)
+           f = fct * u(i_u-1:i_u+2,j-1:j+2,itim(1))
+     &           + (1-fct) * u(i_u-1:i_u+2,j-1:j+2,itim(0))
+           !write(*,*) '---> f(1,1)', f(1,1) 
+           
+           CALL interp2(f,fcx_u,fcy,pu)
+           !write(*,*) 'pu', pu
+           
+           f = fct * v(i-1:i+2,j_v-1:j_v+2,itim(1))
+     &           + (1-fct) * v(i-1:i+2,j_v-1:j_v+2,itim(0))
+
+           !write(*,*) 'itim(0), itim(1), fctl', itim(0), itim(1), fctl
+           
+           CALL interp2(f,fcx,fcy_v,pv)
+           !write (*,*) '--> pv', pv
+
+# endif
            CALL linear_2d(fcx,fcy,wt2)
            ppm    = sum(pm(i:i+1,j:j+1)*wt2)
            ppn    = sum(pn(i:i+1,j:j+1)*wt2)
@@ -667,7 +696,7 @@
 
            dpx = dt*pu*ppm
            dpy = dt*pv*ppn
-
+           !write(*,*) 'dpx, dpy', dpx, dpy
        end
 
 
@@ -1348,5 +1377,54 @@
        enddo
 !
        end   
+
+! -----------------------------------------------------------------------
+       subroutine interp2(f,x,y,fi)
+       !---------------------------------------------------------------------!
+       !  Compute cubic 3d interpolant
+       !  in: f(4,4,4) 
+       !      x,y,z;  local coordinates (should be between 0 and 1) 
+       !  out: fi 
+       ! 
+       !---------------------------------------------------------------------
+       implicit none
+!      import/export
+       real(kind=8),dimension(4,4),  intent(in) :: f
+       real(kind=8),                 intent(in) :: x,y
+       real(kind=8),                 intent(out):: fi
+!      local
+       real(kind=8)  :: x2,x3,y2,y3
+       real(kind=8),dimension(4)   :: fx,a1,a2,a3,a4
+       real(kind=8)                :: b1,b2,b3,b4
+
+
+       x2 = x*x; x3 = x*x2
+       y2 = y*y; y3 = y*y2
+
+       a4 = -1./6*f(1,:) + 0.5*f(2,:) - 0.5*f(3,:) + 1./6*f(4,:);
+       a3 =  0.5* f(1,:) -     f(2,:) + 0.5*f(3,:);
+       a2 = -1./3*f(1,:) - 0.5*f(2,:) +     f(3,:) - 1./6*f(4,:);
+       a1 =                    f(2,:);
+
+       fx = a4*x3+ a3*x2 + a2*x + a1;
+       !write(*,*) '--> fx', fx(1)
+
+       b4 = -1./6*fx(1) + 0.5*fx(2) - 0.5*fx(3) + 1./6*fx(4);
+       b3 =  0.5* fx(1) -     fx(2) + 0.5*fx(3);
+       b2 = -1./3*fx(1) - 0.5*fx(2) +     fx(3) - 1./6*fx(4);
+       b1 =                   fx(2);
+
+       fi = b4*y3+ b3*y2 + b2*y + b1;
+       !write(*,*) '--> fi', fi
+
+       !c4 = -1./6*fy(1) + 0.5*fy(2) - 0.5*fy(3) + 1./6*fy(4);
+       !c3 =  0.5* fy(1) -     fy(2) + 0.5*fy(3);
+       !c2 = -1./3*fy(1) - 0.5*fy(2) +     fy(3) - 1./6*fy(4);
+       !c1 =                   fy(2);
+
+       !fi= c4*z3+ c3*z2 + c2*z + c1;
+
+
+       end
 
 

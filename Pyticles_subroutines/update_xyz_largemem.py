@@ -330,7 +330,6 @@ def advance_3d(subrange,out,step):
 # Multiprocess for the advance_2d part   
 ###################################################################################
 #@profile
-#FIXME not sure 2D was tested with dfile = -1/N
 def advance_2d(subrange,out,step):
     
     global px, py, u, v, pm_s, pn_s, mask_s, dt, dfct, ng, nq, i0, j0, tim0, delt, subtstep, nx, ny, istep, iab, itim
@@ -351,7 +350,13 @@ def advance_2d(subrange,out,step):
         ########################
         if timestep=='RK4':
             partF.timestep2d_rk4(px_F,py_F,u,v,itim,fct,dfct,pm_s,pn_s,mask_s,\
-                               dt,ng,nq,i0,j0)  
+                               dt,ng,nq,i0,j0)
+            if debug_time:
+                print('debug py0', px_F[:3])
+                print('debug py0', py_F[:3])
+                print('debug others itim,fct,dfct,dt,ng,nq,i0,j0,k0')
+                print('debug others', itim,fct,dfct,dt,ng,nq,i0,j0)
+ 
         ########################  
         else:
             raise Exception("time-stepping scheme not implemented for 2D yet")
@@ -364,9 +369,12 @@ def advance_2d(subrange,out,step):
 
         subtime += dt
             
+    if debug_time:
+        print(f"istep_F, px_F, py_F {istep_F, px_F, py_F}")
 
     step.put(istep_F) 
-    px[subrange],py[subrange]=px_F,py_F
+    px[subrange],py[subrange] = px_F,py_F
+    return None
 
 ###################################################################################
 # ADVANCE_3D
@@ -405,11 +413,12 @@ if len(nprocs)>0:
     for p in procs: p.start()
     for p in procs: p.join()   
     if timestep[:2]=='AB': iab[:] = out.get_nowait()
+    # Jc debug
     try:
         istep[0] = step.get_nowait()
     except Queue.Empty:
         raise Exception("advance_3d did not complete")
-
+#    istep[0] = step.get_nowait()
 
     ############################################################################
     if timing: print(('Integration between 2 frames...', tm.time()-tstart))
