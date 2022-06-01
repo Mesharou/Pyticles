@@ -12,16 +12,18 @@ Pyticles is a Python/Fortran hybrid parallelized code for Lagrangian particles 3
 
 ## Publications using the Pyticles code
 
-- Gula, J., M.J. Molemaker & J.C. McWilliams, 2014 : Submesoscale cold filaments in the Gulf Stream, J. Phys. Oceanogr., 44, 2617-2643.
-- Vic, C., G. Roullet, X. Carton, X. Capet, M.J. Molemaker & J. Gula, 2015 : Eddy-topography interactions and the fate of the Persian Gulf Outflow, J. Geophys. Res. Ocean., 120, doi :10.1002/2015JC011033.
-- Gula, J., M.J. Molemaker & J.C. McWilliams, 2016 : Submesoscale dynamics of a Gulf Stream frontal eddy in the South Atlantic Bight, J. Phys. Oceanogr., 46, 305-325.
-- Klymak, J.M., R.K. Shearman, J. Gula, C.M. Lee, E.A. D’Asaro, L. Thomas, R. Harcourt, A. Shcherbina, M.A. Sundermeyer, M.J. Molemaker & J.C. McWilliams, 2016 : Submesoscale streamers exchange water on the North Wall of the Gulf Stream, Geophys. Res. Lett., 43, 1226–1233.
-- Ramanantsoa, J.D., M. Krug, P. Penven, M. Rouault & J. Gula, 2018 : Coastal upwelling south of Madagascar : temporal and spatial variability, Journal of Marine System, 178, 29-37.
-- Ramanantsoa, J.D., P. Penven, M. Krug, J. Gula & M. Rouault, 2018 : Uncovering a new current : the South-west MAdagascar Coastal Current (SMACC), Geophys. Res. Lett., 45, 1930-1938, doi :10.1002/2017GL075900.
+- Gula, J., M.J. Molemaker & J.C. McWilliams, **2014** : Submesoscale cold filaments in the Gulf Stream, J. Phys. Oceanogr., 44, 2617-2643.
+- Vic, C., G. Roullet, X. Carton, X. Capet, M.J. Molemaker & J. Gula, **2015** : Eddy-topography interactions and the fate of the Persian Gulf Outflow, J. Geophys. Res. Ocean., 120, doi :10.1002/2015JC011033.
+- Gula, J., M.J. Molemaker & J.C. McWilliams, **2016** : Submesoscale dynamics of a Gulf Stream frontal eddy in the South Atlantic Bight, J. Phys. Oceanogr., 46, 305-325.
+- Klymak, J.M., R.K. Shearman, J. Gula, C.M. Lee, E.A. D’Asaro, L. Thomas, R. Harcourt, A. Shcherbina, M.A. Sundermeyer, M.J. Molemaker & J.C. McWilliams, **2016** : Submesoscale streamers exchange water on the North Wall of the Gulf Stream, Geophys. Res. Lett., 43, 1226–1233.
+- Ramanantsoa, J.D., M. Krug, P. Penven, M. Rouault & J. Gula, **2018** : Coastal upwelling south of Madagascar : temporal and spatial variability, Journal of Marine System, 178, 29-37.
+- Ramanantsoa, J.D., P. Penven, M. Krug, J. Gula & M. Rouault, **2018** : Uncovering a new current : the South-west MAdagascar Coastal Current (SMACC), Geophys. Res. Lett., 45, 1930-1938, doi :10.1002/2017GL075900.
 - Ragoasha, N., S. Herbette, G. Cambon, J. Veitch, C. Reason, C. Roy, 2019: Lagrangian pathways in the southern Benguela upwelling system, Journal of Marine Systems, 195, 50-66, https://doi.org/10.1016/j.jmarsys.2019.03.008.
-- Gula, J., T. Blacic, & R.E. Todd, 2019 : Submesoscale coherent vortices in the Gulf Stream, Geophys. Res. Lett., 46, 2704-2714. https ://doi.org/10.1029/2019GL081919
-- Smilenova, A., J. Gula, M. Le Corre, L. Houpert & Y. Reecht, 2020 : A persistent deep anticyclonic vortex in the Rockall Trough sustained by anticyclonic vortices shed from the slope current and wintertime convection, J. Geophys. Res. Ocean, https ://doi.org/10.1029/2019JC015905.
-- Vic, C., S. Hascoet, J. Gula, T. Huck, & C. Maes, 2022 : Oceanic mesoscale cyclones cluster surface Lagrangian material, Geophys. Res. Lett, 49, e2021GL097488. https ://doi.org/10.1029/2021GL097488.
+- Gula, J., T. Blacic, & R.E. Todd, **2019** : Submesoscale coherent vortices in the Gulf Stream, Geophys. Res. Lett., 46, 2704-2714. https ://doi.org/10.1029/2019GL081919
+- Smilenova, A., J. Gula, M. Le Corre, L. Houpert & Y. Reecht, **2020** : A persistent deep anticyclonic vortex in the Rockall Trough sustained by anticyclonic vortices shed from the slope current and wintertime convection, J. Geophys. Res. Ocean, https ://doi.org/10.1029/2019JC015905.
+- Vic, C., S. Hascoet, J. Gula, T. Huck, & C. Maes, **2022** : Oceanic mesoscale cyclones cluster surface Lagrangian material, Geophys. Res. Lett, 49, e2021GL097488. https ://doi.org/10.1029/2021GL097488.
+- Wang, L., J. Gula, J. Collin & L. Memery, **2022** : Effects of mesoscale dynamics on the distribution and transport of gravitationally sinking particles to the deep ocean, submitted.
+- Qu, L., L. Thomas, A. Wienkers, R. Hetland, D. Kobashi, J. Taylor, F. Hsu, J. MacKinnon, R. Shearman, J. Nash, **2022** : Rapid Vertical Exchange at Fronts in the Northern Gulf of Mexico, https://doi.org/10.21203/rs.3.rs-1620471/v1
 
 ## DOI
 
