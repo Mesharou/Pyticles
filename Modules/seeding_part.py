@@ -141,7 +141,7 @@ def get_dx(ic=0, jc=0., simul=None):
     R_files.load simul 
 
     '''
-    dx = 1/simul.pm[np.round(jc), np.round(ic)]
+    dx = 1/simul.pm[np.int(jc), np.int(ic)]
     
     return dx
 
