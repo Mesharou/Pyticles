@@ -1481,15 +1481,16 @@ def get_depths(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
     else: 
         zeta=periodize2d_fromnc(simul,'zeta',coord=coord,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng) 
 
-    if simul.ncname.model=='ucla':
+    if simul.ncname.model=='ucla' or simul.VertCoordType == 'NEW':
+        # zlevs and zlevs_croco_new give identical results
         (z_r,z_w) = partF.zlevs(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w)
     else:
-        if simul.VertCoordType == 'NEW':
-            print('using NEW_S_COORD')
-            (z_r,z_w) = partF.zlevs_croco_new(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w, simul.sc_r, simul.sc_w)
-        else:
-            print('using OLD_S_COORD')
-            (z_r,z_w) = partF.zlevs_croco_old(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w, simul.sc_r, simul.sc_w)
+        #if simul.VertCoordType == 'NEW':
+        #    print('using NEW_S_COORD')
+        #    (z_r,z_w) = partF.zlevs_croco_new(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w, simul.sc_r, simul.sc_w)
+        #else:
+        print('using OLD_S_COORD')
+        (z_r,z_w) = partF.zlevs_croco_old(topo, zeta, simul.hc, simul.Cs_r, simul.Cs_w, simul.sc_r, simul.sc_w)
 
 
     return [z_r,z_w]
@@ -1519,15 +1520,16 @@ def get_depths_w(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
         print("NOPE simul has NOT attribute zeta")
         zeta=periodize2d_fromnc(simul,'zeta',coord=coord,x_periodic=x_periodic,                                 y_periodic=y_periodic,ng=ng) 
 
-    if simul.ncname.model=='ucla':
+    if simul.ncname.model=='ucla' or simul.VertCoordType == 'NEW':
+        # zlevs and zlevs_croco_new give identical results
         (z_w) = partF.zlevs_w(topo, zeta, simul.hc,  simul.Cs_w)
     else:
-        if simul.VertCoordType == 'NEW':
-            print('using NEW_S_COORD')
-            (z_w) = partF.zlevs_croco_new_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
-        else:
-            print('using OLD_S_COORD')
-            (z_w) = partF.zlevs_croco_old_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
+        #if simul.VertCoordType == 'NEW':
+        #    print('using NEW_S_COORD')
+        #    (z_w) = partF.zlevs_croco_new_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
+        #else:
+        print('using OLD_S_COORD')
+        (z_w) = partF.zlevs_croco_old_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
 
     return z_w
 
