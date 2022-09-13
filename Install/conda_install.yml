@@ -1,4 +1,4 @@
-name: pyti-conda-3.6
+name: pyticles
 channels:
   - defaults
 dependencies:

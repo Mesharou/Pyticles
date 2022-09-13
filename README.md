@@ -36,3 +36,62 @@ The latest release has been archived on zenodo:
 ## License
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Installation guide
+
+### Requirements:
+- netcdf4
+- gfortran
+- conda
+
+### clone:
+    
+    git clone https://github.com/Mesharou/Pyticles.git
+
+### Install
+#### Classic:
+
+    cd Install/
+    conda env create -f conda_install.yml
+
+#### DATARMOR specific:
+tcsh users: 
+    module load anaconda-py3.6/4.7.12
+
+create new env
+    conda create --name pyticles
+
+    conda init tcsh
+    conda activate pyticles
+
+install modules
+
+    conda install numpy
+    conda install scipy
+    conda install matplotlib
+    conda install netCDF4
+
+bash users:
+    module load conda/latest
+    module load NETCDF/4.3.3.1-mpt-intel2016
+
+    cd Install/
+    conda env create -f conda_install.yml
+
+### Build modules
+    cd Modules/
+    make all
+
+### Getting started
+All Pyticles parameters and options are defined in Inputs/input\_file.py
+
+You must define a simulation name and modify Modules/R\_files.py accordingly
+to set the croco file's path 
+
+To run Pyticles sequentially (interactively)
+    python -i Pyticles.py 1 
+
+In parallel with $np OpenMP procs
+    python Pyticles.py $np > out
+
+
