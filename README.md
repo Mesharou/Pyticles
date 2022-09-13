@@ -56,9 +56,11 @@ The latest release has been archived on zenodo:
 
 #### DATARMOR specific:
 tcsh users: 
+    
     module load anaconda-py3.6/4.7.12
 
 create new env
+    
     conda create --name pyticles
 
     conda init tcsh
@@ -72,6 +74,7 @@ install modules
     conda install netCDF4
 
 bash users:
+    
     module load conda/latest
     module load NETCDF/4.3.3.1-mpt-intel2016
 
@@ -89,9 +92,11 @@ You must define a simulation name and modify Modules/R\_files.py accordingly
 to set the croco file's path 
 
 To run Pyticles sequentially (interactively)
+    
     python -i Pyticles.py 1 
 
 In parallel with $np OpenMP procs
+    
     python Pyticles.py $np > out
 
 
