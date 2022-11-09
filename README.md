@@ -24,6 +24,7 @@ Pyticles is a Python/Fortran hybrid parallelized code for Lagrangian particles 3
 - Vic, C., S. Hascoet, J. Gula, T. Huck, & C. Maes, **2022** : Oceanic mesoscale cyclones cluster surface Lagrangian material, Geophys. Res. Lett, 49, e2021GL097488. https ://doi.org/10.1029/2021GL097488.
 - Wang, L., J. Gula, J. Collin & L. Memery, **2022** : Effects of mesoscale dynamics on the distribution and transport of gravitationally sinking particles to the deep ocean, submitted.
 - Qu, L., L. Thomas, A. Wienkers, R. Hetland, D. Kobashi, J. Taylor, F. Hsu, J. MacKinnon, R. Shearman, J. Nash, **2022** : Rapid Vertical Exchange at Fronts in the Northern Gulf of Mexico, https://doi.org/10.21203/rs.3.rs-1620471/v1
+- Tagliabue, A., A. Lough, C. Vic, V. Roussenov, J. Gula, M. Lohan, J. Resing, & R. Williams, **2022** : Mechanisms driving the dispersal of hydrothermal iron from the northern Mid Atlantic Ridge, Geophys. Res. Lett., https://doi.org/10.1002/essoar.10512044.1
 
 ## DOI
 
