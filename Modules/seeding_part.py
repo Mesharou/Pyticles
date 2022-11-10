@@ -231,10 +231,10 @@ def particles_on_a_sphere(d, lonmin=-180,lonmax=180,latmin=-90,latmax = -90):
 
     
 ##############################################################################
-def seed_meter_sphere(lev0=0, lev1=1, nnlev=1,\
-                     dx_box=2000,\
-                     box_coords = [-180,180,-90,90],\
-                     simul=None, ng=1, debug=False):
+def seed_meter_sphere(lev0=0, lev1=1, nnlev=1,
+                     dx_box=2000,
+                     box_coords = [-180,180,-90,90],
+                     simul=None, sig=None, ng=1, debug=False):
     '''
 
     Seeding particles with (approximate) constant distance on a spherical grid:
@@ -246,6 +246,7 @@ def seed_meter_sphere(lev0=0, lev1=1, nnlev=1,\
     lev0, lev1 : first and final vertical levels (ints)
     nnlev : seeding vertical density (int)
     dx_box (meters):  particle's spacing in meters
+    sig: sigma layer to initialize particles
     
     '''
     
@@ -309,6 +310,11 @@ def ini_surf(simul, rho0, x, y, z, rho, ng=0):
 ##############################################################################
 def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     ''' 
+    depths0 < 0 : depth in meter
+    depths0 = 0 : ocean surface
+    depths0 > 0 : sigma layer
+    
+    else:
     Cubic interpolation of sigma levels at depths0 (seeding depths in meters)
     z : sigma level for particles released at depths0
 
@@ -322,51 +328,57 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
                 ng : nunber of ghost point for horizontal interpolation
 
     z_part vector of size nz+1: is z_w interpolated at particles horizontal location
+    
+    careful: depths0 = [0] means sea-s
 
     '''
+    
     z_part = np.arange(len(simul.coord[4])+1, dtype='float')
 
     for k in range(len(depths0)):
-        for i in range(x.shape[2]):
-            for j in range(x.shape[1]):
-                ix = np.int(np.floor(x[k, j, i])) + ng
-                iy = np.int(np.floor(y[k, j, i])) + ng
-                if maskrho[ix,iy]==1:
-                    cfx = x[k, j, i] - ix + 0.5 + ng
-                    cfy = y[k, j, i] - iy + 0.5 + ng
+        # surface layer
+        if depths0[k] == 0:
+            z[k, :, :] = simul.coord[4].max()
+            
+        # sigma layer
+        elif depths0[k] > 0:
+            z[k, :, :] = depths0[k]
+            
+        # vertical depth  
+        else:
+            for i in range(x.shape[2]):
+                for j in range(x.shape[1]):
+                    ix = np.int(np.floor(x[k, j, i])) + ng
+                    iy = np.int(np.floor(y[k, j, i])) + ng
+                    if maskrho[ix,iy]==1:
+                        cfx = x[k, j, i] - ix + 0.5 + ng
+                        cfy = y[k, j, i] - iy + 0.5 + ng
                 
-                    zxp = z_w[ix+1, iy]
-                    zyp = z_w[ix, iy+1]
-                    zxyp = z_w[ix+1, iy+1]
+                        zxp = z_w[ix+1, iy]
+                        zyp = z_w[ix, iy+1]
+                        zxyp = z_w[ix+1, iy+1]
 
-                    z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
-                    + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
+                        z_part[:] = (1-cfx) * (1-cfy) * z_w[ix, iy] \
+                        + (1-cfx)*cfy*zyp + cfx*(1-cfy)*zxp + cfx*cfy*zxyp
                 
-                    f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
-                    try:
-                        z[k,j,i] = f(depths0[k])
-                    except ValueError:
-                        z[k,j,i] = -1.
-                    '''
-                    Need to handle exeption where 
-                    
-                    raise ValueError("A value in x_new is below the interpolation "
-                    ValueError: A value in x_new is below the interpolation range.
-                    
-                    just need to put z=0
-                    '''
-                else:
-                    z[k,j,i] = 0.
+                        f = interp1d(z_part, list(range(z_w.shape[2])), kind='cubic')
+                        try:
+                            z[k,j,i] = f(depths0[k])
+                        except ValueError:
+                            z[k,j,i] = -1.
+                      
+                    else:
+                        z[k,j,i] = 0.
 
-                debug_pdepth = False
-                if debug_pdepth:
-                    print('---------- SEEDING----------')
-                    print(f'cfx = {cfx}')
-                    print(f'cfy = {cfy}')
-                    print('----------------------------')
-                    print(f'zxp = {zxp};   zyp = {zyp};  zxyp = {zxyp}')
-                    print(f' z_part = {z_part}')
-
+                    debug_pdepth = False
+                    if debug_pdepth:
+                        print('---------- SEEDING----------')
+                        print(f'cfx = {cfx}')
+                        print(f'cfy = {cfy}')
+                        print('----------------------------')
+                        print(f'zxp = {zxp};   zyp = {zyp};  zxyp = {zxyp}')
+                        print(f' z_part = {z_part}')
+        
     return z
 
 ##############################################################################

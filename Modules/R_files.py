@@ -2713,14 +2713,18 @@ class files(object):
                 #folder= ROMSSIMS + '/POLGYR/'
                 #self.grd= folder + 'polgyr_grd.nc'
             #else:
-            folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
-            self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
-
+            import socket
+            if 'lpo' in socket.gethostname():
+                folder='/scratch/Jcollin/croco/polgyr/'
+                self.grd=folder + 'polgyr_grd.nc'
+            else:    
+                folder= '/home/datawork-lops-osi/mlecorre/POLGYR/HIS/'
+                self.grd='/home/datawork-lops-osi/mlecorre/POLGYR/INIT/polgyr_grd.nc'
 
             self.his=folder +'polgyr_his.'
 
-            self.frc=folder + '/polgyr_his.04000.nc'
-            self.wind=folder + '/polgyr_his.04000.nc'
+            self.frc=folder + '/polgyr_his.03360.nc'
+            self.wind=folder + '/polgyr_his.03360.nc'
             self.tfile=20
             self.tstart=0
             self.tend=1000

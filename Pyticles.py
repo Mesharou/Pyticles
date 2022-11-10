@@ -223,7 +223,8 @@ def shared_array(nx, ny=1, nz=1, nt=1, prec='double', value=np.nan):
     elif prec=='double':
         shared_array_base = mp.Array(ctypes.c_double, int(nx*ny*nz*nt), lock=True)
     elif prec=='int':
-        shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )        
+        shared_array_base = mp.Array(ctypes.c_int32, nx*ny*nz*nt )
+        #value = 2**31
     var = np.ctypeslib.as_array(shared_array_base.get_obj())
     
     if nt>1:
@@ -284,7 +285,7 @@ if not restart:
 
     ##############################
     # initial vertical position = depths0
-    if initial_depth: 
+    if initial_depth:
         z_w = part.get_depths_w(simul, x_periodic=x_periodic,
                                 y_periodic=y_periodic, ng=ng)
         z = seeding_part.ini_depth(maskrho, simul, depths0, x, y, z, z_w,

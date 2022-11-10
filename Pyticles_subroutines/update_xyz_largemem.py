@@ -3,7 +3,8 @@
 #Read velocities
 ###################################################################################
 # variables for CFL condition
-from input_file import inline_cfl, umax, vmax, wmax, dzmin, cmax
+from input_file import inline_cfl, umax, vmax, wmax, dzmin, cmax, klim, remove,\
+                       below, debug
 
 
 debug_time = False
@@ -52,8 +53,7 @@ subtiming = True
 istep = shared_array(1,prec='int',value=-1)
 
 # Index of the  previous (itim[0]) and next(itim[1]) time-step for u,v,w,dz
-itim = shared_array(2, prec='int')
-itim[:] = [0, 1]
+itim = shared_array(2, prec='int', value=[0, 1])
 
 tim0 = simul.oceantime
 
@@ -117,9 +117,9 @@ if np.isnan(pm_s[0,0]):
 
 if not meanflow:
     if dfile > 0: 
-        simul.update(np.int(np.floor(time) + simul.dtime))
+        simul.update(int(np.floor(time) + simul.dtime))
     else:
-        simul.update(np.int(np.ceil(time) + simul.dtime))
+        simul.update(int(np.ceil(time) + simul.dtime))
     
     if debug_time:
         print('u1 time :', simul.time)
@@ -192,7 +192,7 @@ if inline_cfl:
     
     nsub_steps = part.get_nsub_steps(simul=simul, cmax=cmax, umax=umax, vmax=vmax,
                                      wmax=wmax, dzmin=dzmin, coord=subcoord)
-    subtstep = np.int(nsub_steps * np.abs(dfile))
+    subtstep = int(nsub_steps * np.abs(dfile))
 
 print(f"--> nsub_steps {nsub_steps}")
 dt = delt[0] / nsub_steps
@@ -207,7 +207,7 @@ def advance_3d(subrange,out,step):
     
     global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, \
     j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim, debug_time, \
-    remove, klim
+    remove, klim, below, debug
     
     #from input_file import remove
     #if remove:
@@ -300,30 +300,28 @@ def advance_3d(subrange,out,step):
             raise Exception("no time-stepping scheme specified")
 
         #Remove particles exiting the domain:
-        [px_F,py_F,pz_F] = part.cull(px_F, py_F, pz_F, nx, ny, nz,
+        [px_F, py_F, pz_F] = part.cull(px_F, py_F, pz_F, nx, ny, nz,
                            x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
                            
-        #Remove particles below/above (below=True/False) a certain sigma level (klim):
-        if remove:
-            [px_F,py_F,pz_F] = part.remove_depth(px_F, py_F, pz_F,klim,below=below)
-                           
         #Give a kick to particles trapped at surface/bottom       
-        [pz_F] = part.kick(pz_F,nz)
+        [pz_F] = part.kick(pz_F, nz)
 
         
         subtime += dt
         
-        #print 'debug px', it,np.nanmin(px_F),np.nanmax(px_F)
-        #print 'debug py', it,np.nanmin(py_F),np.nanmax(py_F)
+    # Remove particles below/above (below=True/False) a certain sigma level (klim):
+    if remove:
+        [px_F, py_F, pz_F] = part.remove_depth(px_F, py_F, pz_F, klim,
+                                               below=below, debug=debug)
 
     # Update the shared arrays 
     if timestep[:2]=='AB': 
-        dpx[subrange,:],dpy[subrange,:],dpz[subrange,:]=dpx_F,dpy_F,dpz_F
+        dpx[subrange,:], dpy[subrange,:], dpz[subrange,:] = dpx_F, dpy_F, dpz_F
         out.put(iab_F)
         
     step.put(istep_F)     
         
-    px[subrange],py[subrange],pz[subrange]=px_F,py_F,pz_F
+    px[subrange], py[subrange], pz[subrange] = px_F, py_F, pz_F
 
 
 ###################################################################################

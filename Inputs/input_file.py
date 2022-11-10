@@ -71,8 +71,8 @@ if not adv3d:
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 1000 #1440
-end_file = 1020 #8000
+start_file = 3360 #1440
+end_file = 3365 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -161,9 +161,9 @@ nadv = 1 # deprecated
 ##############################################################################
 
 # sedimentation of denser particles (not supported in 2D case)
-sedimentation = True
+sedimentation = False
 sedimentation_only = False
-w_sed0 = -20 # vertical velocity for particles sedimentation (m/d)
+w_sed0 = -10 # vertical velocity for particles sedimentation (m/d)
 
 if sedimentation_only:
     sedimentation = False
@@ -172,14 +172,17 @@ if not adv3d:
     sedimentation = False
     w_sed0 = 0. # JC no sedimentation for 2D advection
 
-#Remove particles below/above (below=True/False) a certain sigma level (klim):
-remove = True
-if sedimentation and remove:
-    below = False
+# Remove particles below/above (below=True/False) a certain sigma level (klim):
+remove = False
+if  remove:
+    below = True
     nz = len(simul.coord[4])
-    klim = nz - 10
-
-print(f"klim is {klim}")
+    klim = 75
+    print(f"klim is {klim}")
+else:
+    klim = -1 # default value
+    below = False # default value
+    
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
@@ -219,8 +222,7 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 config = 'dynamic_injection'
 
-
-folderout = '/home/datawork-lemar-apero/jcollin/pyticles/'
+folderout = '/postproc/COLLIN/Pyticles/tmp/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -279,7 +281,6 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 #[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
-barycentric = False  # Automatically modifies patch's center to previsously seeded
 
 [ic, jc] = [900, 1100]
 print('ic,jc is ',ic,jc)
@@ -293,7 +294,6 @@ preserved_meter = True
 
 # --> injection on lon lat
 spheric_injection = False
-
 
 if preserved_meter:
     dx_box = 2000  # horizontal particles spacing meters
@@ -332,6 +332,7 @@ initial_cond = False # 1036 in Pyticles.py
 initial_depth = True
 initial_iso = False
 
+# 2D advection
 if advsurf:
     initial_iso = False
     initial_depth = False
@@ -344,7 +345,11 @@ part_trap = False
 if initial_cond:
    initial_depth = False
 
-depths0 = [-1000]
+
+# depths0 < 0 : depth in meter
+# depths0 > 0 : sigma layer
+# depths0 = 0 : release at surface
+depths0 = [-100]
 rho0 = [-1.5]
 
 # if True release particles continuously
