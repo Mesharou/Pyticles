@@ -1,7 +1,7 @@
 ################################################
 # install a conda env to run Pyticles on datarmor with python 3
 ################################################
-
+# maybe python 3.8 is needed 
 
 module load anaconda-py3.6/4.7.12
 
