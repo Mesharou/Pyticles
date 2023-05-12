@@ -193,8 +193,8 @@ def remove_depth(px, py, pz, klim, below=False, debug=False):
 #@profile   
 def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
                y_periodic=False, ng=0, cartesian=False, **kwargs):
-    " returns u, v, omega if cartesian = False "
-    "          u, v, w_vlcy if cartesian = True"
+    " returns u, v, omega  if cartesian = False "
+    "         u, v, w_vlcy if cartesian = True"
 
     if 'coord' in  kwargs:
         coord = kwargs['coord'][0:4]
@@ -526,6 +526,7 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
 
     u = np.zeros((nx2-nx1-1,ny2-ny1))*np.nan
     v = np.zeros((nx2-nx1,ny2-ny1-1))*np.nan
+
     ################################
 
     def interp(simul, varname, coord=coord, advdepth=advdepth):
@@ -540,12 +541,18 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
             varz = simul.Forder(np.squeeze(
                  nc.variables[varname][simul.infiletime, -1, coord[0]:coord[1],
                  coord[2]:coord[3]]))
+        elif advdepth>0:
+            # use sigma-level
+            varz = simul.Forder(np.squeeze(
+                 nc.variables[varname][simul.infiletime, advdepth, coord[0]:coord[1],
+                 coord[2]:coord[3]]))
         else:
             [z_r, z_w] = get_depths(simul,coord=coordz)
             var0  = simul.Forder(np.squeeze(
                                   nc.variables[varname][simul.infiletime, :,
                                   coord[0] : coord[1], coord[2] : coord[3]]))
             varz = vinterp(var0, [advdepth], z_r, z_w, imin=imin, jmin=jmin)[:,:,0]
+
         return varz
 
     ################################
@@ -617,7 +624,7 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
 def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0,**kwargs):  
 
     '''
-    get surface horizontal velocities
+    get surface horizontal velocities for files with a unique depth
 
     '''
     if 'coord' in  kwargs:

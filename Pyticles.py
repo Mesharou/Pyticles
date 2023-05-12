@@ -335,7 +335,7 @@ if not restart:
     px0, py0, pz0 = [], [], []
     topolim = 0
 
-    if (not adv3d) and (not advzavg): topolim = np.nanmax([topolim, -advdepth])
+    if (not adv3d) and (not advzavg) and (advdepth<0): topolim = np.nanmax([topolim, -advdepth])
     elif advzavg: topolim = np.nanmax([topolim, -advdepth - z_thick/2])
 
     # initializing px0, py0, pz0
@@ -835,7 +835,7 @@ for time in timerange:
         pv = shared_array(nq, prec='double')
         r = run_process(update_uv_2d)
         print('get u,v..................................', tm.time()-tstart)
-        tstart = tm.time()   
+        tstart = tm.time()
    
     if write_uvw:
         pu = shared_array(nq, prec='double')

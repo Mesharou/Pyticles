@@ -190,7 +190,10 @@ plot_part = True
 
 #Write lon,lat,topo,depth
 write_lonlat = True
-write_depth = True
+if not adv3d:
+    write_depth = True
+else:
+    write_depth = False
 write_topo = True
 
 if advzavg: 
