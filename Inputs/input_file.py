@@ -268,7 +268,7 @@ timing = True
 
 # number of sub-time steps for advection
 if not inline_cfl:
-    subtstep = np.int(nsub_steps * np.abs(dfile))
+    subtstep = int(nsub_steps * np.abs(dfile))
 else:
     subtstep = 0
 
@@ -361,7 +361,7 @@ continuous_injection = True
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
-    N_injection = 1 + np.int(timerange.shape[0] / dt_injection)
+    N_injection = 1 + int(timerange.shape[0] / dt_injection)
 
     # --> compute only once initial particle position to save time
     static_injection = False

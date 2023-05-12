@@ -65,7 +65,7 @@ def get_nsub_steps(simul=None, cmax=0.75, umax=2, vmax=2, wmax=2*1e-3,
         pmmax = np.nanmax(simul.pm)
         pnmax = np.nanmax(simul.pn)
 
-    nsub_steps = np.int(np.ceil((umax*pmmax + vmax*pnmax + wmax*dzmin)\
+    nsub_steps = int(np.ceil((umax*pmmax + vmax*pnmax + wmax*dzmin)\
                  * simul.dt / cmax))
     return nsub_steps
 

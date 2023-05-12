@@ -141,7 +141,7 @@ def get_dx(ic=0, jc=0., simul=None):
     R_files.load simul 
 
     '''
-    dx = 1/simul.pm[np.int(jc), np.int(ic)]
+    dx = 1/simul.pm[int(jc), int(ic)]
     
     return dx
 
@@ -206,13 +206,13 @@ def particles_on_a_sphere(d, lonmin=-180,lonmax=180,latmin=-90,latmax = -90):
     plon,plat = [],[]
     
     #####
-    Mtheta = np.int(np.pi * r / d)
+    Mtheta = int(np.pi * r / d)
     dtheta = np.pi * r / Mtheta
     dphi = d**2 / dtheta
 
     for m in range(Mtheta):
         theta = np.pi * (m + 0.5) / Mtheta
-        Mphi = np.int( 2 * np.pi * r * np.sin(theta) / dtheta)
+        Mphi = int( 2 * np.pi * r * np.sin(theta) / dtheta)
 
         for n in range(Mphi):
             phi = 2 * np.pi * n / Mphi
@@ -348,8 +348,8 @@ def ini_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
         else:
             for i in range(x.shape[2]):
                 for j in range(x.shape[1]):
-                    ix = np.int(np.floor(x[k, j, i])) + ng
-                    iy = np.int(np.floor(y[k, j, i])) + ng
+                    ix = int(np.floor(x[k, j, i])) + ng
+                    iy = int(np.floor(y[k, j, i])) + ng
                     if maskrho[ix,iy]==1:
                         cfx = x[k, j, i] - ix + 0.5 + ng
                         cfy = y[k, j, i] - iy + 0.5 + ng
@@ -388,8 +388,8 @@ def ini_trap_depth(maskrho, simul, depths0, x, y, z, z_w, ng=0):
     '''
     z_part = np.arange(len(simul.coord[4])+1, dtype='float')
     for ip in range(len(x)):
-        ix = np.int(np.floor(x[ip])) + ng
-        iy = np.int(np.floor(y[ip])) + ng
+        ix = int(np.floor(x[ip])) + ng
+        iy = int(np.floor(y[ip])) + ng
         if maskrho[ix,iy]==1:
             cfx = x[ip] - ix + 0.5 + ng
             cfy = y[ip] - iy + 0.5 + ng

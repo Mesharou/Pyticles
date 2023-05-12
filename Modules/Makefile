@@ -18,11 +18,11 @@ PROGRAMP = pyticles_3d_sig_sa
 
 all: $(RCSP)
 	$(CXX) $(SRCSP) $(RCSP)
-	$(FC) $(FCFLAGS) -m $(PROGRAMP) $(RCSP)
+	CFLAGS="--std=c99" $(FC) $(FCFLAGS) -m $(PROGRAMP) $(RCSP)
 
 pyticles: $(RCSP)
 	$(CXX) $(SRCSP) $(RCSP)
-	$(FC) $(FCFLAGS) -m $(PROGRAMP) $(RCSP)
+	CFLAGS="--std=c99" $(FC) $(FCFLAGS) -m $(PROGRAMP) $(RCSP)
 
 clean:
 	rm -f *.f *.so  *.o *.mod

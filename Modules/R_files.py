@@ -80,7 +80,7 @@ class load(object):
 ###################################################################################
 #   Main 
 ###################################################################################
-    def __init__(self,simulname=None,time=None, floattype=np.float, light = False, touchfile=True, output =True, **kwargs):
+    def __init__(self,simulname=None,time=None, floattype=float, light = False, touchfile=True, output =True, **kwargs):
 
         """
 
@@ -100,7 +100,7 @@ class load(object):
         
         #for time in range(self.time0, self.ncname.tend, self.dtime ):
         if time==None: time = self.time0
-        self.time = np.int(time)
+        self.time = int(time)
         
         self.ncname=files(self.simul, time=self.time, output = output)
         
@@ -236,7 +236,7 @@ class load(object):
 
         #for time in range(self.time0, self.ncname.tend, self.dtime ):
         if time==None: self.time += 1
-        else: self.time = np.int(time)
+        else: self.time = int(time)
         
         self.ncname=files(self.simul, time=self.time,output = output)
 
