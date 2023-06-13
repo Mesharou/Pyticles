@@ -29,25 +29,27 @@ else:
     prev_time = np.ceil(time)
     next_time = np.floor(time)
 
-if simul.simul[-4:]=='surf':
-    [u, v] = part.get_vel_io_surf(simul, x_periodic=x_periodic,
-                                 y_periodic=y_periodic, ng=ng, coord=coord)
+if simul.simul[-4:]=='surf' or advsurf:
+    [u, v] = part.get_vel_io_surf(simul, x_periodic=x_periodic,\
+                                 y_periodic=y_periodic, ng=ng, coord=coord,\
+                                 u_name = u_name, v_name = v_name)
     if not meanflow and alpha_time != 0:
         simul.update(next_time)
         [u2, v2] = part.get_vel_io_surf(simul, x_periodic=x_periodic, 
-                                       y_periodic=y_periodic, ng=ng, coord=coord)
+                                       y_periodic=y_periodic, ng=ng, coord=coord,\
+                                       u_name = u_name, v_name = v_name)
         simul.update(prev_time)
         u = linear(u, u2, alpha_time)
         v = linear(v, v2, alpha_time)
 else:
     [u, v, w] = part.get_vel_io(simul, x_periodic=x_periodic, 
                                 y_periodic=y_periodic, ng=ng, coord=coord, 
-                                cartesian=cartesian)
+                                cartesian=cartesian, u_name = u_name, v_name = v_name)
     if not meanflow and alpha_time != 0:
         simul.update(next_time)
         [u2, v2, w2] = part.get_vel_io(simul, x_periodic=x_periodic,
                         y_periodic=y_periodic, ng=ng, coord=coord,
-                        cartesian=cartesian)
+                        cartesian=cartesian, u_name = u_name, v_name = v_name)
         simul.update(prev_time)
         u = linear(u, u2, alpha_time)
         v = linear(v, v2, alpha_time)

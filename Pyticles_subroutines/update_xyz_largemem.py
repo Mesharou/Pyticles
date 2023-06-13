@@ -77,28 +77,28 @@ if np.isnan(pm_s[0,0]):
         [u[:,:,:,itim[0]], v[:,:,:,itim[0]], w[:,:,:,itim[0]]] = \
                 part.get_vel_io(simul, pm=pm_s, pn=pn_s, timing=subtiming,
                 x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-                coord=subcoord, cartesian=False)
+                coord=subcoord, cartesian=False, u_name = u_name, v_name = v_name)
         if sedimentation:
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] + w_sed 
         elif sedimentation_only:
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] * 0 +  w_sed 
     
-    elif simul.simul[-4:]=='surf':
+    elif simul.simul[-4:]=='surf' or advsurf:
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
-                y_periodic=y_periodic, ng=ng, coord=subcoord)
+                y_periodic=y_periodic, ng=ng, coord=subcoord, u_name = u_name, v_name = v_name)
     ### JC 
     elif advzavg:
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
-                coord=subcoord)
+                coord=subcoord, u_name = u_name, v_name = v_name)
     ### JC
     else:
         [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_2d(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng, advdepth = advdepth,
-                coord=subcoord)
+                coord=subcoord, u_name = u_name, v_name = v_name)
 
     if subtiming: print(('Computing velocity at t1.......', tm.time()-tstart))
     if subtiming: tstart = tm.time()
@@ -134,28 +134,30 @@ if subtiming: tstart = tm.time()
 if adv3d:
     [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
             pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-            coord=subcoord, cartesian=False)
+            coord=subcoord, cartesian=False, u_name = u_name, v_name = v_name)
     if sedimentation:
         w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
     elif sedimentation_only:
             w[:, :, :, itim[1]] = w[:,:,:,itim[1]] * 0 + w_sed 
 
-elif simul.simul[-4:]=='surf':
+elif simul.simul[-4:]=='surf' or advsurf:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
                                        timing=subtiming, x_periodic=x_periodic,
-                                        y_periodic=y_periodic, ng=ng, coord=subcoord)
+                                        y_periodic=y_periodic, ng=ng, coord=subcoord,\
+                                              u_name = u_name, v_name = v_name)
 ### JC 
 elif advzavg:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
             pn=pn_s, timing=subtiming, x_periodic=x_periodic,
             y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
-            coord=subcoord)
+            coord=subcoord, u_name = u_name, v_name = v_name)
 ### JC
 else:
     [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
                                       pn=pn_s, timing=subtiming,
                                       x_periodic=x_periodic, y_periodic=y_periodic,
-                                      ng=ng, advdepth = advdepth, coord=subcoord)
+                                      ng=ng, advdepth = advdepth, coord=subcoord,\
+                                          u_name = u_name, v_name = v_name)
 
 if subtiming: print(('Computing velocity at t2.......', tm.time()-tstart))
 if subtiming: tstart = tm.time()

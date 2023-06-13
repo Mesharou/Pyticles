@@ -9,7 +9,7 @@
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 ! 01/04/21:
-      - added carthsian parameter to get_vel to get w-velocity in z-coordinates
+      - added cartesian parameter to get_vel to get w-velocity in z-coordinates
 ! 05/10/16:
 !     - modify map_var to handle automatically u-,v- grids
 ! 16/01/26:
@@ -192,7 +192,7 @@ def remove_depth(px, py, pz, klim, below=False, debug=False):
   
 #@profile   
 def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
-               y_periodic=False, ng=0, cartesian=False, **kwargs):
+               y_periodic=False, ng=0, cartesian=False, u_name='u', v_name='v', **kwargs):
     " returns u, v, omega  if cartesian = False "
     "         u, v, w_vlcy if cartesian = True"
 
@@ -230,7 +230,7 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     if x_periodic: iper=1
     else: iper = 0
     u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = simul.Forder(
-      np.squeeze(nc.variables['u'][simul.infiletime, :, ny1-ns : ny2-2*ng+nn,
+      np.squeeze(nc.variables[u_name][simul.infiletime, :, ny1-ns : ny2-2*ng+nn,
                            nx1+iper-nw : nx2-1+iper-2*ng+ne]))
     
     u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn, :] = \
@@ -242,7 +242,7 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     if y_periodic: jper=1
     else: jper = 0
     v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn, :] = simul.Forder(
-       np.squeeze(nc.variables['v'][simul.infiletime, :,
+       np.squeeze(nc.variables[v_name][simul.infiletime, :,
                   ny1-ns+jper : ny2-1+jper-2*ng+nn, nx1-nw : nx2-2*ng+ne]))
 
     v[ng-nw : nx2-nx1-ng+ne, ng-ns : ny2-ny1-1-ng+nn, :] = \
@@ -256,32 +256,32 @@ def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
     ################################
 
     if nw<ng and x_periodic:
-        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx1tot]))
+        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx1tot]))
         for i in range(1,ng):
-            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
+            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
         for i in range(ng):
-            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
+            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,:,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
         nw=ng 
 
     if ne<ng and x_periodic:
         for i in range(ng):
-            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
+            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,:,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
         for i in range(ng):
-            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
+            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn,:] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,:,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
         ne=ng
 
     if ns<ng and y_periodic:
-        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny1tot,nx1-nw:nx2-2*ng+ne]))
+        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1,:] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,:,ny1tot,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
+            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i,:] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,:,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i,:] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,:,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i,:] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,:,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
 
     if nn<ng and y_periodic:
         for i in range(ng):
-            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i,:] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,:,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
+            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i,:] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,:,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i,:] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,:,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i,:] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,:,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
 
 
     ################################
@@ -499,7 +499,9 @@ def get_vel_io_2d_zavg(simul, pm=None, pn=None, timing=False, x_periodic=False,
 ###################################################################################
 
 #@profile   
-def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0, advdepth = -1,**kwargs):  
+def get_vel_io_2d(simul,pm=None,pn=None,timing=False,\
+                  x_periodic=False,y_periodic=False,ng=0, advdepth = -1,\
+                  u_name='u', v_name='v', **kwargs):  
 
     '''
     get horizontal velocities at depth advdepth (default = surface)
@@ -563,7 +565,7 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn] = interp(simul, 'u',
+    u[ng-nw : nx2-nx1-1-ng+ne, ng-ns : ny2-ny1-ng+nn] = interp(simul, u_name,
             coord=[ny1-ns, ny2-2*ng+nn, nx1+iper-nw, nx2-1+iper-2*ng+ne],
             advdepth=advdepth)
     
@@ -572,7 +574,7 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,v_name,coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1-nw,nx2-2*ng+ne])
 
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
     ################################
@@ -580,32 +582,32 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
     ################################
 
     if nw<ng and x_periodic:
-        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = interp(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot,nx1tot+1])
+        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = interp(simul,u_name,coord=[ny1-ns,ny2-2*ng+nn,nx1tot,nx1tot+1])
         for i in range(1,ng):
-            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = interp(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx2tot-i,nx2tot-i+1])
+            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = interp(simul,u_name,coord=[ny1-ns,ny2-2*ng+nn,nx2tot-i,nx2tot-i+1])
         for i in range(ng):
-            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx2tot-1-i,nx2tot-1-i+1])
+            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,v_name,coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx2tot-1-i,nx2tot-1-i+1])
         nw=ng 
 
     if ne<ng and x_periodic:
         for i in range(ng):
-            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = interp(simul,'u',coord=[ny1-ns,ny2-2*ng+nn,nx1tot+i,nx1tot+i+1])
+            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = interp(simul,u_name,coord=[ny1-ns,ny2-2*ng+nn,nx1tot+i,nx1tot+i+1])
         for i in range(ng):
-            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,'v',coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1tot+i,nx1tot+i+1])
+            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = interp(simul,v_name,coord=[ny1-ns+jper,ny2-1+jper-2*ng+nn,nx1tot+i,nx1tot+i+1])
         ne=ng
 
     if ns<ng and y_periodic:
-        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = interp(simul,'v',coord=[ny1tot,ny1tot+1,nx1-nw,nx2-2*ng+ne])
+        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = interp(simul,v_name,coord=[ny1tot,ny1tot+1,nx1-nw,nx2-2*ng+ne])
         for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = interp(simul,'v',coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])
+            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = interp(simul,v_name,coord=[ny2tot-i,ny2tot-i+1,nx1-nw,nx2-2*ng+ne])
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = interp(simul,'u',coord=[ny2tot-1-i,ny2tot-1-i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
+            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = interp(simul,u_name,coord=[ny2tot-1-i,ny2tot-1-i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
 
     if nn<ng and y_periodic:
         for i in range(ng):
-            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = interp(simul,'v',coord=[ny1tot+i,ny1tot+i+1,nx1-nw,nx2-2*ng+ne])
+            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = interp(simul,v_name,coord=[ny1tot+i,ny1tot+i+1,nx1-nw,nx2-2*ng+ne])
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = interp(simul,'u',coord=[ny1tot+i,ny1tot+i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
+            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = interp(simul,u_name,coord=[ny1tot+i,ny1tot+i+1,nx1+iper-nw,nx2-1+iper-2*ng+ne])
 
 
     ################################
@@ -621,7 +623,9 @@ def get_vel_io_2d(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic
 ###################################################################################
 
 #@profile   
-def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_periodic=False,ng=0,**kwargs):  
+def get_vel_io_surf(simul,pm=None,pn=None,timing=False,\
+                    x_periodic=False,y_periodic=False,ng=0,\
+                    u_name='u', v_name='v', **kwargs):  
 
     '''
     get surface horizontal velocities for files with a unique depth
@@ -655,14 +659,14 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
     # Fill inside points [if x periodic shift one index right in netcdf file]
     if x_periodic: iper=1
     else: iper = 0
-    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+    u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
     
     u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn] = (u[ng-nw:nx2-nx1-1-ng+ne,ng-ns:ny2-ny1-ng+nn].T * (mask[nx1+1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-1-2*ng+ne,ny1-ns:ny2-2*ng+nn]).T).T
 
     # Fill inside points [if y periodic shift one index north in netcdf file]
     if y_periodic: jper=1
     else: jper = 0
-    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
+    v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1-nw:nx2-2*ng+ne]))
 
     v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn] = (v[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-1-ng+nn].T * (mask[nx1-nw:nx2-2*ng+ne,ny1+1-ns:ny2-2*ng+nn]*mask[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-1-2*ng+nn]).T).T
 
@@ -671,32 +675,32 @@ def get_vel_io_surf(simul,pm=None,pn=None,timing=False,x_periodic=False,y_period
     ################################
 
     if nw<ng and x_periodic:
-        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot]))
+        u[ng-nw-1,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot]))
         for i in range(1,ng):
-            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
+            u[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx2tot-i]))
         for i in range(ng):
-            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
+            v[ng-nw-1-i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx2tot-1-i]))
         nw=ng 
 
     if ne<ng and x_periodic:
         for i in range(ng):
-            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
+            u[nx2-nx1-1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,ny1-ns:ny2-2*ng+nn,nx1tot+i]))
         for i in range(ng):
-            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
+            v[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-1-ng+nn] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,ny1-ns+jper:ny2-1+jper-2*ng+nn,nx1tot+i]))
         ne=ng
 
     if ns<ng and y_periodic:
-        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1tot,nx1-nw:nx2-2*ng+ne]))
+        v[ng-nw:nx2-nx1-ng+ne,ng-ns-1] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,ny1tot,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
+            v[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,ny2tot-i,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+            u[ng-nw:nx2-nx1-1-ng+ne,ng-ns-1-i] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,ny2tot-1-i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
 
     if nn<ng and y_periodic:
         for i in range(ng):
-            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['v'][simul.infiletime,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
+            v[ng-nw:nx2-nx1-ng+ne,ny2-ny1-1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables[v_name][simul.infiletime,ny1tot+i,nx1-nw:nx2-2*ng+ne]))
         for i in range(1,ng):
-            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables['u'][simul.infiletime,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
+            u[ng-nw:nx2-nx1-1-ng+ne,ny2-ny1-ng+nn+i] = simul.Forder(np.squeeze(nc.variables[u_name][simul.infiletime,ny1tot+i,nx1+iper-nw:nx2-1+iper-2*ng+ne]))
 
 
     ################################

@@ -34,15 +34,22 @@ y_periodic = False
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
 
+
 ##############################################################################
 # Particles Dynamics
 ##############################################################################
 # 3D advection
 adv3d = True # 3d or 2d
 
-# for 2d advection, there are several options: surface only, any arbitraty 2d surface, vertically integrated velocity fields
+'''
+    for 2d advection, there are several options: any arbitrary 2d surface, vertically integrated velocity fields, etc.
+                    adv3d==False and advsurf==True      means that the velocity files contain only one vertical level
+                    adv3d==False and advsurf==False     means that the velocity files are 3-d; the choice of the velocity field
+                                                        will depend on the value of advdepth (depths or sigma-level)
+'''
+
 if not adv3d:
-    advsurf = True
+    advsurf = False
     advzavg = False
 else:
     advsurf = False
@@ -112,6 +119,10 @@ else:
 # parameters
 parameters = my_simul + ' [0,15000,0,15000,[1,300,1]] '+ format(start_file)
 simul = load(simul = parameters, light = light, floattype=np.float64)
+
+# Names of horizontal velocity fields in the simulation files
+u_name = 'u'; v_name = 'v'
+
 
 ##############################################################################
 # Pyticles numerical schemes (TO BE EDITED)
