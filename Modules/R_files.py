@@ -2714,7 +2714,7 @@ class files(object):
                 #self.grd= folder + 'polgyr_grd.nc'
             #else:
             import socket
-            if 'lpo' in socket.gethostname():
+            if ('lpo' in socket.gethostname()) or ('styx' in socket.gethostname()):
                 folder='/scratch/Jcollin/croco/polgyr/'
                 self.grd=folder + 'polgyr_grd.nc'
             else:    

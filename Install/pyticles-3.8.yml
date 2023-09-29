@@ -1,4 +1,4 @@
-name: pyticles
+name: pyticles-3.8
 channels:
   - defaults
 dependencies:
