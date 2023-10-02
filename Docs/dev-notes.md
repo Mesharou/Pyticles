@@ -32,11 +32,16 @@ pour l'installation
 ### Install tools
 
 - Include path is not consistent in Makefiles but compilation works anyway. Is this a problem to consider ?
-- Do we keep separate environment for postprocessing and pyticles or not ?
+
+- Do we keep separate environment for postprocessing and Pyticles or not ?
+
+- Do we merge Makefile and Make_tools
+
+- Do we need to add CFLAGS to R_tools as well ?
 
 ### postprocessing tools
 
-- R_tools files are excluded from project. Check with Jonathan if we keep them or not.
+- R_tools files were excluded from project. Check with Jonathan if we keep them or not.
 
   - Modules/Make_tools
   - Modules/R_smooth.py

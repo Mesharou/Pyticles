@@ -16,6 +16,10 @@ FCFLAGS_DATARMOR = -I/appli/gcc/gcc-9.1.0__8.3.0/include/ -c --f90flags="-g -che
 # program name
 PROGRAMP = pyticles_3d_sig_sa 
 
+.PHONY: pass
+
+pass:
+	@echo "skip build"
 
 all: $(RCSP)
 	$(CXX) $(SRCSP) $(RCSP)

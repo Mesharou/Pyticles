@@ -10,7 +10,7 @@
 pyticles_env="/home2/datawork/jcollin/conda/envs/pyticles-3.11"
 modules_dir="../Modules/"
 pyticles_receipe="pyticles"
-tools_receipe="R_tools_D"
+tools_receipe="R_tools_DATARMOR"
 
 # end of user parameters
 #  -----------------------------------------------------------------
