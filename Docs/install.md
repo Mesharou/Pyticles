@@ -8,7 +8,7 @@ Pyticles uses Fortan routines compiled using f2py. Note that compilation is very
 
 Also user are encouraged to separate the environment they use for postprocessing from Pyticles tool. Adding new libraries to your Python environment may modify Numpy version and break Pyticles. 
 
-Before creating your own Pyticles environment you may check whether they are available on your local server like Styx and Datarmor.  
+Before creating your own Pyticles environment you may check whether they are available on your local server like Styx and Datarmor.
 
 ### Micromamba
 
@@ -73,14 +73,24 @@ FCFLAGS = -I/usr/include/x86_64-linux-gnu -c --f90flags="-extend_source -O1 -g -
 ls /usr/include/x86_64-linux-gnu
 ```
 
+You can check include path using the following shell command:
+```Bash
+echo | gcc -E -Wp,-v -
+```
+
 - Verify that **Numpy version correspond to your code version**
   - Python-3.11 Numpy-1.26 for Pyticles-60bc00a
   - Python-3.8 for Pyticles-5fce563f141d907f336effebe9ccdc09caba760d
 
 If still stuck [create an issue](https://github.com/Mesharou/Pyticles/issues)
 
-
 ### Datarmor specific
+
+- Pyticles 3-11 is already built at `/home2/datawork/jcollin/conda/envs/pyticles-3.11`
+
+you can activate is using
+
+
 
 On datarmor you have to use FTP queue in order to download Python libraries. 
 
