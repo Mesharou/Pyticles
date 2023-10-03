@@ -42,10 +42,13 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 adv3d = True # 3d or 2d
 
 '''
-    for 2d advection, there are several options: any arbitrary 2d surface, vertically integrated velocity fields, etc.
-                    adv3d==False and advsurf==True      means that the velocity files contain only one vertical level
-                    adv3d==False and advsurf==False     means that the velocity files are 3-d; the choice of the velocity field
-                                                        will depend on the value of advdepth (depths or sigma-level)
+for 2d advection, there are several options:
+any arbitrary 2d surface, vertically integrated velocity fields, etc.
+- adv3d==False and advsurf==True, means that the velocity files contain only 
+  one vertical level
+- adv3d==False and advsurf==False, means that the velocity files are 3-d;
+  the choice of the velocity field
+  will depend on the value of advdepth (depths or sigma-level)
 '''
 
 if not adv3d:
@@ -74,12 +77,33 @@ if not adv3d:
 '''
 
 ################################################################################
-# dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
-# (default is 1 = using all outputs files)
-# Use -1 for backward simulation
+"""
+- dfile: Pyticles output time step in units of CROCO outputs time step. 
+  - dfile = 1, Pyticles output frequency = CROCO output frequency
+  - dfile = 1/2, Pyticles output frequency = 2 x CROCO output frequency
+  - dfile = -1, backward experiment
+
+-  integers, start_file and end_file: CROCO output time step for initial and
+   last Pyticles time step.
+
+- (optional) boolean, restart: If True, restart a Pyticles simulation (typically to re-run
+  a simulation that crashed)
+
+- (optional) integer > 0, restart_time: number of CROCO time steps since initialization
+  used to restart. Note that if simulation backward the sign of dfile is 
+  automatically applied.
+
+- (optional) itime_trap and trap_file: use to initialize a Pyticles simulation from a 
+  former Pyticles simulation. Very specific
+
+- str, my_simul: name of CROCO simulation specified in R_files.py to retrieve
+ CROCO files
+
+"""
+
 dfile = 1
-start_file = 3360 #1440
-end_file = 3365 #8000
+start_file = 3360 
+end_file = 3365 
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -156,15 +180,18 @@ else:
                                      vmax=vmax, wmax=wmax, dzmin=dzmin) 
 
 ####
+"""
 # Spatial interpolation
-# Default is linear
-# Available : #define CUBIC_INTERPOLATION
-#             #define CRSPL_INTERPOLATION
-#             #define WENO_INTERPOLATION
-# Beware these higher order schemes have not been rigorously tested
-# To define them, in Modules/interp_3d_for_pyticles.F
-# Activate ccp keys : NEW_VERSION and chosen numerical scheme
-# Compile cpp keys use make command
+Default is linear
+Available : #define CUBIC_INTERPOLATION
+             #define CRSPL_INTERPOLATION
+             #define WENO_INTERPOLATION
+
+Beware these higher order schemes have not been rigorously tested
+To define them, in Modules/interp_3d_for_pyticles.F
+Activate ccp keys : NEW_VERSION and chosen numerical scheme
+Compile cpp keys use make command
+"""
 
 nadv = 1 # deprecated
 

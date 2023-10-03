@@ -1,5 +1,11 @@
 # How to run Pyticles
 
+[Set up your CROCO simulation](#set-up-your-croco-simulation)
+
+[Set up Pyticles experiment](#setting-up-pyticles-experiment)
+
+[Run Pyticles](#run-pyticles)
+
 ## Set up your CROCO simulation
 
 The first step before running a Pyticles experiment is to specifiy CROCO files path and metadata using the class load from `Modules/R_files.py`. Pyticles will then be able to load CROCO variables from netcdf files with the appropriate file name and timestep. 
@@ -81,3 +87,117 @@ To initialize a simulation we need:
     simul = load(simul=parameters, output=False)
 
 ```
+
+See `path/to/notebooks.ipynb` for practical case
+
+## Setting up Pyticles experiment
+
+All Pyticles options are defined in `Inputs/input_file.py`.
+There are different sections, due to some constraint some variables are
+defined in sections they do not belong to.
+Note that some sections are hardcoded and shall not be edited by users.
+
+For more detail information see directly in `Inputs/input_file.py`.
+
+- CROCO inputs: metadata about CROCO files
+- Particles dynamics: numerical schemes for Pyticles, output
+  frequency and CROCO fields
+- Pyticles Outputs: path for netcdf output file, variables to save, figures
+- Particles seeding: Specify seeding frequency and location
+
+Here we present only some important parameters.
+
+- dfile: Pyticles output time step in units of CROCO outputs time step.
+  - dfile = 1, Pyticles output frequency = CROCO output frequency
+  - dfile = 1/2, Pyticles output frequency = 2 x CROCO output frequency
+  - dfile = -1, backward experiment
+
+-  integers, start_file and end_file: CROCO output time step for initial and
+   last Pyticles time step.
+
+- (optional) boolean, restart: If True, restart a Pyticles simulation (typically to re-run
+  a simulation that crashed)
+
+- (optional) integer > 0, restart_time: number of CROCO time steps since initialization
+  used to restart. Note that if simulation backward the sign of dfile is 
+  automatically applied.
+
+- (optional) itime_trap and trap_file: use to initialize a Pyticles simulation from a 
+  former Pyticles simulation. Very specific
+
+- str, my_simul: name of CROCO simulation specified in R_files.py to retrieve
+ CROCO files
+
+In terms of particles dynamics there are many possibilities.
+Particles can be advected in 3D, both passively or with a sedimentation velocity.
+2D advection is also an option either at surface or at constant depth.
+
+Numerically, the default option is a bi-linear in space linear in time
+interpolation using RK4 time stepping. A small time step is used by Pyticles to
+respect CFL condition. Either statically by setting up maximum horizontal and 
+vertical maximum velocities
+
+```Python
+    umax = 2
+    vmax = 2
+    wmax = 2*1e-3
+```
+
+Or dynamically using `ìnline_cfl = True` (much slower).
+
+- Time stepping options are
+  ```
+  timestep = 'RK4' # Choices are
+            # FE (forward-Euler)
+            # RK2, RK4 (Runge-Kutta 2nd and 4th order)
+            # AB2, AB3, AB4 (Adams-Bashforth 2,3,4th order)
+            # ABM4 (Adams-Bashforth 4th order + Adams-Moulton corrector).
+  ```
+
+- Spatial interpolation: Default is linear, Available :
+  - #define CUBIC_INTERPOLATION
+  - #define CRSPL_INTERPOLATION
+  - #define WENO_INTERPOLATION
+
+  Beware these higher order schemes have not been rigorously tested
+  To define them, in Modules/interp_3d_for_pyticles.F.
+
+  **To Activate them Activate ccp keys : NEW_VERSION and chosen numerical scheme
+  Compile cpp keys use make command**
+
+## Run Pyticles
+
+A feature of Pyticles is the ability to run OMP parallel.
+To run the code you only need to 
+
+- Activate your Python environment Pyticles
+
+- Ensure that pyticles Fortran routines have been built with the same env. 
+[see install for more detail](install.md)
+
+- Use one of the following commands
+
+### Debug mode
+
+  ```Bash
+  python -i Pyticles.py  1 
+  ```
+
+### Production, using 4 processors
+  ```Bash
+  python Pyticles.py 4 &> my_run.out
+  ```
+
+### On a cluster using PBS
+  ```
+  qsub run_Pyticles.pbs
+  ```
+
+### TIPS
+  - To keep track of your experiments it can be nice to copy `input_file.py`
+  to a file `my_experiment.py` edit the latter and force copy before running
+  Pyticles
+
+  ```Bash
+  cp -f Inputs/my_experiment.py Inputs/input_file.py
+  ```
