@@ -165,6 +165,14 @@ Or dynamically using `ìnline_cfl = True` (much slower).
   **To Activate them Activate ccp keys : NEW_VERSION and chosen numerical scheme
   Compile cpp keys use make command**
 
+  **TODO**
+  Clarifier les clés CCP 
+  - advdepth (can do anything )
+  - advsurf (read only 2D field straight from netcdf file)
+  routines dans update_largemem_xyz
+  renommer les clés CPP
+  
+
 ## Run Pyticles
 
 A feature of Pyticles is the ability to run OMP parallel.

@@ -47,6 +47,11 @@ pour l'installation
   - jupyter
   - "+" pyticles librairies => provide yaml + pre-installed env (datarmor/styx/lops ?)
 
+- variable 2D + position des particules
+- démo interpolation var croco interp part => plot ou netcdf
+- section verticale
+- example xarray (pas xgcm)
+
 - Do we merge Makefile and Make_tools
 - Do we need to add CFLAGS to R_tools as well ?
 - Include path is not consistent in Makefiles but compilation works anyway. Is this a problem to consider ?
@@ -63,6 +68,9 @@ pour l'installation
   - Modules/R_tools/
   - Modules/R_vars.py
 
+  **passer au R_var_gula**
+  **Pas R_tools_gigatl (utilisé pour un truc spécifique)**
+
 - **Why use R_vars and not R_vars_gula ?**
 
 - Issue with R_files.py gigatl1_1h_surf (2 days shift (rings a bell))
@@ -76,3 +84,19 @@ What to add exactly ?
 - particles trajectory ? more specific ?
 - interpolation of CROCO variables onto particles position (already there no ?)
 - 
+
+## notes
+remonter la doc dans readme.md
+
+il y a une varialble shift dans R_files.py (cf swot R_files si besoin)
+
+    files
+    __init__()
+    self.init = 0
+
+    if 'tides' not in simul:
+        self.shift = 2 * 24
+
+- clarifier les clés CPP de adv3d etc...
+  à noter iso = isopycne par rapport à rho0
+  détailler des cas simples

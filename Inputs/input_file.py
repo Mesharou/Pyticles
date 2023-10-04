@@ -374,7 +374,7 @@ initial_depth = True
 initial_iso = False
 
 # 2D advection
-if advsurf:
+if not adv3d:
     initial_iso = False
     initial_depth = False
 
