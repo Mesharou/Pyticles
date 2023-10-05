@@ -65,11 +65,16 @@ class var(object):
             
 
         NOTE that depths is used as follows:
+            depths must be either a list or a numpy.array
 
-        depth <= 0 means depths in meters
-        depth = 0 means surface
-        depth > 0 means sigma-level (1 = bottom [0 in netcdf file],...
+        depths <= 0 means depths in meters
+        depths = 0 means surface
+        depths > 0 means sigma-level (1 = bottom [0 in netcdf file],...
                              ..., Nz = surface [Nz-1 in netcdf file])
+
+        >>> dephts = np.array([depth_0, ..., depth_N])
+        >>> depths = [0]
+        >>> depths = np.arange(0, -1000, -10)
 
                                     
     '''        

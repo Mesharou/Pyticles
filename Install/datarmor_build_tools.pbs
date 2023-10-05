@@ -26,6 +26,5 @@ module load gcc/9.1.0
 module load conda/latest
 
 cd $modules_dir
-conda deactivate
 source activate $postproc_env
 make $tools_receipe

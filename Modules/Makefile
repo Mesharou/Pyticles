@@ -22,6 +22,7 @@ RCS = $(SRCS:.F=.f)
 
 # program name
 PROGRAMP = pyticles_3d_sig_sa 
+PROGRAM = R_tools_fort
 
 .PHONY: pass
 

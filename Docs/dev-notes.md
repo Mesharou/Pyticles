@@ -52,6 +52,30 @@ pour l'installation
 
 - Create `branch` for `new-feature` - merge party to master - tag and release notes ?
 - How to deal with Jupyter notebooks: clear outputs
+  
+  To clear jupyter notebook outputs, create a file `.git/hooks/pre-commit`
+  containing the following code:
+  ```Bash
+  #!/bin/bash
+  for f in $(git diff --name-only --cached); do
+      if [[ $f == *.ipynb ]]; then
+          jupyter nbconvert --clear-output --inplace $f
+          git add $f
+      fi
+  done
+
+  if git diff --name-only --cached --exit-code
+  then
+      echo "No changes detected after removing notebook output"
+      exit 1
+  fi
+  ```
+  pre-commit file must be executable `chmod +x .git/pre-commit`
+
+  Also in order to function, **jupyter shall be installed in development
+  Python env**.
+
+
 - Documentation in `Docs/xxx.md`
 - Dev notes in `Docs/dev-notes.md` used to maintain release notes
 - Tutorials in `?`: `Tutorials/*ipynb`
@@ -80,7 +104,7 @@ Postprocessing environment has the following additional packages:
   - Modules/R_tools/
   - Modules/R_vars.py
 
-  Note this not the developpment branch that is used (no there are some 
+  Note this not the development branch that is used (no there are some 
   important missing variables: Okubo-weiss etc...)
 
 ### Postprocessing and visualization tutorials
