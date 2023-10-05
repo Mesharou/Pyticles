@@ -1,0 +1,16 @@
+name: pyticles-pp-3.11
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - matplotlib
+  - netcdf4
+  - basemap
+  - cartopy
+  - xarray
+  - dask
+  - ipython
+  - jupyter
+

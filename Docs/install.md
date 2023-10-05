@@ -35,9 +35,11 @@ cd Install
 conda env create -f pyticles-xxx.yml
 ```
 
-## Build Pyticles and tools
+## Build Pyticles
 
-When your Pyticles environment is ready Fortran routines can be built.
+When your Pyticles environment is ready Fortran routines can be built under
+Pyticles environment. Note that R_tools for postrpocessing shall not be built
+under Pyticles env as Pyticles core is very
 
 - Activate Pyticles with **micromamba**
 
@@ -56,10 +58,9 @@ When your Pyticles environment is ready Fortran routines can be built.
     ```Bash
     cd Modules
     make pyticles
-    make -f Make_tools R_tools
     ```
 
-    After successful build you should have two python modules `pyticles_3d_sig_sa.cpython-xxx-arch.so` and `R_tools_fort.cpython-xxx-arch.so`
+    After successful build you should have two python modules `pyticles_3d_sig_sa.cpython-xxx-arch.so`
 
 ### Troubleshooting
 
@@ -101,7 +102,14 @@ If compilation fails there may be some things to check
     source activate `/home2/datawork/jcollin/conda/envs/pyticles-3.11`
     ```
 
-- Build a user specific Python environment anyway using FTP queue
+- Build Pyticles
+
+    ```Bash
+    cd Install
+    qsub datarmor_build_pyticles.pbs
+    ```
+
+- Create a user specific Python environment anyway using FTP queue
 
     ```Bash
     qsub -q ftp -I -l mem=10g -l walltime=00:30:00 -S /bin/bash
@@ -110,18 +118,5 @@ If compilation fails there may be some things to check
     Then you can download and install micromamba or use conda module with `module load conda/latest`
     and install interactively packages.
 
-- Build tools for a new Python environment:
-
-    Edit `Module/datarmor_build.pbs`
-
-    ```Bash
-    pyticles_env="/path/to/python/env"
-    modules_dir="../Modules/"
-    pyticles_receipe="pass"
-    tools_receipe="R_tools_DATARMOR"
-    ```
-
-    Execute command `qsub datarmor_build.pbs`
-
-    A new file with python version name `Module/R_tools_fort.cpython-$python-version-x86_64-linux-gnu.so` sould appear.
-    If not check `datarmor_build.pbs.oxxxx` for errors.
+- Note that there is a toolbox for postprocessing 
+  See [R_tools](./r-tools.md#datarmor) for detailed information

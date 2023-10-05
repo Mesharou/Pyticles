@@ -2,15 +2,17 @@
 #PBS -q sequentiel
 #PBS -l mem=2g
 #PBS -l walltime=00:30:00
+# -----------------------------------------------------------------
 # Jcollin 2023
-# build Pyticles and R_tools
+# build Pyticles and R_tools using two different Python environments
 #
+# To skip one one of the build you can use $receipe="pass"
+# 
 # user parameters
 # -----------------------------------------------------------------
-pyticles_env="/home2/datawork/jcollin/conda/envs/pyticles-3.11"
+postproc_env="/home2/datawork/jcollin/conda/envs/pyticles-pp-3.11"
 modules_dir="../Modules/"
-pyticles_receipe="pyticles"
-tools_receipe="R_tools_DATARMOR"
+tools_receipe="R_tools_datarmor"
 
 # end of user parameters
 #  -----------------------------------------------------------------
@@ -23,11 +25,7 @@ module load Bash/4.3_gcc-5.3.0
 module load gcc/9.1.0
 module load conda/latest
 
-source activate $pyticles_env
 cd $modules_dir
-
-make $pyticles_receipe
-make -f Make_tools $tools_receipe
-
-
-
+conda deactivate
+source activate $postproc_env
+make $tools_receipe

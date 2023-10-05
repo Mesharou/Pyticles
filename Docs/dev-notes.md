@@ -2,6 +2,25 @@
 
 ## Tutorial feature
 
+### FIXME
+- Issue with R_files.py gigatl1_1h_surf (2 days shift (rings a bell))
+il y a une varialble shift dans R_files.py (cf swot R_files si besoin)
+
+    files
+    __init__()
+    self.init = 0
+
+    if 'tides' not in simul:
+        self.shift = 2 * 24
+
+- clarifier les clés CPP de adv3d etc...
+  à noter iso = isopycne par rapport à rho0
+  détailler des cas simples
+
+- rename keys `agrif_jc` and `croco_lionel`
+  - agrif_jc: agrif ? interannuel ?
+  - croco_lionel ? maybe this could come with an example in R_files
+
 ### Discussion
 
 @jeremy:
@@ -32,34 +51,27 @@ pour l'installation
 ### Code structure and methodology
 
 - Create `branch` for `new-feature` - merge party to master - tag and release notes ?
-- How to deal with Jupyter notebooks (clear outputs)
+- How to deal with Jupyter notebooks: clear outputs
 - Documentation in `Docs/xxx.md`
 - Dev notes in `Docs/dev-notes.md` used to maintain release notes
-- Tutorials in `?`: `Tutorials/*ipynb` or `Postprocessing/*ipynb`
+- Tutorials in `?`: `Tutorials/*ipynb`
 
 ### Install tools
 
-- Do we keep separate environment for postprocessing and Pyticles or not ?
+- Created separate environment for postprocessing and Pyticles.
+Postprocessing environment has the following additional packages:
   - ipython
   - xarray
   - dask
   - cartopy
   - jupyter
-  - "+" pyticles librairies => provide yaml + pre-installed env (datarmor/styx/lops ?)
 
-- variable 2D + position des particules
-- démo interpolation var croco interp part => plot ou netcdf
-- section verticale
-- example xarray (pas xgcm)
-
-- Do we merge Makefile and Make_tools
-- Do we need to add CFLAGS to R_tools as well ?
-- Include path is not consistent in Makefiles but compilation works anyway. Is this a problem to consider ?
-- compile with gcc-9 ok ?
+  Environment files are in `Ìnstall/*.yaml`. Postprocessing and Pyticles are
+  already available on Datarmor. 
 
 ### postprocessing tools
 
-- R_tools files were excluded from project. Check with Jonathan if we keep them or not.
+- R_tools files were excluded from project. Now they are back.
 
   - Modules/Make_tools
   - Modules/R_smooth.py
@@ -68,35 +80,18 @@ pour l'installation
   - Modules/R_tools/
   - Modules/R_vars.py
 
-  **passer au R_var_gula**
-  **Pas R_tools_gigatl (utilisé pour un truc spécifique)**
-
-- **Why use R_vars and not R_vars_gula ?**
-
-- Issue with R_files.py gigatl1_1h_surf (2 days shift (rings a bell))
-
+  Note this not the developpment branch that is used (no there are some 
+  important missing variables: Okubo-weiss etc...)
 
 ### Postprocessing and visualization tutorials
 
 What to add exactly ?
 
-- section of CROCO variables + particles position (ZY, XY)
-- particles trajectory ? more specific ?
-- interpolation of CROCO variables onto particles position (already there no ?)
-- 
+- variable 2D + position des particules
+- démo interpolation var croco interp part => plot ou netcdf
+- section verticale
+- example xarray (pas xgcm)
 
-## notes
-remonter la doc dans readme.md
+## Documentation
 
-il y a une varialble shift dans R_files.py (cf swot R_files si besoin)
 
-    files
-    __init__()
-    self.init = 0
-
-    if 'tides' not in simul:
-        self.shift = 2 * 24
-
-- clarifier les clés CPP de adv3d etc...
-  à noter iso = isopycne par rapport à rho0
-  détailler des cas simples
