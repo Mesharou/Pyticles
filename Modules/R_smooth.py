@@ -94,7 +94,8 @@ def smooth(x,window_len=11,window='hanning',cycle=0):
 # 2D Smoothing
 #######################################################
 
-from scipy import signal, mgrid, cos, random, exp
+
+from scipy import signal, mgrid, exp
 
 def gauss_kern(size, sizey=None):
     """ Returns a normalized 2D gauss kernel array for convolutions """

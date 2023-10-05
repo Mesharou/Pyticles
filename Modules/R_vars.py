@@ -328,8 +328,6 @@ class var(object):
 
             # Number of tiles used for computation
             nchunk = int(np.max([np.sqrt((ny2-ny1)*(nx2-nx1)//n2max),1]))
-            # JC_debug
-            nchunk = int(1)
 
             #You cannot compute psi in chunks: 
             if self.name in ['psi','psi_surf']: nchunk=1
@@ -337,8 +335,7 @@ class var(object):
             if verbo: print('Domain will be divided in ', nchunk**2 , ' chunks')
 
             for i,j in product(list(range(nchunk)),list(range(nchunk))):
-                # JC_debug
-                print(i,j) 
+
                 dx1=2; dx2=2; dy1=2; dy2=2; # extra pts around the tile
                 if i==0: dx1=0
                 if i==nchunk-1: dx2=0 
@@ -413,6 +410,8 @@ class var(object):
 
 
     def dictionnary(self):
+
+       
          [self.longname, self.unit, [self.imin, self.jmin, self.kmin]] =\
                          self.dico.get(self.name,['unknown','unknown',[0,0,1]])
 
@@ -623,29 +622,10 @@ class var(object):
             v = self.load('v',ncfile,simul,coord=coord,depths=depths)
             
             [z_r,z_w] = tools.get_depths(simul,coord=coord)
-            # JC_debug
-            print('getting w using toolsF.get_wvlcty')
-            print('u.shape, u[10,10,10], v.shape, v[10,10,10]',
-                   u.shape, u[10,10,10], v.shape, v[10,10,10])
-            print('z_r.shape, z_r[10,10,10], z_w.shape, z_w[10,10,10]',
-                   z_r.shape, z_r[10,10,0], z_w.shape, z_w[10,10,10])
-            print('pm.shape, pm[10,10], pn.shape, pn[10,10]',
-                   pm.shape, pm[10,10], pn.shape, pn[10,10])
 
             var = toolsF.get_wvlcty(u,v,z_r,z_w,pm,pn)
 
             #var= tools.nanbnd(var)
-        ##############################################
-        elif self.name in ['omega']:
-
-            u = self.load('u',ncfile,simul,coord=coord,depths=depths)
-            v = self.load('v',ncfile,simul,coord=coord,depths=depths)
-
-            [z_r,z_w] = tools.get_depths(simul,coord=coord)
-            # JC_debug
-            print('getting w using toolsF.get_wvlcty')
-            var = toolsF.get_omega(u,v,z_r,z_w,pm,pn)
-
                     
         ################################################
         

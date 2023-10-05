@@ -28,76 +28,76 @@
 !    
 !
 
-# include "R_tools/cppdefs.h"
+# include "R_tools_fort_routines/cppdefs.h"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!Compute density anomaly (adapted from rho_eos.F)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# include "R_tools/rho_eos.F"
+# include "R_tools_fort_routines/rho_eos.F"
 
-# include "R_tools/rho1_eos.F"
+# include "R_tools_fort_routines/rho1_eos.F"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!Compute Brunt-Vaissala frequency (adapted from rho_eos.F)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# include "R_tools/bvf_eos.F"
+# include "R_tools_fort_routines/bvf_eos.F"
 
-# include "R_tools/bvf_lineos.F"
+# include "R_tools_fort_routines/bvf_lineos.F"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!Compute buoyancy (adapted from rho_eos.F)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# include "R_tools/get_buoy.F"
+# include "R_tools_fort_routines/get_buoy.F"
 
 
-# include "R_tools/get_buoy1.F"
+# include "R_tools_fort_routines/get_buoy1.F"
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!compute neutral density gradients 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# include "R_tools/rho_grad.F"
+# include "R_tools_fort_routines/rho_grad.F"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!Z interpolation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# include "R_tools/sigma_to_z_intr_sfc.F"
+# include "R_tools_fort_routines/sigma_to_z_intr_sfc.F"
 
-# include "R_tools/sigma_to_z_intr_bot.F"
+# include "R_tools_fort_routines/sigma_to_z_intr_bot.F"
 
-# include "R_tools/sigma_to_z_intr_bot_2d.F"
+# include "R_tools_fort_routines/sigma_to_z_intr_bot_2d.F"
 
-# include "R_tools/sigma_to_z_intr.F"
+# include "R_tools_fort_routines/sigma_to_z_intr.F"
 
-# include "R_tools/interp_1d.F"
+# include "R_tools_fort_routines/interp_1d.F"
 
-# include "R_tools/sigma_to_z_intr_bounded.F"
+# include "R_tools_fort_routines/sigma_to_z_intr_bounded.F"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Compute z_r and z_w for NEW_S_COORD
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# include "R_tools/zlevs.F"
+# include "R_tools_fort_routines/zlevs.F"
 
-# include "R_tools/zlev.F"
+# include "R_tools_fort_routines/zlev.F"
 
-# include "R_tools/zlevs_agrif.F"
+# include "R_tools_fort_routines/zlevs_agrif.F"
 
-# include "R_tools/zlevs_kau.F"
+# include "R_tools_fort_routines/zlevs_kau.F"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Compute Various
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-# include "R_tools/get_rot.F"
+# include "R_tools_fort_routines/get_rot.F"
 
-# include "R_tools/get_grad.F"
+# include "R_tools_fort_routines/get_grad.F"
 
 
 
@@ -106,9 +106,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-# include "R_tools/get_wvlcty.F"
+# include "R_tools_fort_routines/get_wvlcty.F"
 
-# include "R_tools/get_omega.F"
+# include "R_tools_fort_routines/get_omega.F"
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -116,10 +116,10 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-# include "R_tools/get_swr_frac.F"
+# include "R_tools_fort_routines/get_swr_frac.F"
 
 
-# include "R_tools/alfabeta.F"
+# include "R_tools_fort_routines/alfabeta.F"
 
 
 

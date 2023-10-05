@@ -6,9 +6,9 @@ Tested on ubuntu 20.04 with gcc >= 9
 
 Pyticles uses Fortan routines compiled using f2py. Note that compilation is very sensitive to Numpy version. It is strongly recommended to use those provided in `Install/pyticles-xxx.yml` folder. However, depending on your architecture you may need to change either compilation options in `Modules/Makefile` and `Modules/Make_tools` or Numpy version.
 
-Also user are encouraged to separate the environment they use for postprocessing from Pyticles tool. Adding new libraries to your Python environment may modify Numpy version and break Pyticles. 
+Also user are encouraged to separate the environment they use for postprocessing from Pyticles tool. Adding new libraries to your Python environment may modify Numpy version and break Pyticles.
 
-Before creating your own Pyticles environment you may check whether they are available on your local server like Styx and Datarmor.  
+Before creating your own Pyticles environment you may check whether they are available on your local server like Styx and Datarmor.
 
 ### Micromamba
 
@@ -19,6 +19,7 @@ Before creating your own Pyticles environment you may check whether they are ava
 - `pyticles_env` : Python version for Pyticles
 
 Then run it
+
 ```Bash
 cd Install
 chmod +x mamba_create.sh
@@ -34,58 +35,88 @@ cd Install
 conda env create -f pyticles-xxx.yml
 ```
 
-## Build Pyticles and tools
+## Build Pyticles
 
-When your Pyticles environment is ready Fortran routines can be built.
+When your Pyticles environment is ready Fortran routines can be built under
+Pyticles environment. Note that R_tools for postrpocessing shall not be built
+under Pyticles env as Pyticles core is very
 
 - Activate Pyticles with **micromamba**
+
     ```Bash
     micromamba activate /path/to/pyticles/env
-
     ```
+
 - Activate Pyticles with **conda**
+
     ```Bash
     source activate /path/to/pyticles/env/
     ```
-- Build 
+
+- Build
+
     ```Bash
     cd Modules
     make pyticles
-    make -f Make_tools R_tools
     ```
 
-After successful build you should have two python modules `pyticles_3d_sig_sa.cpython-xxx-arch.so` and `R_tools_fort.cpython-xxx-arch.so`
+    After successful build you should have two python modules `pyticles_3d_sig_sa.cpython-xxx-arch.so`
 
 ### Troubleshooting
 
 If compilation fails there may be some things to check
 
 - Ensure that gcc version is >= 9
-    
-    ```
+
+    ```Bash
     gcc --version
     ```
-- Check Makefile `FCFLAGS` are ok (several options are already there)
-```Bash
-FCFLAGS = -I/usr/include/x86_64-linux-gnu -c --f90flags="-extend_source -O1 -g -check all -CA -CB -CS"
-```
-```Bash
-ls /usr/include/x86_64-linux-gnu
-```
+
+- Check Makefile `FCFLAGS` point to right path using the following shell command:
+
+    ```Bash
+    echo | gcc -E -Wp,-v -
+    ```
+
+    And edit Makefile accordingly
+
+    ```Bash
+    FCFLAGS = -I/path/to/gcc -c --f90flags="-extend_source -O1 -g -check all -CA -CB -CS"
+    ```
 
 - Verify that **Numpy version correspond to your code version**
   - Python-3.11 Numpy-1.26 for Pyticles-60bc00a
   - Python-3.8 for Pyticles-5fce563f141d907f336effebe9ccdc09caba760d
 
-If still stuck [create an issue](https://github.com/Mesharou/Pyticles/issues)
-
+- If still stuck [create an issue](https://github.com/Mesharou/Pyticles/issues)
 
 ### Datarmor specific
 
-On datarmor you have to use FTP queue in order to download Python libraries. 
+- Pyticles 3-11 is already built at `/home2/datawork/jcollin/conda/envs/pyticles-3.11`
 
-```
-qsub -q ftp -I -l mem=10g -l walltime=00:30:00 -S /bin/bash
-```
+    Pyticles environment may be activated using the following commands in a computing node:
 
-Then you can download and install micromamba or use conda module with `module load conda/latest`.
+    ```Bash
+    module purge 
+    modue load conda/latest
+    source activate `/home2/datawork/jcollin/conda/envs/pyticles-3.11`
+    ```
+
+- Build Pyticles
+
+    ```Bash
+    cd Install
+    qsub datarmor_build_pyticles.pbs
+    ```
+
+- Create a user specific Python environment anyway using FTP queue
+
+    ```Bash
+    qsub -q ftp -I -l mem=10g -l walltime=00:30:00 -S /bin/bash
+    ```
+
+    Then you can download and install micromamba or use conda module with `module load conda/latest`
+    and install interactively packages.
+
+- Note that there is a toolbox for postprocessing 
+  See [R_tools](./r-tools.md#datarmor) for detailed information
