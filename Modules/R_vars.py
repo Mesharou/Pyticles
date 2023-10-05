@@ -340,7 +340,7 @@ class var(object):
             if verbo: print('Domain will be divided in ', nchunk**2 , ' chunks')
 
             for i,j in product(list(range(nchunk)),list(range(nchunk))):
-                
+
                 dx1=2; dx2=2; dy1=2; dy2=2; # extra pts around the tile
                 if i==0: dx1=0
                 if i==nchunk-1: dx2=0 
@@ -415,6 +415,7 @@ class var(object):
 
 
     def dictionnary(self):
+
        
          [self.longname, self.unit, [self.imin, self.jmin, self.kmin]] =\
                          self.dico.get(self.name,['unknown','unknown',[0,0,1]])
@@ -626,11 +627,10 @@ class var(object):
             v = self.load('v',ncfile,simul,coord=coord,depths=depths)
             
             [z_r,z_w] = tools.get_depths(simul,coord=coord)
+
             var = toolsF.get_wvlcty(u,v,z_r,z_w,pm,pn)
 
             #var= tools.nanbnd(var)
-
-
                     
         ################################################
         
