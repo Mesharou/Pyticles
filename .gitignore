@@ -17,8 +17,6 @@ Modules/Python_Modules_examples/
 Modules/__pycache__/
 Modules/Make_tools
 Modules/R_files_xios.py
-Modules/R_tools_fort.F
-Modules/R_vars.py
 
 Postprocessing/Vic_routines/
 
