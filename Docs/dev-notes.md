@@ -21,6 +21,10 @@ il y a une varialble shift dans R_files.py (cf swot R_files si besoin)
   - agrif_jc: agrif ? interannuel ?
   - croco_lionel ? maybe this could come with an example in R_files
 
+- badly named parameters in outputs
+  - write all keys to netcdf ile
+  - remanme simulation to parameters ?
+
 ### Discussion
 
 @jeremy:
@@ -111,11 +115,9 @@ Postprocessing environment has the following additional packages:
 
 What to add exactly ?
 
-- variable 2D + position des particules
-- démo interpolation var croco interp part => plot ou netcdf
-- section verticale
-- example xarray (pas xgcm)
-
-## Documentation
-
-
+- R_tools and R_vars guide (DONE)
+- (plot) 2D CROCO variables + particles position (DONE)
+- CROCO variable interpolation onto particles position (plot + write to netcdf)
+  - In progress: notebook with xarray (doesnot interpolate at subtime)
+  - old script in main folder (check it still works)
+- Do we give access to a netcdf file ?

@@ -7,16 +7,15 @@ and write it in the pyticles netcdf file
 
 u and v are implemented as examples
 
-!---------------------------------------------------------------------------------------------
-! 18/12/16:
-!     - add capability of computing outputs at subtime-steps period
-!---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+ 18/12/16:
+     - add capability of computing outputs at subtime-steps period
+---------------------------------------------------------------------------------------------
 
 
 '''
 ###################################################################################
 # Load all useful modules
-##################################################################################
 
 #Plotting modules 
 import matplotlib
@@ -30,17 +29,9 @@ import time as tm
 from netCDF4 import Dataset
 import multiprocessing as mp; import ctypes   
 
-
 #add the Modules folder in your python PATH
-sys.path.remove("/home2/datahome/jgula/Python_Modules")
 sys.path.append("../Modules/")
-sys.path.append("/home2/datahome/jgula/Python_Modules")
-#try:
-#    sys.path.remove("/home/gula/Desktop/Work_capella/Python/Python_Modules")
-    #sys.path.remove("/home2/datahome/jgula/Python_Modules")
-#except:
-#    sys.path.remove("/home/gula/Python_Modules")
-    
+
 #Specific modules needed for pyticles
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
@@ -54,13 +45,11 @@ from R_files import load
 from R_netcdf import ionetcdf
 from R_vars import var
 
-###################################################################################
-
-ncfile = sys.argv[-1]; #'/home2/datawork/jgula/Pyticles/Pyticles_nesea/test/nesed_avg_test_adv0000m_14_0060.nc'
+""
+ncfile = '/home2/datawork/jgula/Pyticles/Pyticles_nesea/test/nesed_avg_test_adv0000m_14_0060.nc'
 meanflow = False
 
-###################################################################################
-
+""
 print('Loading file')
 nc = Dataset(ncfile, 'r')
 parameters = nc.simulation
@@ -81,7 +70,7 @@ nc.close()
 
 ###################################################################################
 # load simulation parameters
-###################################################################################
+# ##################################################################################
 
 print('Loading simul')
 simul = load(simul = parameters)
@@ -90,7 +79,7 @@ depths = simul.coord[4]
 
 ###################################################################################
 # get time
-###################################################################################
+# ##################################################################################
 
 ocean_time = ionetcdf.get(ncfile,'ocean_time',simul)
 
@@ -103,14 +92,13 @@ time = np.round(ionetcdf.get(ncfile,'time',simul),3)
 dtime = time[1] - time[0]
 nqmx  = nq
 
-###################################################################################
-
+""
 def linear(var1,var2,alpha):
     return alpha * var2 + (1.-alpha) * var1
 
 ###################################################################################
 # Loop on variables
-###################################################################################
+# ##################################################################################
 
 #for varname in ['u','v','rho1','temp','salt']:
 for varname in ['rho','rho1']:
