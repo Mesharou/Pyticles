@@ -135,4 +135,4 @@ To Check whether the build actually worked you shall see a `R_tools_fort_xxx.so`
 
 ## Tutorial
 
-See [notebooks](../Postprocessing/tutorial/croco-vars-r-tools.ipynb)
+See [notebooks](../Postprocessing/Tutorials/croco-vars-r-tools.ipynb)

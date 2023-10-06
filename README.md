@@ -2,13 +2,17 @@
 
 ## What is it?
 
-
 Pyticles is a Python/Fortran hybrid parallelized code for Lagrangian particles 3D advection from high-resolution ROMS/CROCO model data.
-
-
 
 ![image info](./Figures/2d_advection.png)
 
+## Documentation
+
+- [Install](Docs/install.md)
+
+- [Running Pyticles](Docs/running-pyticles.md)
+
+- [Postprocessing-and-visualization](Docs/postprocessing.md)
 
 ## Publications using the Pyticles code
 
@@ -38,10 +42,4 @@ The latest release has been archived on zenodo:
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-## Documentation
 
-- [Install](Docs/install.md)
-
-- [Running Pyticles](Docs/running-pyticles.md)
-
-- [Postprocessing-and-visualization](Docs/postprocessing.md)
