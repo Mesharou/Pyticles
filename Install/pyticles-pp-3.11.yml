@@ -13,4 +13,5 @@ dependencies:
   - dask
   - ipython
   - jupyter
+  - jupytext
 

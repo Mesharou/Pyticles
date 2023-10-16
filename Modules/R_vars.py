@@ -120,15 +120,6 @@ class var(object):
 ###################################################################################
 
     def __init__(self,varname,simul,n2max=100000,method='new',verbo=False,**kwargs):
-
-    
-
-
-        #print '#######################################'
-        #print 'load var', varname
-        #print '#######################################'
-
-
         self.name = copy(varname)
         self.dictionnary()     
         self.coord = copy(simul.coord)
@@ -353,7 +344,7 @@ class var(object):
                 ####################################################################
                 # Compute variable
                 ####################################################################         
-                print('depths',depths,min(depths),self.name)
+                if verbo: print('depths', depths, min(depths), self.name)
 
                 if (min(depths)>0) or (self.kmin<0):
                     
@@ -362,7 +353,7 @@ class var(object):
 
                 elif (len(depths)==1) and (min(depths)==0) and (self.name in ['vrt','absvrt']):
                     
-                    print('computing vrt')
+                    if verbo: print('computing vrt')
                     chunk = self.get_sig(ncfile,simul,depths=depths,coord=[ny1i,ny2i,nx1i,nx2i],subcoord=[ny1i-ny1,ny2i-ny1,nx1i-nx1,nx2i-nx1])
                     
                     

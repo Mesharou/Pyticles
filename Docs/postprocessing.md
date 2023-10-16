@@ -10,10 +10,11 @@ and [dask](https://www.dask.org/). If not familiar with xarray there is a nice
 To set up a Python environment for Postprocessing follow the 
 [R_tools guide](r-tools.md).
 
-
 ## Tutorials
+
 - [Get started with R_tools and R_vars](../Postprocessing/Tutorials/croco-vars-r-tools.ipynb)
 
 - [Plot 2D CROCO variables and particles position](../Postprocessing/Tutorials/plot_map_var_pxpy.ipynb)
 
-- [Interpolate CROCO variables onto particles position](../Postprocessing/Tutorials/vars_to_particles.ipynb)
+- [Interpolate CROCO variables onto particles position and save results](../Postprocessing/Tutorials/add_var_to_file.ipynb)
+
