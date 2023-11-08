@@ -106,20 +106,20 @@ def subsection(px,py,dx=1,dy=1,maxvel=[1,1],delt=1,nx=2000,ny=2000,ng=0,nadv=0,*
 
    
 #@profile   
-def cull(px,py,pz,nx,ny,nz,x_periodic=False,y_periodic=False,ng=0):
+def cull(px,py,pz,nxi,nyi,nz,x_periodic=False,y_periodic=False,ng=0):
     """ Set particle positions that are out of range to nan"""
 
     if x_periodic:
-        px[px<-1] = px[px<-1] + nx
-        px[px>nx-1] = px[px>nx-1] - nx
+        px[px<-1] = px[px<-1] + nxi
+        px[px>nxi-1] = px[px>nxi-1] - nxi
     else:
-        px[px<=1-ng] = np.nan; px[px>=nx-3+ng] = np.nan; 
+        px[px<=0] = np.nan; px[px>=nxi] = np.nan; 
 
     if y_periodic:
         py[py<-1] = py[py<-1] + ny
-        py[py>ny-1] = py[py>ny-1] - ny
+        py[py>nyi-1] = py[py>nyi-1] - nyi
     else:
-        py[py<=1-ng] = np.nan; py[py>=ny-3+ng] = np.nan; 
+        py[py<=0] = np.nan; py[py>=nyi] = np.nan; 
         #pz[pz<0] = np.nan; pz[pz>nz] = np.nan; 
 
 
@@ -131,20 +131,21 @@ def cull(px,py,pz,nx,ny,nz,x_periodic=False,y_periodic=False,ng=0):
    
     
 #@profile   
-def cull2d(px, py, nx, ny, x_periodic=False, y_periodic=False, ng=0):
+def cull2d(px, py, nxi, nyi, x_periodic=False, y_periodic=False):
     """ Set particle positions that are out of range to nan"""
 
+   
     if x_periodic:
-        px[px<-1] = px[px<-1] + nx
-        px[px>nx-1] = px[px>nx-1] - nx
+        px[px<-1] = px[px<-1] + nxi
+        px[px>nxi-1] = px[px>nxi-1] - nxi
     else:
-        px[px<=1-ng] = np.nan; px[px>=nx-3+ng] = np.nan; 
+        px[px<=0] = np.nan; px[px>=nxi] = np.nan; 
 
     if y_periodic:
-        py[py<-1] = py[py<-1] + ny
-        py[py>ny-1] = py[py>ny-1] - ny
+        py[py<-1] = py[py<-1] + nyi
+        py[py>nyi-1] = py[py>nyi-1] - nyi
     else:
-        py[py<=1-ng] = np.nan; py[py>=ny-3+ng] = np.nan; 
+        py[py<=0] = np.nan; py[py>=nyi] = np.nan; 
         #pz[pz<0] = np.nan; pz[pz>nz] = np.nan; 
 
     py[np.isnan(px)] = np.nan
@@ -189,7 +190,10 @@ def remove_depth(px, py, pz, klim, below=False, debug=False):
    
 
 ###################################################################################
-  
+
+
+
+
 #@profile   
 def get_vel_io(simul, pm=None, pn=None, timing=False, x_periodic=False,
                y_periodic=False, ng=0, cartesian=False, u_name='u', v_name='v', **kwargs):
@@ -919,8 +923,14 @@ def periodize2d_fromnc_depth(simul,variable,coord,x_periodic=False,y_periodic=Fa
 ###################################################################################
 
 def periodize2d_fromvar(simul,var2d,coord,x_periodic=False,y_periodic=False,ng=0):
-
+    '''
+    Original variable (var2d) should cover the full domain
+    '''
+    
+    # Size of original variable
     [ny1tot,ny2tot,nx1tot,nx2tot] = simul.coord[0:4]
+
+    # Size of variable once periodized
     [ny1,ny2,nx1,nx2] = coord[0:4]
 
     nw = min(ng,nx1); ne = min(ng,nx2tot-nx1tot+2*ng-nx2)
@@ -928,6 +938,7 @@ def periodize2d_fromvar(simul,var2d,coord,x_periodic=False,y_periodic=False,ng=0
 
     myvar = np.zeros((nx2-nx1,ny2-ny1))*np.nan
 
+    # Load interior points
     myvar[ng-nw:nx2-nx1-ng+ne,ng-ns:ny2-ny1-ng+nn] = var2d[nx1-nw:nx2-2*ng+ne,ny1-ns:ny2-2*ng+nn]
 
     if nw<ng and x_periodic:
@@ -941,11 +952,11 @@ def periodize2d_fromvar(simul,var2d,coord,x_periodic=False,y_periodic=False,ng=0
         ne=ng
 
     if ns<ng and y_periodic:
-        for i in range(1,ng):
+        for i in range(ng):
             myvar[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = var2d[nx1-nw:nx2-2*ng+ne,ny2tot-1-i]
 
     if nn<ng and y_periodic:
-        for i in range(1,ng):
+        for i in range(ng):
             myvar[ng-nw:nx2-nx1-ng+ne,ny2-ny1-ng+nn+i] = var2d[nx1-nw:nx2-2*ng+ne,ny1tot+i]
 
     return myvar
@@ -1240,11 +1251,162 @@ def get_wvclty(simul, pm=None, pn=None, timing=False, x_periodic=False,
     nn = min(ng, ny2tot-ny1tot+2*ng-ny2)
 """
 
-###################################################################################
-# Some analytical veloticy field
+
+#######################################################
+# Define an analytical simulation object
 #######################################################
  
   
+def ana_simul(nx,ny,nz,dx=1.,dy=1.,dz=1.,topo=10.,**kwargs):  
+
+    parameters = 'analytical velocities'
+
+    simul = lambda: None
+    
+    #name
+    simul.simul = 'analytical'
+    
+    simul.dt = 10
+    simul.filetime = 0
+    simul.oceantime = 0
+    
+    #domain
+    simul.pm = np.ones((nx,ny)) / dx
+    simul.pn = np.ones((nx,ny)) / dy
+
+    simul.mask = np.zeros((nx,ny)) + 1.
+    simul.topo = np.zeros((nx,ny)) + topo
+    
+    depths = range(nz)
+    simul.coord = [0,ny,0,nx,depths]
+
+    return parameters, simul
+
+
+
+#######################################################
+# Some analytical velocity field
+#######################################################
+
+#@profile   
+def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
+                 x_periodic=False,y_periodic=False,ng=0,\
+                 timing=False,config='rot',**kwargs):  
+
+    if timing: tstart2 = tm.time()   
+    
+    [div,rot,S1,S2] = flow
+    [u0,v0] = norm
+    [dx,dy] = dxy
+    
+    [ny1,ny2,nx1,nx2] = simul.coord[0:4]
+    nx,ny = nx2-nx1,ny2-ny1
+    
+    if 'coord' in  kwargs:
+        coord = kwargs['coord']
+    else: 
+        coord = simul.coord[0:4]
+    print('coord is ',coord)
+    
+    if 'xy' in  kwargs:
+        x,y =  kwargs['xy']
+    else:
+        x,y = np.mgrid[0:nx,0:ny]
+        x,y = x*dx,y*dy
+
+########################################################
+
+    if config=='rot':
+        ########################################################
+        ##Solid body rotation
+        
+        x0,y0 = nx/2.,ny/2.
+        #u = u0*(0.5*S1*(x-x0)+0.5*S2*(y-y0)+0.5*div*(x-x0)-rot/2.*(y-y0))*np.pi/20.
+        #v = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*div*(y-y0)+rot/2.*(x-x0))*np.pi/20.
+        
+        u = -0.5*(y-y0)*np.pi/4.
+        v = 0.5*(x-x0)*np.pi/4.  
+
+    elif config=='rotexp': 
+        ########################################################
+        ##Solid body rotation with decreasing exp
+        
+        x0,y0 = nx/2,ny/2
+        r = np.sqrt((x-x0)**2 + (y-y0)**2)
+        r0=10
+        
+        u = u0*(0.5*S1*(x-x0)+0.5*S2*(y-y0)+0.5*div*(x-x0)\
+                -rot/2.*(y-y0))*np.exp(-r/r0)*np.pi/4.
+        v = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*div*(y-y0)\
+                +rot*(x-x0)-rot/2.*(x-x0))*np.exp(-r/r0)*np.pi/4.
+    
+    elif config=='birotexp': 
+        #######################################################
+        # multiple rotations with decreasing exp
+        
+
+        centers = [[nx/4,ny/4],\
+                   [3*nx/4,ny/4],\
+                   [nx/4,3*ny/4],\
+                   [3*nx/4,3*ny/4]]
+                   
+        r0=3
+        
+        u,v = x*0.,y*0.
+        
+        for [x0,y0] in centers:
+            r = np.sqrt((x-x0)**2 + (y-y0)**2)
+            u1 = u0*(0.5*S1*(x-x0)+0.5*S2*(y-y0)+0.5*div*(x-x0)-rot/2.*(y-y0))*np.exp(-r/r0)
+            v1 = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*div*(y-y0)+rot*(x-x0)-rot/2.*(x-x0))*np.exp(-r/r0)
+            u = u + u1
+            v = v + v1
+        
+
+    elif config=='jet':
+        ########################################################
+     
+        x0,y0 = nx/2.,ny/2.
+
+        u = 0.*x + 1.
+        v = 2.*(-1)**x
+
+
+
+    #######################################################
+    # periodize it
+
+    print('before periodize ', u.shape)
+    
+    u = periodize2d_fromvar(simul, u, coord=coord,\
+                            x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+    v = periodize2d_fromvar(simul, v, coord=coord,\
+                            x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
+    
+    print('after periodize ', u.shape)
+    
+    #######################################################
+    # Put u,v on u,v grids
+
+    u = 0.5*(u[1:,:] + u[:-1,:])
+    v = 0.5*(v[:,1:] + v[:,:-1])   
+    
+    #######################################################
+
+    #u = u[nx1:nx2-1,ny1:ny2]
+    #v = v[nx1:nx2,ny1:ny2-1]
+    #print('after selecting region ', u.shape)
+    
+    #######################################################
+
+    if timing: print('create  u,v analytically....', tm.time()-tstart2)
+    if timing: tstart2 = tm.time()    
+
+    return u,v
+
+
+
+
+
 #@profile   
 def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False,config='rot',**kwargs):  
     
@@ -1270,7 +1432,8 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
 
 ########################################################
 
-
+    print('x.shape',x.shape)
+    
     if config=='rot':
         ########################################################
         ##Solid body rotation

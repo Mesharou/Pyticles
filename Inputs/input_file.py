@@ -26,11 +26,14 @@ debug = True # Increase verbosity to help debug
 ################################################################################
 # ROMS INPUTS
 ################################################################################
+# if analytical = True, we use analytical velocities, not CROCO data
+analytical = True
+
 # if meanflow = True Roms data are not updated (used for climatology)
-meanflow = False
+meanflow = True
 # in case of periodic channel
-x_periodic = False
-y_periodic = False
+x_periodic = True
+y_periodic = True
 ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
 
@@ -39,7 +42,7 @@ ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other inte
 # Particles Dynamics
 ##############################################################################
 # 3D advection
-adv3d = True # 3d or 2d
+adv3d = False # 3d or 2d
 
 '''
 for 2d advection, there are several options:
@@ -52,7 +55,7 @@ any arbitrary 2d surface, vertically integrated velocity fields, etc.
 '''
 
 if not adv3d:
-    advsurf = False
+    advsurf = True
     advzavg = False
 else:
     advsurf = False
@@ -102,8 +105,8 @@ if not adv3d:
 """
 
 dfile = 1
-start_file = 3360 
-end_file = 3365 
+start_file = 0
+end_file = 1000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -126,23 +129,43 @@ if not restart:
 else:
     start_file += restart_time * int(np.sign(dfile))
 
-# Load simulation
-# parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'polgyr'
 
-##########
-if 'surf' in my_simul or advsurf: 
-    advsurf = True
-    light = True # do not load unnecessary files for a pure surface advection
+
+if not analytical:
+    
+    # Load simulation
+    # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
+    my_simul = 'polgyr'
+
+    ##########
+    if 'surf' in my_simul or advsurf: 
+        advsurf = True
+        light = True # do not load unnecessary files for a pure surface advection
+    else:
+        light = False
+    #########
+
+    # user may add my_simul in Module/R_files.py to indicate roms output path and
+    # parameters
+    parameters = my_simul + ' [0,15000,0,15000,[1,300,1]] '+ format(start_file)
+    simul = load(simul = parameters, light = light, floattype=np.float64)
+    
+
+
 else:
-    light = False
+    
+    #domain
+    dx, dy  = 1., 1.
+    nxi,nyi = 100,100 # interior points, not counting ghost points
+    nz = 1; dz = 1
+    
+    parameters, simul = part.ana_simul(nxi,nyi,nz,dx,dy,dz)
+    
+    #Velocity field:
+    flow = [0,1,0,0] # [div,rot,S1,S2]
+    
+    light = True
 
-#########
-
-# user may add my_simul in Module/R_files.py to indicate roms output path and
-# parameters
-parameters = my_simul + ' [0,15000,0,15000,[1,300,1]] '+ format(start_file)
-simul = load(simul = parameters, light = light, floattype=np.float64)
 
 # Names of horizontal velocity fields in the simulation files
 u_name = 'u'; v_name = 'v'
@@ -224,26 +247,28 @@ else:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = True
+plot_part = True # Plot figures showing particles positions during execution
 
 #Write lon,lat,topo,depth
-write_lonlat = True
-if not adv3d:
+write_lonlat = False
+
+if adv3d:
     write_depth = True
 else:
     write_depth = False
-write_topo = True
+    
 
+write_topo = False
 if advzavg: 
     write_topo = True # Needed to keep track when water column intersects with
                       # bathymetry (topo > |advdepth| - z_thick/2)
-
-if light: 
+elif light: 
     write_topo = False
+    
 
 write_uv = False
 write_ts = False
-write_uvw = True
+write_uvw = False
 # True : pw is w-vertical velocity in z-coordinates
 # False : pw is omega velocity in sigma-coordinates
 cartesian = True
@@ -261,9 +286,9 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'dynamic_injection'
+config = 'birotexp'
 
-folderout = '/postproc/COLLIN/Pyticles/tmp/'
+folderout = './out/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -285,8 +310,8 @@ simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
 # Resolution (dx,dy)
 dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
 # Total size of the domain (nx,ny,nz)
-(nx, ny) = simul.pm.shape
-nx += 2*ng; ny += 2*ng # add ghost points to array size
+(nxi, nyi) = simul.pm.shape
+nx = nxi + 2*ng; ny = nyi + 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
 k0 = 0
@@ -323,7 +348,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 #[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
 
-[ic, jc] = [900, 1100]
+[ic, jc] = [50, 50]
 print('ic,jc is ',ic,jc)
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
@@ -331,25 +356,25 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
     
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-preserved_meter = True
+preserved_meter = False
 
 # --> injection on lon lat
 spheric_injection = False
 
 if preserved_meter:
-    dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 2 # number of intervals in x-dir
-    ny_box = 2      
+    dx_box = 1000  # horizontal particles spacing meters
+    nx_box = 100 # number of intervals in x-dir
+    ny_box = 100      
     nnlev = 1  
 else:
     #dx_m = 1000. # distance between 2 particles [in m]
     #dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
     dx0 = 1
-    iwd  = 10 * dx0 # half width of seeding patch [in grid points
-    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
+    iwd  = 40 * dx0 # half width of seeding patch [in grid points
+    jwd  = 40 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
-    nnx = 1 * dx0
-    nny = 1 * dx0
+    nnx = 0.1 * dx0
+    nny = 0.1 * dx0
     nnlev = 1
 
 #########
@@ -395,7 +420,7 @@ rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
@@ -418,7 +443,7 @@ if not adv3d:
     lev1 = lev0
     depths0 = [advdepth]
     write_uvw = False
-    write_uv = True
+    write_uv = False
 
 #########
 # define initial vertical position using depth
