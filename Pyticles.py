@@ -146,6 +146,7 @@ from netCDF4 import Dataset
 # add the Modules folder in your python PATH
 try:
     sys.path.remove("/home/gula/Desktop/Work_capella/Python/Python_Modules_p3") #just for JG
+    sys.path.remove("/home2/datahome/jgula/Python_Modules_p3") #just for JG
 except:
     pass
 
@@ -275,7 +276,7 @@ if not restart:
                           simul=simul, ng=ng)
     else:
         z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                lev1=lev1, iwd=iwd, jwd=jwd, nx=nx, ny=ny, nnx=nnx, nny=nny,
+                lev1=lev1, iwd=iwd, jwd=jwd, nx=nxi, ny=nyi, nnx=nnx, nny=nny,
                 nnlev=nnlev)
 
     ##############################
@@ -306,10 +307,10 @@ if not restart:
         if preserved_meter:
             z, y, x = seeding_part.seed_meter(ic=ic, jc=jc, lev0=lev0, lev1=lev1,
                         nnlev=nnlev, nx_box=nx_box, ny_box=ny_box, dx_box=dx_box,
-                        simul=simul, ng=ng)
+                        simul=simul)
         else:
             z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nx, ny=ny)
+                    lev1=lev1, nnx=nnx, nny=nny, iwd=iwd, jwd=jwd, nx=nxi, ny=nyi)
         
         map_rho = part.map_var(simul, rho, x_box.reshape(-1), y_box.reshape(-1),
                 z_box.reshape(-1), ng=ng).reshape(x_box.shape)
@@ -440,7 +441,7 @@ if not restart:
         px[:] = px0
         py[:] = py0
         if adv3d: pz[:] = pz0
-        del px0,py0
+        #del px0,py0
         if adv3d: del pz0
 
     ############################################################################
@@ -755,6 +756,30 @@ def plot_selection_sub(alldomain=False):
         plt.title(format(np.sum(px>0)) + ' pyticles ' )
         plt.savefig(folderout + simulname + '_sub_ '+ format(sub) +'_' + '{0:04}'.format(time+dfile) +'.png', dpi=150,bbox_inches='tight'); plt.clf()
 
+
+###################################################################################
+
+def plot_selection_ana():
+
+    [u,v] = part.ana_vel_surf(simul,flow=flow,config=config)
+            
+    ax1 = plt.subplot(1,1,1);
+
+    nnu,nnv=5,5        
+    x,y = np.mgrid[0:nxi,0:nyi]
+
+    scale=5
+    plt.quiver(x.T[::nnv,::nnu], y.T[::nnv,::nnu],\
+               part.u2rho(u).T[::nnv,::nnu],part.v2rho(v).T[::nnv,::nnu],\
+                 pivot='mid',color='r',scale=scale);       
+
+    plt.plot(px[::1]+0.5,py[::1]+0.5,'.', markersize=3, markerfacecolor='yellow')
+    plt.axis([-0.5 ,nxi+0.5, -0.5, nyi+0.5])
+
+    plt.title(format(np.sum(px>0)) + ' particules ' )      
+    plt.savefig(folderout + simulname +'_' + '{0:04}'.format(time+dfile) +'.png',  dpi=250,bbox_inches='tight'); plt.clf()
+
+
 ################################################################################
 # Create output netcdf file for pyticles
 ################################################################################
@@ -774,14 +799,20 @@ print (' ')
 tstart = tm.time()
 
 coord = part.subsection(px, py, nx=nx, ny=ny, offset=50)
-time = timerange[0]
+print('initial coord is ', coord)
+
+time=-1
 if plot_part:
-    run_process(plot_selection)
+    ###############################
+    if not analytical: run_process(plot_selection)
+    else: run_process(plot_selection_ana)     
+    ###############################
+
+time = timerange[0]
 
 #Initialization
 pm_s = np.array([]); 
 itime = restart_time
-print("itime is!", itime)
 
 for time in timerange:
     print('--------------------------------------------------------------------')
@@ -805,6 +836,7 @@ for time in timerange:
     tightcoord = part.subsection(px, py, dx, dy, maxvel*0., delt[0], nx, ny, ng)
     coord = part.subsection(px, py, dx, dy, maxvel, delt[0], nx, ny, ng,
                            nadv= nadv)
+
     nx_s, ny_s = coord[3]-coord[2], coord[1]-coord[0]
     i0 = coord[2]
     j0 = coord[0] 
@@ -919,6 +951,7 @@ for time in timerange:
     if nsub_x*nsub_y == 1:
         subcoord = coord
         subsubrange = list(range(nq))
+        print('subcoord is ',subcoord)
         if np.abs(time - timerange[-1]) >= np.abs(dfile) * 1e-2:
             r = run_process(update_xyz);
         
@@ -1013,8 +1046,8 @@ for time in timerange:
                             debug=debug)
             else:
                 z, y, x = seeding_part.seed_box(ic=ic, jc=jc, lev0=lev0,
-                                            lev1=lev1, iwd=iwd, jwd=jwd, nx=nx,
-                                            ny=ny, nnx=nnx, nny=nny,
+                                            lev1=lev1, iwd=iwd, jwd=jwd, nx=nxi,
+                                            ny=nyi, nnx=nnx, nny=nny,
                                             nnlev=nnlev)
             ###############################
             # Release particles at depths0
@@ -1049,7 +1082,7 @@ for time in timerange:
                     z_box, y_box, x_box = seeding_part.seed_box(ic=ic, jc=jc,
                                               lev0=lev0, lev1=lev1, nnx=nnx,
                                               nny=nny, iwd=iwd, jwd=jwd, nx=nx,
-                                              ny=ny)
+                                              ny=ny, ng=ng)
 
                 map_rho = part.map_var(simul, rho, x_box.reshape(-1),
                               y_box.reshape(-1), z_box.reshape(-1), ng=ng,
@@ -1108,7 +1141,16 @@ for time in timerange:
     # Plot particles position (+ SST)
         
     if (time + dfile) % 1 < np.abs(dfile) * 1e-2 \
-       and plot_part : run_process(plot_selection)
+       and plot_part : 
+           ###################################################################################
+        
+        if not analytical: 
+            run_process(plot_selection)
+        else: 
+            run_process(plot_selection_ana)     
+
+        ###################################################################################
+
     
     ############################################################################
     itime += 1
