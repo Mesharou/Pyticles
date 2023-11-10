@@ -30,7 +30,7 @@ debug = True # Increase verbosity to help debug
 analytical = True
 
 # if meanflow = True Roms data are not updated (used for climatology)
-meanflow = True
+meanflow = False
 # in case of periodic channel
 x_periodic = True
 y_periodic = True
@@ -159,7 +159,8 @@ else:
     nxi,nyi = 100,100 # interior points, not counting ghost points
     nz = 1; dz = 1
     
-    parameters, simul = part.ana_simul(nxi,nyi,nz,dx,dy,dz)
+    simul = part.ana_load(nxi,nyi,nz,dx,dy,dz)
+    parameters = simul.parameters
     
     #Velocity field:
     flow = [0,1,0,0] # [div,rot,S1,S2]
@@ -373,8 +374,8 @@ else:
     iwd  = 40 * dx0 # half width of seeding patch [in grid points
     jwd  = 40 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
-    nnx = 0.1 * dx0
-    nny = 0.1 * dx0
+    nnx = 1 * dx0
+    nny = 1 * dx0
     nnlev = 1
 
 #########
