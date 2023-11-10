@@ -1251,33 +1251,39 @@ def get_wvclty(simul, pm=None, pn=None, timing=False, x_periodic=False,
 # Define an analytical simulation object
 #######################################################
  
-  
-def ana_simul(nx,ny,nz,dx=1.,dy=1.,dz=1.,topo=10.,**kwargs):  
 
-    parameters = 'analytical velocities'
+class ana_load(object):
 
-    simul = lambda: None
-    
-    #name
-    simul.simul = 'analytical'
-    
-    simul.dt = 10
-    simul.filetime = 0
-    simul.oceantime = 0
-    
-    #domain
-    simul.pm = np.ones((nx,ny)) / dx
-    simul.pn = np.ones((nx,ny)) / dy
+    ############################
 
-    simul.mask = np.zeros((nx,ny)) + 1.
-    simul.topo = np.zeros((nx,ny)) + topo
-    
-    depths = range(nz)
-    simul.coord = [0,ny,0,nx,depths]
+    def __init__(self,nx,ny,nz,dx=1.,dy=1.,dz=1.,topo=10.,**kwargs):  
 
-    return parameters, simul
+        self.parameters = 'analytical velocities'
 
+        #name
+        self.simul = 'analytical'
+        
+        self.dt = 100
+        self.filetime = 0
+        self.oceantime = 0
+        
+        #domain
+        self.pm = np.ones((nx,ny)) / dx
+        self.pn = np.ones((nx,ny)) / dy
 
+        self.mask = np.zeros((nx,ny)) + 1.
+        self.topo = np.zeros((nx,ny)) + topo
+        
+        depths = range(nz)
+        self.coord = [0,ny,0,nx,depths]
+
+    ############################
+
+    def update(self,time=0):
+
+        self.oceantime = time
+
+    ############################
 
 #######################################################
 # Some analytical velocity field
@@ -1288,7 +1294,9 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
                  x_periodic=False,y_periodic=False,ng=0,\
                  timing=False,config='rot',**kwargs):  
 
-    if timing: tstart2 = tm.time()   
+    if timing: tstart2 = tm.time() 
+
+    time = simul.oceantime
     
     [div,rot,S1,S2] = flow
     [u0,v0] = norm
@@ -1340,10 +1348,10 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
         # multiple rotations with decreasing exp
         
 
-        centers = [[nx/4,ny/4],\
-                   [3*nx/4,ny/4],\
-                   [nx/4,3*ny/4],\
-                   [3*nx/4,3*ny/4]]
+        centers = [[(nx/4),ny/4],\
+                   [(3*nx/4),ny/4],\
+                   [(nx/4),3*ny/4],\
+                   [(3*nx/4),3*ny/4]]
                    
         r0=3
         
@@ -1355,8 +1363,10 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
             v1 = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*div*(y-y0)+rot*(x-x0)-rot/2.*(x-x0))*np.exp(-r/r0)
             u = u + u1
             v = v + v1
-        
 
+        u = np.roll(u,time,1)
+        v = np.roll(v,time,1)
+        
     elif config=='jet':
         ########################################################
      
@@ -1369,16 +1379,12 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
 
     #######################################################
     # periodize it
-
-    print('before periodize ', u.shape)
     
     u = periodize2d_fromvar(simul, u, coord=coord,\
                             x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
     v = periodize2d_fromvar(simul, v, coord=coord,\
                             x_periodic=x_periodic,y_periodic=y_periodic,ng=ng)
-    
-    print('after periodize ', u.shape)
-    
+      
     #######################################################
     # Put u,v on u,v grids
 

@@ -168,7 +168,15 @@ else:
                 w[:, :, :, itim[1]] = w[:,:,:,itim[1]] * 0 + w_sed 
 
     elif simul.simul[-4:]=='surf' or advsurf:
-        [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
+        
+        if analytical:
+            [u[:,:,itim[1]],v[:,:,itim[1]]] = part.ana_vel_surf(simul,flow=flow,\
+                                                 coord=subcoord,config=config,\
+                                                        x_periodic=x_periodic,\
+                                                        y_periodic=y_periodic,\
+                                                                         ng=ng)
+        else:
+            [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
                                         timing=subtiming, x_periodic=x_periodic,
                                             y_periodic=y_periodic, ng=ng, coord=subcoord,\
                                                 u_name = u_name, v_name = v_name)
