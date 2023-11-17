@@ -76,15 +76,28 @@ import socket
 
 
 class load(object):
+    """
+    Load ROMS/CROCO files and variables
+
+    Parameters:
+    ======================================================================
+        - str, simulname: name of ROMS/CROCO simulation defined in Class
+            files
+        - float, time: time to load files
+        - bool, light: if True load only surface variables
+            (used in GIGATL_surf) to incease performance
+        - bool, touchfile: if False it doesnt matter if first file is on
+            disk or not
+        - bool, output: increase verbosity
+
+    """
 
 ###################################################################################
 #   Main 
 ###################################################################################
-    def __init__(self,simulname=None,time=None, floattype=float, light = False, touchfile=True, output =True, **kwargs):
+    def __init__(self, simulname=None, time=None, floattype=float, light=False,
+                touchfile=True, output=True, **kwargs):
 
-        """
-
-        """
         if output: print('simulname is',simulname)
 
         #define type of variables
@@ -92,39 +105,38 @@ class load(object):
 
         #get simulation parameters from arguments
         if 'simul' in  kwargs: 
-            self.load_file(kwargs['simul'].split(' '),output = output)
+            self.load_file(kwargs['simul'].split(' '), output=output)
         #elif len(sys.argv)>0:
         #    self.load_file(sys.argv)
         else: 
-            self.load_file([simulname],output = output)
+            self.load_file([simulname], output=output)
         
         #for time in range(self.time0, self.ncname.tend, self.dtime ):
         if time==None: time = self.time0
         self.time = int(time)
         
-        self.ncname=files(self.simul, time=self.time, output = output)
+        self.ncname = files(self.simul, time=self.time, output = output)
         
-        if self.ncname.model in ['ucla','croco']:
+        if self.ncname.model in ['ucla', 'croco']:
             if output: print('time of simulation is:', self.time)
-            self.infiletime=self.time%self.ncname.tfile
-            self.filetime=self.time-self.infiletime
-            if self.ncname.digits==4:
+            self.infiletime = self.time%self.ncname.tfile
+            self.filetime = self.time-self.infiletime
+            if self.ncname.digits == 4:
                 self.ncfile = self.ncname.his+'{0:04}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits==5:
+            elif self.ncname.digits == 5:
                 self.ncfile = self.ncname.his+'{0:05}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits==6:
+            elif self.ncname.digits == 6:
                 self.ncfile = self.ncname.his+'{0:06}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits==0:
+            elif self.ncname.digits == 0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
-        elif self.ncname.model == 'agrif_jc':
-            dsec = 30*24*3600 /self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec/ (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) / (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))/dsec
+        elif self.ncname.model == 'agrif':
+            dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
+            month = (self.ncname.Mstart + self.time * dsec// (30*24*3600) - 1 )%12 + 1
+            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) // (360*24*3600)
+            self.infiletime = (self.time * dsec % (30*24*3600))//dsec
             #self.infiletime = (self.time * dhour % (30*24))/dhour
             self.filetime=self.time
             self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month) + self.ncname.fileformat
-            if output: print('file is ',self.ncfile)
         elif self.ncname.model == 'croco_lionel':
             date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
             year = date.year
@@ -225,7 +237,7 @@ class load(object):
 ###################################################################################
 #   Update time 
 ###################################################################################
-    def update(self,time=None, output =True):
+    def update(self, time=None, output =True):
 
         """
         
@@ -239,7 +251,6 @@ class load(object):
         else: self.time = int(time)
         
         self.ncname=files(self.simul, time=self.time,output = output)
-
 
         if self.ncname.model in ['ucla','croco']:
             if output: print('time of simulation is:', self.time)
@@ -834,7 +845,7 @@ example: for an interactive session:
 # get ocean date from file and convert it to '%m/%d - %H:00'
 ###################################################################################
 
-    def dt(self,output=True):
+    def dt(self, output=True):
 
         ncfile = Dataset(self.ncfile, 'r')
         if output: print('dt is read in ',self.ncfile)
@@ -868,14 +879,6 @@ example: for an interactive session:
 #END CLASS LOAD
 ###################################################################################
 
-
-
-
-
-
-
-
-
 ###################################################################################
 # FILES 
 ###################################################################################
@@ -892,6 +895,15 @@ import sys, os
 
 ###################################################################################
 class files(object):
+    """
+    Specify files location, file format and naming convention
+
+    naming convention depends mainly on the model you use among
+
+    
+
+        
+    """
 ###################################################################################
 
 

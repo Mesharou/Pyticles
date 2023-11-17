@@ -3,6 +3,9 @@
 ## Tutorial feature
 
 ### FIXME
+
+- Jupter outputs are still here ! as well as dask worker this is quite ugly.
+
 - Issue with R_files.py gigatl1_1h_surf (2 days shift (rings a bell))
 il y a une varialble shift dans R_files.py (cf swot R_files si besoin)
 
