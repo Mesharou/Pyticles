@@ -1,0 +1,13 @@
+
+
+Problem on libra with the pre-compiler:
+
+lines like:
+
+100   continue
+
+become:
+
+100 continue
+
+This creates a label error. I manually changed them for now and removec the pre-compiling step. 
