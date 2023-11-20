@@ -145,7 +145,7 @@ from netCDF4 import Dataset
 # Specific modules needed for pyticles
 # add the Modules folder in your python PATH
 try:
-    sys.path.remove("/home2/datahome/jgula/Python_Modules_p3") #just for JG
+    sys.path.remove("/home/gula/Desktop/Work_capella/Python/Python_Modules_p3") #just for JG
 except:
     pass
 
@@ -413,8 +413,9 @@ if not restart:
             
         nq_injection = nq
         nq = np.nanmin([nq_injection * N_injection, nqmx])
-        print('it would take', nq_injection * N_injection - nqmx, ' more pyticles')
-        print('to be able to release through all the simulation')
+        if nq_injection * N_injection >= nqmx:
+            print('it would take', nq_injection * N_injection - nqmx, ' more pyticles')
+            print('to be able to release through all the simulation')
         nq_1 = nq_injection
         nq_0 = 0
         if debug:
@@ -649,7 +650,7 @@ def plot_rect(rect, line='k'):
 ################################################################################
 
 
-def plot_selection(alldomain=False):
+def plot_selection(alldomain=True):
 
     plt.figure(figsize=(6.0,4.0))  
     ax1 = plt.subplot(1,1,1)
@@ -682,7 +683,7 @@ def plot_selection(alldomain=False):
         if not light: topo = simul.topo[nx1:nx2,ny1:ny2]
     nc.close()
 
-    #sst[sst<=0] = np.nan
+    sst[simul.mask==0] = np.nan
 
     #plt.imshow(sst[:,::1].T); plt.colorbar(shrink=0.25);
     plt.pcolormesh(ma.masked_invalid(sst[:,:].T),cmap='jet',rasterized=True);
@@ -807,7 +808,6 @@ for time in timerange:
     print('coord is ', coord)
     print('Compute coord............................', tm.time()-tstart)
     tstart = tm.time()   
-
 
     ############################################################################
     # Compute ptemp,psalt
