@@ -78,8 +78,8 @@ if not adv3d:
 # (default is 1 = using all outputs files)
 # Use -1 for backward simulation
 dfile = 1
-start_file = 3360 #1440
-end_file = 3365 #8000
+start_file = 0 #1440
+end_file = 2 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -104,7 +104,7 @@ else:
 
 # Load simulation
 # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-my_simul = 'polgyr'
+my_simul = 'rutgers'
 
 ##########
 if 'surf' in my_simul or advsurf: 
@@ -204,7 +204,7 @@ write_lonlat = True
 if not adv3d:
     write_depth = True
 else:
-    write_depth = False
+    write_depth = True
 write_topo = True
 
 if advzavg: 
@@ -236,7 +236,7 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 config = 'dynamic_injection'
 
-folderout = './out'
+folderout = './out/'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
@@ -294,9 +294,9 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 ###########
 # Patch's center in grid points 
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
-#[ic, jc] = [1450, 930] #= part.find_points(simul.x,simul.y,-32.28,37.30)
+#[ic, jc] = part.find_points(simul.x,simul.y,-32.28,37.30)
 
-[ic, jc] = [900, 1100]
+[ic, jc] = [200, 200]
 print('ic,jc is ',ic,jc)
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
@@ -310,9 +310,9 @@ preserved_meter = True
 spheric_injection = False
 
 if preserved_meter:
-    dx_box = 2000  # horizontal particles spacing meters
-    nx_box = 2 # number of intervals in x-dir
-    ny_box = 2      
+    dx_box = 1000  # horizontal particles spacing meters
+    nx_box = 100 # number of intervals in x-dir
+    ny_box = 100      
     nnlev = 1  
 else:
     #dx_m = 1000. # distance between 2 particles [in m]
@@ -363,12 +363,12 @@ if initial_cond:
 # depths0 < 0 : depth in meter
 # depths0 > 0 : sigma layer
 # depths0 = 0 : release at surface
-depths0 = [-100]
+depths0 = [-10]
 rho0 = [-1.5]
 
 # if True release particles continuously
 # if False only one release at initial time-step
-continuous_injection = True
+continuous_injection = False
 if continuous_injection:
     dt_injection = 1 #(1 = injection every time step,
                      # 10 = injection every 10 time steps)
