@@ -683,8 +683,11 @@ def plot_selection(alldomain=True):
         if not light: topo = simul.topo[nx1:nx2,ny1:ny2]
     nc.close()
 
-    sst[simul.mask==0] = np.nan
-
+    try:
+        sst[simul.mask==0] = np.nan
+    except:
+        pass
+    
     #plt.imshow(sst[:,::1].T); plt.colorbar(shrink=0.25);
     plt.pcolormesh(ma.masked_invalid(sst[:,:].T),cmap='jet',rasterized=True);
     plt.colorbar(shrink=0.25);
