@@ -804,8 +804,8 @@ print('initial coord is ', coord)
 time=-1
 if plot_part:
     ###############################
-    if not analytical: run_process(plot_selection)
-    else: run_process(plot_selection_ana)     
+    if source == 'roms': run_process(plot_selection)
+    elif source == 'analytical': run_process(plot_selection_ana)     
     ###############################
 
 time = timerange[0]
@@ -1144,9 +1144,9 @@ for time in timerange:
        and plot_part : 
            ###################################################################################
         
-        if not analytical: 
+        if source == 'roms': 
             run_process(plot_selection)
-        else: 
+        elif source == 'analytical': 
             run_process(plot_selection_ana)     
 
         ###################################################################################

@@ -24,19 +24,30 @@ import pyticles_sig_sa as part
 debug = True # Increase verbosity to help debug
 
 ################################################################################
-# ROMS INPUTS
+# VELOCITY INPUTS
 ################################################################################
-# if analytical = True, we use analytical velocities, not CROCO data
-analytical = False
+'''
+    source can be 'roms', 'fluid2d' or 'analytical'
+            - 'roms' uses model outputs from CROCO, ROMS UCLA or ROMS rutgers
+                        information about output files should be 
+                        included in Modules/R_files.py (class files)
+            - 'fluid2d' uses outputs from the fluid2d CFD code 
+                        available here: https://github.com/pvthinker/Fluid2d
+            - 'analytical': uses velocity defined analytically 
+                        in functions ana_vel / ana_vel_surf 
+                        in Modules/pyticles_sig_sa.py
+'''
 
-# if meanflow = True Roms data are not updated (used for climatology)
+source = 'roms'
+
+# if meanflow = True; Velocity data are not updated in time (used for climatology)
 meanflow = False
+
 # in case of periodic channel
 x_periodic = False
 y_periodic = False
-ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
-
+ng = 1 # number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
 ##############################################################################
 # Particles Dynamics
@@ -107,7 +118,7 @@ else:
 
 
 
-if not analytical:
+if source == 'roms':
 
     # Load simulation
     # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
@@ -128,7 +139,7 @@ if not analytical:
 
 
 
-else:
+elif source == 'analytical':
     
     #domain
     dx, dy  = 1., 1.
