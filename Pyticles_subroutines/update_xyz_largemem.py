@@ -65,6 +65,10 @@ if debug_time:
     print('-->')
     print('u0 time :', simul.time)
 
+################
+# Initialization
+################
+
 if np.isnan(pm_s[0,0]):
     pm_s[:] = part.periodize2d_fromvar(simul, simul.pm, coord=subcoord,
             x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
@@ -123,8 +127,9 @@ if np.isnan(pm_s[0,0]):
     if subtiming: tstart = tm.time()
 
 
-###################################################################################
+#######################################################
 # Update simul at t+1 - and get u,v,w at time-step t+1
+#######################################################
 
 if meanflow:
 
