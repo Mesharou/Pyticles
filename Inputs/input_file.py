@@ -138,7 +138,7 @@ timestep = 'RK4' # Choices are
 # -- Number of time steps between 2 roms time steps determined by CFL condition 
 # sum(u_i/dx_i) < cmax
 
-inline_cfl = False
+inline_cfl = True
 dzmin = 1
 cmax = 1
 
@@ -236,7 +236,7 @@ if write_t: write_ts = False
 # name of your configuration (used to name output files)
 config = 'dynamic_injection'
 
-folderout = '/postproc/COLLIN/Pyticles/tmp/'
+folderout = './out'
 # create folder if does not exist
 if not os.path.exists(folderout):
     os.makedirs(folderout)
