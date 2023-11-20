@@ -57,13 +57,8 @@ def get_nsub_steps(simul=None, cmax=0.75, umax=2, vmax=2, wmax=2*1e-3,
     #pm = simul.pm
     #pn = simul.pn
 
-    if 'coord' in kwargs:
-        coord = kwargs['coord']
-        pmmax = np.nanmax(simul.pm[coord])
-        pnmax = np.nanmax(simul.pn[coord])
-    else:
-        pmmax = np.nanmax(simul.pm)
-        pnmax = np.nanmax(simul.pn)
+    pmmax = np.nanmax(simul.pm)
+    pnmax = np.nanmax(simul.pn)
 
     nsub_steps = int(np.ceil((umax*pmmax + vmax*pnmax + wmax*dzmin)\
                  * simul.dt / cmax))
@@ -1532,16 +1527,12 @@ def get_depths_w(simul,x_periodic=False,y_periodic=False,ng=0,**kwargs):
         print("NOPE simul has NOT attribute zeta")
         zeta=periodize2d_fromnc(simul,'zeta',coord=coord,x_periodic=x_periodic,                                 y_periodic=y_periodic,ng=ng) 
 
-    if simul.ncname.model=='ucla' or simul.VertCoordType == 'NEW':
-        # zlevs and zlevs_croco_new give identical results
-        (z_w) = partF.zlevs_w(topo, zeta, simul.hc,  simul.Cs_w)
-    else:
-        #if simul.VertCoordType == 'NEW':
-        #    print('using NEW_S_COORD')
-        #    (z_w) = partF.zlevs_croco_new_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
-        #else:
+    if simul.VertCoordType == 'OLD':
         print('using OLD_S_COORD')
         (z_w) = partF.zlevs_croco_old_w(topo, zeta, simul.hc, simul.Cs_w, simul.sc_w)
+    else:
+        (z_w) = partF.zlevs_w(topo, zeta, simul.hc,  simul.Cs_w)
+
 
     return z_w
 
