@@ -39,6 +39,16 @@ Check "dir(my_simul)" to see what has been loaded:
 
 #######################
 
+21/11/23 : Jcollin
+        - replaced 'agrif_jc' to 'agrif' with self.realyear = False
+        agrif with climatology run (1 file per month and 30 days per file)
+        - added AGRIF interannual files 'agrif' and elf.realyear = True
+        close to 'croco_lionel'
+        - removed croco_lionel
+        - added loadgrid option (if False does not load grid at __init__) this
+        is handy to play around with load and update methods without having
+        file on disk
+
 16/10/11 : Changed format from 
            my_simul = load(simul = 'whatever filam [0,1000,0,1600,[-100,0,10]] whatever 190 1 250')
            to
@@ -96,7 +106,7 @@ class load(object):
 #   Main 
 ###################################################################################
     def __init__(self, simulname=None, time=None, floattype=float, light=False,
-                touchfile=True, output=True, **kwargs):
+                touchfile=True, output=True, loadgrid=True, **kwargs):
 
         if output: print('simulname is',simulname)
 
@@ -130,20 +140,27 @@ class load(object):
             elif self.ncname.digits == 0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
         elif self.ncname.model == 'agrif':
-            dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec// (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) // (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))//dsec
-            #self.infiletime = (self.time * dhour % (30*24))/dhour
-            self.filetime=self.time
-            self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month) + self.ncname.fileformat
-        elif self.ncname.model == 'croco_lionel':
-            date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
-            year = date.year
-            month = date.month
-            self.infiletime = self.time%self.ncname.tfile
-            self.filetime = self.time
-            self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+'{0:02}'.format(month) + '.' +'{0:04}'.format(self.filetime) + self.ncname.fileformat
+            if self.ncname.realyear:
+                # interannual run with a file per month and an ouput per day 
+                date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
+                year = date.year
+                month = int(date.month)
+                print('month: ', month)
+                day = date.day
+                #self.infiletime = self.time%self.ncname.tfile
+                self.infiletime = day - 1
+                self.filetime = self.time
+                self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+ str(month)  + self.ncname.fileformat
+                if output: print('file is ',self.ncfile)
+            else:
+                # climatology files with a file per month and an ouput per day
+                dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
+                month = (self.ncname.Mstart + self.time * dsec//(30*24*3600) - 1 )%12 + 1
+                year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec )//(360*24*3600)
+                self.infiletime = (self.time * dsec % (30*24*3600))//dsec
+                #self.infiletime = (self.time * dhour % (30*24))/dhour
+                self.filetime = self.time
+                self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
             if output: print('file is ',self.ncfile)
         elif self.ncname.model == 'croco_xios' or 'croco_gigatl1' in self.ncname.model:
             # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
@@ -226,13 +243,14 @@ class load(object):
         self.getin() #load some data from .in file
      
         #self.grd = [self.topo,self.pm,self.pn,self.f,self.y,self.x]
-        if light:
-            [self.mask,self.pm,self.pn,self.x,self.y] = self.variables_grd(output = output, light=True)
-        else:
-            [self.topo,self.mask,self.pm,self.pn,self.f,self.x,self.y,self.angle] = self.variables_grd(output = output)
+        if loadgrid:
+            if light:
+                [self.mask,self.pm,self.pn,self.x,self.y] = self.variables_grd(output = output, light=True)
+            else:
+                [self.topo,self.mask,self.pm,self.pn,self.f,self.x,self.y,self.angle] = self.variables_grd(output = output)
 
-        if self.simul in ['shing','reshing','filam','dilam','filam_avg','dilam_avg','slope','hatt2','gulfs']: 
-            self.topo_corrected = self.variables_grd_corrected()
+            if self.simul in ['shing','reshing','filam','dilam','filam_avg','dilam_avg','slope','hatt2','gulfs']: 
+                self.topo_corrected = self.variables_grd_corrected()
 
 ###################################################################################
 #   Update time 
@@ -250,7 +268,7 @@ class load(object):
         if time==None: self.time += 1
         else: self.time = int(time)
         
-        self.ncname=files(self.simul, time=self.time,output = output)
+        self.ncname=files(self.simul, time=self.time, output=output)
 
         if self.ncname.model in ['ucla','croco']:
             if output: print('time of simulation is:', self.time)
@@ -264,22 +282,28 @@ class load(object):
                 self.ncfile = self.ncname.his+'{0:06}'.format(self.filetime) + self.ncname.fileformat
             elif self.ncname.digits==0:
                 self.ncfile = self.ncname.his + self.ncname.fileformat
-        elif self.ncname.model == 'agrif_jc':
-            dsec = 30*24*3600 /self.ncname.tfile #dt in seconds between 2 outputs
-            month = (self.ncname.Mstart + self.time * dsec/ (30*24*3600) - 1 )%12 + 1
-            year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec ) / (360*24*3600)
-            self.infiletime = (self.time * dsec % (30*24*3600))/dsec
-            #self.infiletime = (self.time * dhour % (30*24))/dhour
-            self.filetime=self.time
-            self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
-            if output: print('file is ',self.ncfile)
-        elif self.ncname.model == 'croco_lionel':
-            date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
-            year = date.year
-            month = date.month
-            self.infiletime = self.time%self.ncname.tfile
-            self.filetime = self.time
-            self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+'{0:02}'.format(month) + '.' +'{0:04}'.format(self.filetime) + self.ncname.fileformat
+        elif self.ncname.model == 'agrif':
+            if self.ncname.realyear:
+                # interannual run with a file per month and an ouput per day 
+                date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
+                year = date.year
+                month = int(date.month)
+                print('month: ', month)
+                day = date.day
+                #self.infiletime = self.time%self.ncname.tfile
+                self.infiletime = day - 1
+                self.filetime = self.time
+                self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+ str(month)  + self.ncname.fileformat
+                if output: print('file is ',self.ncfile)
+            else:
+                # climatology files with a file per month and an ouput per day
+                dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
+                month = (self.ncname.Mstart + self.time * dsec//(30*24*3600) - 1 )%12 + 1
+                year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec )//(360*24*3600)
+                self.infiletime = (self.time * dsec % (30*24*3600))//dsec
+                #self.infiletime = (self.time * dhour % (30*24))/dhour
+                self.filetime = self.time
+                self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
             if output: print('file is ',self.ncfile)
         elif self.ncname.model == 'croco_xios' or 'croco_gigatl1' in self.ncname.model:
             # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
@@ -792,7 +816,7 @@ example: for an interactive session:
 
         ncfile = Dataset(self.ncfile, 'r')
 
-        if self.ncname.model in ['ucla','croco_lionel']:
+        if self.ncname.model in ['ucla']:
             self.oceantime = int(np.array(ncfile.variables['ocean_time'][self.infiletime]))
         else:
             try:
@@ -850,10 +874,10 @@ example: for an interactive session:
         ncfile = Dataset(self.ncfile, 'r')
         if output: print('dt is read in ',self.ncfile)
         try:
-            if self.ncname.model in ['ucla','croco_lionel']:
+            if self.ncname.model in ['ucla']:
                 self.dt = np.array(ncfile.variables['ocean_time'][1]) \
                         - np.array(ncfile.variables['ocean_time'][0])
-            elif  self.ncname.model in ['croco','agrif_jc']:
+            elif  self.ncname.model in ['croco','agrif']:
                 self.dt = np.array(ncfile.variables['scrum_time'][1]) \
                         - np.array(ncfile.variables['scrum_time'][0])
             elif  self.ncname.model in ['croco_xios']:
@@ -2542,7 +2566,8 @@ class files(object):
         # JC simulations
 
         elif simul=='aacc':
-            self.model = 'agrif_jc'
+            self.realyear = False
+            self.model = 'agrif'
             folder= libra + '/gula/ROMS/Simulations/AACC'
             self.his=folder + '/roms_his_Y1M3.'
             self.grd=folder + '/roms_his_Y1M3.0000.nc'
@@ -2556,7 +2581,8 @@ class files(object):
 
 
         elif simul=='aacc_8k':
-            self.model = 'agrif_jc'
+            self.realyear = False
+            self.model = 'agrif'
             folder= '/net/octant/local/tmp/1/collin/Gpla_8k'
             self.his=folder + '/roms_his_'
             self.grd=folder + '/roms_his_Y20M1.nc'
@@ -2570,7 +2596,7 @@ class files(object):
 
 
         elif simul=='aacc_2000_8k':
-            self.model = 'agrif_jc'
+            self.model = 'agrif'
             folder=  '/net/octant/local/tmp/1/collin/HFreq_Pla_2000_8km'
             self.his=folder + '/roms_his_'
             self.grd=folder + '/roms_his_Y36M3.nc'
@@ -2584,7 +2610,7 @@ class files(object):
             self.tend=1200
 
         elif simul=='blkperio':
-            self.model = 'agrif_jc'
+            self.model = 'agrif'
             folder=  '/net/centaure/local/tmp/1/ragoasha/BUIC/Outputs_PhD/blkperio'
             self.fileformat='.nc_1'
             self.his=folder + '/roms_avg_'
@@ -3492,7 +3518,7 @@ class files(object):
 
         elif simul=='WOES':
 
-            self.model = 'agrif_jc'
+            self.model = 'agrif'
             #folder=  '/media/gula/WOES_ZOOM2/SCRATCH_WOES_VTR1_ZOOM2/AVGFILES'
             folder=  '/net/capella/local/tmp/2/gula/WOES'
             self.his=folder + '/roms_avg_'
@@ -3614,7 +3640,7 @@ class files(object):
 
         elif simul=='woes5':
 
-            self.model = 'agrif_jc'
+            self.model = 'agrif'
             folder=  '/data0/project/vortex/Master_stage_tedesco2017/SCRATCH_RUN_WOES5/'
             self.his=folder + '/roms_avg_'
             self.fileformat='.nc.2'
