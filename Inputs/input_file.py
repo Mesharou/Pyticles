@@ -1,1 +1,1 @@
-input_file.py.analytical
+input_file.py.fluid2d

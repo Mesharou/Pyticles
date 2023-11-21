@@ -759,9 +759,12 @@ def plot_selection_sub(alldomain=False):
 
 ###################################################################################
 
-def plot_selection_ana():
+def plot_selection_vel():
 
-    [u,v] = part.ana_vel_surf(simul,flow=flow,config=config)
+    if source == 'analytical':
+        [u,v] = part.ana_vel_surf(simul,flow=flow,config=config)
+    elif source == 'fluid2d':
+        [u,v] = part.fluid2d_vel(simul)
             
     ax1 = plt.subplot(1,1,1);
 
@@ -776,7 +779,7 @@ def plot_selection_ana():
     plt.plot(px[::1]+0.5,py[::1]+0.5,'.', markersize=3, markerfacecolor='yellow')
     plt.axis([-0.5 ,nxi+0.5, -0.5, nyi+0.5])
 
-    plt.title(format(np.sum(px>0)) + ' particules ' )      
+    plt.title(format(np.sum(px>-1)) + ' particules ' )      
     plt.savefig(folderout + simulname +'_' + '{0:04}'.format(time+dfile) +'.png',  dpi=250,bbox_inches='tight'); plt.clf()
 
 
@@ -805,7 +808,7 @@ time=-1
 if plot_part:
     ###############################
     if source == 'roms': run_process(plot_selection)
-    elif source == 'analytical': run_process(plot_selection_ana)     
+    else: run_process(plot_selection_vel)     
     ###############################
 
 time = timerange[0]
@@ -1146,8 +1149,8 @@ for time in timerange:
         
         if source == 'roms': 
             run_process(plot_selection)
-        elif source == 'analytical': 
-            run_process(plot_selection_ana)     
+        else: 
+            run_process(plot_selection_vel)     
 
         ###################################################################################
 

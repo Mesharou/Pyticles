@@ -98,6 +98,12 @@ if np.isnan(pm_s[0,0]):
                                                         x_periodic=x_periodic,\
                                                         y_periodic=y_periodic,\
                                                                          ng=ng)
+        elif source == 'fluid2d':
+            [u[:,:,itim[0]],v[:,:,itim[0]]] = part.fluid2d_vel(simul,\
+                                                 coord=subcoord,config=config,\
+                                                        x_periodic=x_periodic,\
+                                                        y_periodic=y_periodic,\
+                                                                         ng=ng)
         else:
             [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
@@ -176,6 +182,12 @@ else:
         
         if source == 'analytical':
             [u[:,:,itim[1]],v[:,:,itim[1]]] = part.ana_vel_surf(simul,flow=flow,\
+                                                 coord=subcoord,config=config,\
+                                                        x_periodic=x_periodic,\
+                                                        y_periodic=y_periodic,\
+                                                                         ng=ng)
+        elif source == 'fluid2d':
+            [u[:,:,itim[1]],v[:,:,itim[1]]] = part.fluid2d_vel(simul,\
                                                  coord=subcoord,config=config,\
                                                         x_periodic=x_periodic,\
                                                         y_periodic=y_periodic,\

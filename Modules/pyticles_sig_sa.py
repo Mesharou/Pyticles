@@ -89,10 +89,10 @@ def subsection(px,py,dx=1,dy=1,maxvel=[1,1],delt=1,nx=2000,ny=2000,ng=0,nadv=0,*
 
     #########################
     #if subdomain falls inside ghost points, make it include all of the ghost points (ng)
-    if i0<ng: i0=0
-    if i1>nx-ng: i1=nx
-    if j0<ng: j0=0
-    if j1>ny-ng: j1=ny
+    if i0<=ng: i0=0
+    if i1>=nx-ng: i1=nx
+    if j0<=ng: j0=0
+    if j1>=ny-ng: j1=ny
     #########################
 
     return [j0,j1,i0,i1]
@@ -939,20 +939,18 @@ def periodize2d_fromvar(simul,var2d,coord,x_periodic=False,y_periodic=False,ng=0
     if nw<ng and x_periodic:
         for i in range(ng):
             myvar[ng-nw-1-i,ng-ns:ny2-ny1-ng+nn] = var2d[nx2tot-1-i,ny1-ns:ny2-2*ng+nn]
-        nw=ng
 
     if ne<ng and x_periodic:
         for i in range(ng):
             myvar[nx2-nx1-ng+ne+i,ng-ns:ny2-ny1-ng+nn] = var2d[nx1tot+i,ny1-ns:ny2-2*ng+nn]
-        ne=ng
 
     if ns<ng and y_periodic:
         for i in range(ng):
-            myvar[ng-nw:nx2-nx1-ng+ne,ng-ns-1-i] = var2d[nx1-nw:nx2-2*ng+ne,ny2tot-1-i]
+            myvar[:,ng-ns-1-i] =  myvar[:,ny2-ny1-ng-1-i]
 
     if nn<ng and y_periodic:
         for i in range(ng):
-            myvar[ng-nw:nx2-nx1-ng+ne,ny2-ny1-ng+nn+i] = var2d[nx1-nw:nx2-2*ng+ne,ny1tot+i]
+            myvar[:,ny2-ny1-ng+nn+i] = myvar[:,nn+ng+i]
 
     return myvar
 
@@ -1540,7 +1538,127 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
 
     return u,v,w,dz
     
+
+#######################################################
+# Define a simulation object for fluid2d
+#######################################################
+ 
+
+class fluid2d_load(object):
+
+    ############################
+
+    def __init__(self,my_simul,fluid2d_file,time=0,**kwargs):  
+
+        self.parameters = my_simul
+        self.file = fluid2d_file
+        
+        #name
+        self.simul = my_simul
+        
+        nc = Dataset(fluid2d_file,'r')
+        t = nc.variables['t'][:]
+        x = nc.variables['x'][:]
+        y = nc.variables['y'][:]
+        mask = nc.variables['msk'][:]
+        nc.close()
+        
+        if 'L' in kwargs: 
+            x *= kwargs['L']
+            y *= kwargs['L']
+            
+        self.dt = np.nanmean(t[1:]-t[:-1])
+        self.filetime = time
+        self.infiletime = time 
+        self.oceantime = t[time]
+        
+        nx = len(x); ny = len(y)
+        # Assuming a constant grid size for now
+        dx = x[1]-x[0]; dy = y[1]-y[0]
+        
+        #domain
+        self.pm = np.ones((nx,ny)) / dx
+        self.pn = np.ones((nx,ny)) / dy
+        self.mask = mask.T
     
+        depths = [0]
+        self.coord = [0,ny,0,nx,depths]
+
+    ############################
+
+    def update(self,time=0):
+
+        self.filetime = time  
+        self.infiletime = time
+        
+        nc = Dataset(self.file,'r')
+        self.oceantime = nc.variables['t'][time]
+        nc.close()
+
+    ############################
+
+
+ 
+def fluid2d_vel(simul,\
+                 x_periodic=False,y_periodic=False,ng=0,\
+                 timing=False,**kwargs):  
+
+    if timing: tstart2 = tm.time() 
+
+    dx = 1./simul.pm[0,0]
+    dy = 1./simul.pn[0,0]
+    
+    [ny1,ny2,nx1,nx2] = simul.coord[0:4]
+    nx,ny = nx2-nx1,ny2-ny1
+    
+    if 'coord' in  kwargs:
+        coord = kwargs['coord']
+    else: 
+        coord = simul.coord[0:4]
+        
+    print('coord is ',coord)
+    
+    if 'xy' in  kwargs:
+        x,y =  kwargs['xy']
+    else:
+        x,y = np.mgrid[0:nx,0:ny]
+        x,y = x*dx,y*dy
+
+    ########################################################
+    # Load Streamfunction
+
+    nc = Dataset(simul.file,'r')
+    psi = nc.variables['psi'][simul.filetime,:,:].T
+    nc.close()
+    
+    psi = periodize2d_fromvar(simul, psi, coord=[coord[0],coord[1]+2,coord[2],coord[3]+2],\
+                              x_periodic=x_periodic,y_periodic=y_periodic,\
+                              ng=ng+1)
+
+    ###########
+    # compute u,v
+
+    u_extended = (psi[:,1:]-psi[:,:-1])/dy
+    v_extended = -(psi[1:,:]-psi[:-1,:])/dx  
+    
+    #######################################################
+    # periodize it
+
+    u = u_extended[2:-1,1:]
+    v = v_extended[1:,2:-1]
+      
+    #######################################################
+
+    if timing: print('Load  u,v from file....', tm.time()-tstart2)
+    if timing: tstart2 = tm.time()    
+
+    return u,v
+
+
+
+
+
+
 #######################################################
 #######################################################
  
