@@ -93,7 +93,7 @@ if not adv3d:
 # Use -1 for backward simulation
 dfile = 1
 start_file = 0 #1440
-end_file = 100 #8000
+end_file = 1000 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -363,11 +363,11 @@ else:
     #dx_m = 1000. # distance between 2 particles [in m]
     #dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
     dx0 = 1
-    iwd  = 10 * dx0 # half width of seeding patch [in grid points
-    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
+    iwd  = 50 * dx0 # half width of seeding patch [in grid points
+    jwd  = 50 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
-    nnx = 1 * dx0
-    nny = 1 * dx0
+    nnx = 0.5 * dx0
+    nny = 0.5 * dx0
     nnlev = 1
 
 #########

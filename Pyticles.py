@@ -763,21 +763,34 @@ def plot_selection_vel():
 
     if source == 'analytical':
         [u,v] = part.ana_vel_surf(simul,flow=flow,config=config)
+        scale=5; col = 'k'
     elif source == 'fluid2d':
         [u,v] = part.fluid2d_vel(simul)
+        ##
+        nc = Dataset(simul.file,'r')
+        vmax = np.nanmax(np.abs(nc.variables['psi'][-1,:,:]))/2
+        psi = nc.variables['psi'][simul.infiletime,:,:].T
+        nc.close()
+        ###
+        scale=0.1
+        col = 'w'
             
     ax1 = plt.subplot(1,1,1);
 
     nnu,nnv=5,5        
     x,y = np.mgrid[0:nxi,0:nyi]
 
-    scale=5
+    if source == 'fluid2d':
+        plt.pcolormesh(x,y,psi,vmin = -vmax, vmax=vmax); plt.title(r'$\Psi$'); plt.colorbar()
+    
     plt.quiver(x.T[::nnv,::nnu], y.T[::nnv,::nnu],\
                part.u2rho(u).T[::nnv,::nnu],part.v2rho(v).T[::nnv,::nnu],\
                  pivot='mid',color='r',scale=scale);       
+    
 
-    plt.plot(px[::1]+0.5,py[::1]+0.5,'.', markersize=3, markerfacecolor='yellow')
-    plt.axis([-0.5 ,nxi+0.5, -0.5, nyi+0.5])
+
+    plt.plot(px[::1]+0.5,py[::1]+0.5,'.', markersize=1, markerfacecolor=col,markeredgecolor=col,alpha=0.5)
+    plt.axis([-0.5 ,nxi-0.5, -0.5, nyi-0.5])
 
     plt.title(format(np.sum(px>-1)) + ' particules ' )      
     plt.savefig(folderout + simulname +'_' + '{0:04}'.format(time+dfile) +'.png',  dpi=250,bbox_inches='tight'); plt.clf()

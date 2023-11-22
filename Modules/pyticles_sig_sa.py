@@ -1628,7 +1628,7 @@ def fluid2d_vel(simul,\
     # Load Streamfunction
 
     nc = Dataset(simul.file,'r')
-    psi = nc.variables['psi'][simul.filetime,:,:].T
+    psi = nc.variables['psi'][simul.infiletime,:,:].T
     nc.close()
     
     psi = periodize2d_fromvar(simul, psi, coord=[coord[0],coord[1]+2,coord[2],coord[3]+2],\
