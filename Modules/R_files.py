@@ -88,18 +88,6 @@ import socket
 class load(object):
     """
     Load ROMS/CROCO files and variables
-
-    Parameters:
-    ======================================================================
-        - str, simulname: name of ROMS/CROCO simulation defined in Class
-            files
-        - float, time: time to load files
-        - bool, light: if True load only surface variables
-            (used in GIGATL_surf) to incease performance
-        - bool, touchfile: if False it doesnt matter if first file is on
-            disk or not
-        - bool, output: increase verbosity
-
     """
 
 ###################################################################################
@@ -110,108 +98,26 @@ class load(object):
 
         if output: print('simulname is',simulname)
 
-        #define type of variables
+        # define type of variables
         self.floattype = floattype
 
-        #get simulation parameters from arguments
+        # get simulation parameters from arguments
         if 'simul' in  kwargs: 
             self.load_file(kwargs['simul'].split(' '), output=output)
-        #elif len(sys.argv)>0:
-        #    self.load_file(sys.argv)
         else: 
             self.load_file([simulname], output=output)
         
-        #for time in range(self.time0, self.ncname.tend, self.dtime ):
-        if time==None: time = self.time0
+        # time initialization
+        if time==None:
+            time = self.time0
         self.time = int(time)
         
+        # get netcdf metadata and path
         self.ncname = files(self.simul, time=self.time, output = output)
+        self.filetime, self.infiletime, self.ncfile = self.filedata(
+            output=output)
         
-        if self.ncname.model in ['ucla', 'croco']:
-            if output: print('time of simulation is:', self.time)
-            self.infiletime = self.time%self.ncname.tfile
-            self.filetime = self.time-self.infiletime
-            if self.ncname.digits == 4:
-                self.ncfile = self.ncname.his+'{0:04}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits == 5:
-                self.ncfile = self.ncname.his+'{0:05}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits == 6:
-                self.ncfile = self.ncname.his+'{0:06}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits == 0:
-                self.ncfile = self.ncname.his + self.ncname.fileformat
-        elif self.ncname.model == 'agrif':
-            if self.ncname.realyear:
-                # interannual run with a file per month and an ouput per day 
-                date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
-                year = date.year
-                month = int(date.month)
-                print('month: ', month)
-                day = date.day
-                #self.infiletime = self.time%self.ncname.tfile
-                self.infiletime = day - 1
-                self.filetime = self.time
-                self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+ str(month)  + self.ncname.fileformat
-                if output: print('file is ',self.ncfile)
-            else:
-                # climatology files with a file per month and an ouput per day
-                dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
-                month = (self.ncname.Mstart + self.time * dsec//(30*24*3600) - 1 )%12 + 1
-                year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec )//(360*24*3600)
-                self.infiletime = (self.time * dsec % (30*24*3600))//dsec
-                #self.infiletime = (self.time * dhour % (30*24))/dhour
-                self.filetime = self.time
-                self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
-            if output: print('file is ',self.ncfile)
-        elif self.ncname.model == 'croco_xios' or 'croco_gigatl1' in self.ncname.model:
-            # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
-            time1 = self.time - self.time%self.ncname.tfile
-            date1 = self.ncname.realyear_tstart + timedelta(seconds=time1*self.ncname.dtfile)
-            year1 = date1.year
-            month1 = date1.month
-            day1 = date1.day
-            hour1 = date1.hour
-            
-            time2 = time1 + self.ncname.tfile #- 1
-
-            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile)
-
-            ###############
-            if 'rrexnum' not in self.simul and\
-                'brazil' not in self.simul: date2 = date2 -timedelta(days=1)
-            ###############
-            
-            year2 = date2.year
-            month2 = date2.month
-            day2 = date2.day
-
- 
-            #fix for GIGATL3_6h_knl! shifted by one day.
-            if (self.simul == 'gigatl3_6h' and self.time>=1550)\
-                 or 'gigatl6_1h_tides' in self.simul:
-                if output: print('fix for GIGATL3_6h_knl and GIGATL6_1h_tides')
-                date1 = date1 - timedelta(days = 1)
-                year1 = date1.year
-                month1 = date1.month
-                day1 = date1.day
-
-            
-
-            self.infiletime = self.time%self.ncname.tfile
-            self.filetime = self.time
-            
-            if self.ncname.model == 'croco_xios':
-                self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)\
-                   + '-'+ '{0:04}'.format(year2)+'-'+'{0:02}'.format(month2) + '-' +'{0:02}'.format(day2)\
-                        + self.ncname.fileformat
-            elif self.ncname.model == 'croco_gigatl1':
-                self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
-            elif self.ncname.model == 'croco_gigatl1_hours':
-                self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1)\
-                        + '-' +'{0:02}'.format(day1)+ '-' +'{0:02}'.format(hour1)\
-                        + self.ncname.fileformat
+        # ---- cutted here -------
 
         if touchfile:
             try:
@@ -240,7 +146,6 @@ class load(object):
             if output: print(self.ncfile)
             if output: print("no _his file, loading _grd anyway")
 
-        #self.grd = [self.topo,self.pm,self.pn,self.f,self.y,self.x]
         if loadgrid:
             if light:
                 [self.mask,self.pm,self.pn,self.x,self.y] = self.variables_grd(output = output, light=True)
@@ -250,6 +155,129 @@ class load(object):
             if self.simul in ['shing','reshing','filam','dilam','filam_avg','dilam_avg','slope','hatt2','gulfs']: 
                 self.topo_corrected = self.variables_grd_corrected()
 
+# ----------------------------------------------------------------------------
+    def __repr__(self):
+        "print data about simul"
+        return f"{self.time=}\n{self.ncfile=}\n{self.infiletime=}"
+
+# ----------------------------------------------------------------------------
+    def filedata(self, output=True):
+        """
+        set filetime, infiletime and ncfile
+        
+        - 'ucla', 'croco': croco/roms_his_1200.nc
+        
+        - 'croco_date': classic croco formats croco_Y2000M1.nc
+           depends on self.realyear
+           if True: interannual, files with a file per month and an
+             ouput per day
+           else: climatology files with a file per month and an ouput per day
+        
+        - croco_xios or croco_gigatl:
+          find first and last date in file to reconstruct name,
+            ex: 1999-01-25-1999-01-29
+        
+        """
+         
+        if self.ncname.model in ['ucla', 'croco']:
+            infiletime = self.time % self.ncname.tfile
+            filetime = self.time - infiletime
+            if self.ncname.digits == 4:
+                ncfile = "".join([self.ncname.his, f"{filetime:04}",
+                                self.ncname.fileformat])
+            elif self.ncname.digits == 5:
+                ncfile = "".join([self.ncname.his, f"{filetime:05}",
+                                self.ncname.fileformat])
+            elif self.ncname.digits == 6:
+                ncfile = "".join([self.ncname.his, f"{filetime:06}",
+                                self.ncname.fileformat])
+            elif self.ncname.digits == 0:
+                ncfile = self.ncname.his + self.ncname.fileformat
+
+        elif self.ncname.model == 'croco_date':
+            if self.ncname.realyear:
+                date = self.ncname.realyear_origin + timedelta(
+                    days=self.time-self.ncname.tstart)
+                year = date.year
+                month = int(date.month)
+                day = date.day
+                infiletime = day - 1
+                filetime = self.time
+                ncfile = "".join([self.ncname.his, 'Y', f"{year:04}",
+                                'M', str(month), self.ncname.fileformat])
+                
+            else:
+                dsec = 30*24*3600 //self.ncname.tfile 
+                month = (self.ncname.Mstart \
+                         + self.time * dsec//(30*24*3600)-1)%12 + 1
+                year = self.ncname.Ystart \
+                    + ((self.ncname.Mstart-1)*30*24*3600 + self.time*dsec)\
+                        //(360*24*3600)
+                infiletime = (self.time * dsec % (30*24*3600))//dsec
+                filetime = self.time
+                ncfile = "".join([self.ncname.his, 'Y', format(year), 'M',
+                                   format(month), self.ncname.fileformat])
+            
+        elif self.ncname.model == 'croco_xios' \
+            or 'croco_gigatl1' in self.ncname.model:
+            
+            time1 = self.time - self.time%self.ncname.tfile
+            date1 = self.ncname.realyear_tstart \
+                + timedelta(seconds=time1*self.ncname.dtfile)
+            year1 = date1.year
+            month1 = date1.month
+            day1 = date1.day
+            hour1 = date1.hour
+            
+            time2 = time1 + self.ncname.tfile #- 1
+
+            date2 = self.ncname.realyear_tstart \
+                  + timedelta(seconds=time2*self.ncname.dtfile)
+
+            ###############
+            if 'rrexnum' not in self.simul and\
+                'brazil' not in self.simul: date2 = date2 -timedelta(days=1)
+            ###############
+            
+            year2 = date2.year
+            month2 = date2.month
+            day2 = date2.day
+
+            #fix for GIGATL3_6h_knl! shifted by one day.
+            if (self.simul == 'gigatl3_6h' and self.time>=1550)\
+                 or 'gigatl6_1h_tides' in self.simul:
+                if output: print('fix for GIGATL3_6h_knl and GIGATL6_1h_tides')
+                date1 = date1 - timedelta(days = 1)
+                year1 = date1.year
+                month1 = date1.month
+                day1 = date1.day
+
+            infiletime = self.time%self.ncname.tfile
+            filetime = self.time
+            
+            if self.ncname.model == 'croco_xios':
+                ncfile = "".join(
+                    [self.ncname.his,
+                    f"{year1:04}-{month1:02}-{day1:02}",
+                    f"{year2:04}-{month2:02}-{day2:02}{self.ncname.fileformat}"
+                    ]
+                )
+            elif self.ncname.model == 'croco_gigatl1':
+                ncfile = "".join(
+                    [self.ncname.his,
+                    f"{year1:04}-{month1:02}-{day1:02}", self.ncname.fileformat
+                    ]
+                )                
+            elif self.ncname.model == 'croco_gigatl1_hours':
+                ncfile = "".join(
+                    [self.ncname.his,
+                    f"{year1:04}-{month1:02}-{day1:02}-{hour1:02}",
+                    self.ncname.fileformat
+                    ]
+                )      
+                
+        return filetime, infiletime, ncfile
+    
 ###################################################################################
 #   Update time 
 ###################################################################################
@@ -263,101 +291,14 @@ class load(object):
         """
 
         #for time in range(self.time0, self.ncname.tend, self.dtime ):
-        if time==None: self.time += 1
-        else: self.time = int(time)
+        if time==None:
+            self.time += 1
+        else:
+            self.time = int(time)
         
-        self.ncname=files(self.simul, time=self.time, output=output)
-
-        if self.ncname.model in ['ucla','croco']:
-            if output: print('time of simulation is:', self.time)
-            self.infiletime=self.time%self.ncname.tfile
-            self.filetime=self.time-self.infiletime
-            if self.ncname.digits==4:
-                self.ncfile = self.ncname.his+'{0:04}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits==5:
-                self.ncfile = self.ncname.his+'{0:05}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits==6:
-                self.ncfile = self.ncname.his+'{0:06}'.format(self.filetime) + self.ncname.fileformat
-            elif self.ncname.digits==0:
-                self.ncfile = self.ncname.his + self.ncname.fileformat
-        elif self.ncname.model == 'agrif':
-            if self.ncname.realyear:
-                # interannual run with a file per month and an ouput per day 
-                date = self.ncname.realyear_origin + timedelta(days=self.time-self.ncname.tstart)
-                year = date.year
-                month = int(date.month)
-                print('month: ', month)
-                day = date.day
-                #self.infiletime = self.time%self.ncname.tfile
-                self.infiletime = day - 1
-                self.filetime = self.time
-                self.ncfile = self.ncname.his+'Y' +'{0:04}'.format(year)+'M'+ str(month)  + self.ncname.fileformat
-                if output: print('file is ',self.ncfile)
-            else:
-                # climatology files with a file per month and an ouput per day
-                dsec = 30*24*3600 //self.ncname.tfile #dt in seconds between 2 outputs
-                month = (self.ncname.Mstart + self.time * dsec//(30*24*3600) - 1 )%12 + 1
-                year = self.ncname.Ystart + ((self.ncname.Mstart-1) * 30 * 24 * 3600 + self.time * dsec )//(360*24*3600)
-                self.infiletime = (self.time * dsec % (30*24*3600))//dsec
-                #self.infiletime = (self.time * dhour % (30*24))/dhour
-                self.filetime = self.time
-                self.ncfile = self.ncname.his+'Y' +format(year)+'M'+format(month)+ self.ncname.fileformat
-            if output: print('file is ',self.ncfile)
-        elif self.ncname.model == 'croco_xios' or 'croco_gigatl1' in self.ncname.model:
-            # find first and last date in file to reconstruct name, ex: 1999-01-25-1999-01-29
-            time1 = self.time - self.time%self.ncname.tfile
-            date1 = self.ncname.realyear_tstart + timedelta(seconds=time1*self.ncname.dtfile)
-            year1 = date1.year
-            month1 = date1.month
-            day1 = date1.day
-            hour1 = date1.hour
-            
-            time2 = time1 + self.ncname.tfile #- 1
-            date2 = self.ncname.realyear_tstart + timedelta(seconds=time2*self.ncname.dtfile)
-            
-            
-            ###############
-            if 'rrexnum' not in self.simul and\
-                'brazil' not in self.simul: date2 = date2 -timedelta(days=1)
-            ###############
-                
-            year2 = date2.year
-            month2 = date2.month
-            day2 = date2.day
-            
-            self.infiletime = self.time%self.ncname.tfile
-            self.filetime = self.time-self.infiletime
-            
-            if output: print((self.simul,format(self.time)))
-            #fix for GIGATL3_6h_knl! shifted by one day.
-            if (self.simul == 'gigatl3_6h' and self.time>=1550)\
-                 or 'gigatl6_1h_tides' in self.simul:
-                if output: print('fix for GIGATL3_6h_knl and GIGATL6_1h_tides')
-                date1 = date1 - timedelta(days = 1)
-                year1 = date1.year
-                month1 = date1.month
-                day1 = date1.day
-
-            if self.ncname.model == 'croco_xios':
-                self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)\
-                   + '-'+ '{0:04}'.format(year2)+'-'+'{0:02}'.format(month2) + '-' +'{0:02}'.format(day2)\
-                        + self.ncname.fileformat
-            elif self.ncname.model == 'croco_gigatl1':
-                self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1) + '-' +'{0:02}'.format(day1)+ self.ncname.fileformat
-            elif self.ncname.model == 'croco_gigatl1_hours':
-                self.ncfile = self.ncname.his\
-                        + '{0:04}'.format(year1)+'-'+'{0:02}'.format(month1)\
-                        + '-' +'{0:02}'.format(day1)+ '-' +'{0:02}'.format(hour1)\
-                        + self.ncname.fileformat
-            
-            if output: print('self.time is ',self.time)
-
-            ############################
-            
-        #print('cst not updated anymore')
-        #self.cst();
+        self.ncname = files(self.simul, time=self.time, output=output)
+        self.filetime, self.infiletime, self.ncfile = self.filedata(
+            output=output)
 
         if output: print(self.ncfile)
         
@@ -767,6 +708,7 @@ example: for an interactive session:
             if self.ncname.model in ['ucla']:
                 self.dt = np.array(ncfile.variables['ocean_time'][1]) \
                         - np.array(ncfile.variables['ocean_time'][0])
+            # TODO add croco croco_clim, croco_inter
             elif  self.ncname.model in ['croco','agrif']:
                 self.dt = np.array(ncfile.variables['scrum_time'][1]) \
                         - np.array(ncfile.variables['scrum_time'][0])
@@ -780,11 +722,6 @@ example: for an interactive session:
             if self.simul[:4]=='natl': self.dt = 24. * 3600
             elif self.simul =='atlbig_mean2': self.dt = 24. * 3600 * 5.
             else: self.dt = 0
-        
-        # Just a check
-        if 'hourly' in self.simul or 'surf' in self.simul: 
-            print(self.ncname.model)
-            print('in dt: ',self.dt)      
 
         ncfile.close()
 
@@ -818,7 +755,7 @@ class files(object):
 
         # default values (might be changed in simulation definition)
         self.model = 'ucla'
-        self.fileformat='.nc'
+        self.fileformat = '.nc'
         self.digits = 4
         self.realyear = False # False means using 360 days and 30 days per month
 
@@ -872,7 +809,58 @@ class files(object):
             self.tend=2
 
         ##################
-        
+
+        # --------------------------------------------------------------------
+        # for code testing
+        # >>> from R_files import test
+        # >>> test()
+        # --------------------------------------------------------------------
+        elif 'code_test' in simul:
+            if 'croco' in simul:
+                if 'date_inter' in simul:
+                    self.model = 'croco_date'
+                    self.realyear = True
+                    self.realyear_origin = datetime(2007, 1, 1)
+
+                    folder= '/data/croco_inter'
+                    self.his = folder + '/roms_his_'
+                    self.grd = folder + '/roms_grid.nc'
+                    self.frc = self.grd
+                    self.wind = self.grd
+                    self.tstart = 0
+                    #self.Ystart = 2017
+                    #self.Mstart = 1
+                    self.tend = 1000
+
+                elif 'date_clim' in simul:
+                    self.model = 'croco_date'
+                    self.realyear = False
+                    folder = '/croco_clim'
+                    self.his = folder + '/roms_his_'
+                    self.grd = folder + '/roms_his_Y20M1.nc'
+                    self.frc = folder + '/roms_his_Y20M1.nc'
+                    self.wind = folder + '/roms_his_Y20M1.nc'
+                    self.tfile = 30
+                    self.tstart = 0
+                    self.Ystart = 20
+                    self.Mstart = 1
+                    self.tend = 1000
+
+                elif 'xios' in simul:
+                    pass
+
+                else:
+                    pass
+
+            elif 'ucla' in simul:
+                pass
+
+            elif 'rutgers' in simul:
+                pass
+
+            elif 'fuild2d' in simul:
+                pass
+
         
         
         else:
@@ -902,6 +890,43 @@ please add the definition in Modules/R_files.py
 # end class files
 ###################################################################################
 
+def test():
+    "test code"
+    print(f"Start to test R_files.py methods\n")
+    def update():
+        print('testing update\n')
+        msg = "Error in update method"
+        # croco inter
+        my_simul = 'code_test_croco_date_inter'
+        simul = load(my_simul, touchfile=False, loadgrid=False, output=False)
+        simul.update(time=59, output=False)
+        assert simul.ncfile == '/data/croco_inter/roms_his_Y2007M3.nc', msg
+        assert simul.infiletime == 0, msg
+        print(simul)
+
+        # croco clim
+        my_simul = 'code_test_croco_date_clim'
+        simul = load(my_simul, touchfile=False, loadgrid=False, output=False)
+        simul.update(time=60, output=False)
+        assert simul.ncfile == '/croco_clim/roms_his_Y20M3.nc', msg
+        assert simul.infiletime == 0, msg
+        print(simul)
+
+        # croco xios
+
+        # ucla
+
+        # rutgers 
+
+        print('update ok')
+        print('------------------')
+        return None
+    
+    update()
+
+
+
+    return None
 
 
 
