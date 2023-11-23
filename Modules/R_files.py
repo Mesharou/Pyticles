@@ -40,14 +40,16 @@ Check "dir(my_simul)" to see what has been loaded:
 #######################
 
 21/11/23 : Jcollin
-        - replaced 'agrif_jc' to 'agrif' with self.realyear = False
-        agrif with climatology run (1 file per month and 30 days per file)
-        - added AGRIF interannual files 'agrif' and elf.realyear = True
-        close to 'croco_lionel'
-        - removed croco_lionel
+        - removed old 'agrif_jc' and 'croco_lionel
+        - added croco_date 
+            - realyear = True: internannual files
+            - realyear = False: climatology run (1 file per month and 30 days per file)
         - added loadgrid option (if False does not load grid at __init__) this
         is handy to play around with load and update methods without having
-        file on disk
+        file on disk. Also used for testing
+        - added test function 
+        - regrouped filenaming and file stepping in load.filedata() method
+        called in __int__() and update()
 
 16/10/11 : Changed format from 
            my_simul = load(simul = 'whatever filam [0,1000,0,1600,[-100,0,10]] whatever 190 1 250')
@@ -258,7 +260,7 @@ class load(object):
             if self.ncname.model == 'croco_xios':
                 ncfile = "".join(
                     [self.ncname.his,
-                    f"{year1:04}-{month1:02}-{day1:02}",
+                    f"{year1:04}-{month1:02}-{day1:02}-",
                     f"{year2:04}-{month2:02}-{day2:02}{self.ncname.fileformat}"
                     ]
                 )
@@ -800,13 +802,13 @@ class files(object):
             self.model = 'ucla'
             self.digits = 0
 
-            folder= '/home/gula/libra/ROMS/Simulations/Rutgers_example/'
-            self.grd= folder + 'grd.nc'
+            folder = '/home/gula/libra/ROMS/Simulations/Rutgers_example/'
+            self.grd = folder + 'grd.nc'
 
-            self.his=folder +'velocity_example'
-            self.tfile=2
-            self.tstart=0
-            self.tend=2
+            self.his = folder +'velocity_example'
+            self.tfile = 2
+            self.tstart = 0
+            self.tend = 2
 
         ##################
 
@@ -815,23 +817,33 @@ class files(object):
         # >>> from R_files import test
         # >>> test()
         # --------------------------------------------------------------------
+        # ucla default 'roms_0010.nc'
         elif 'code_test' in simul:
-            if 'croco' in simul:
+            if 'ucla' in simul:
+                folder = '/ucla'
+                self.his = folder + '/roms_'
+                self.grd = folder + '/roms_grd.nc'
+                self.frc = folder + '/roms_frc.nc'
+                self.wind = folder + '/roms_frc.nc'
+                self.tfile = 5
+                self.tstart = 0
+                self.tend = 1000
+
+            # croco interannuel 'roms_his_Y20M3.nc'
+            elif 'croco' in simul:
                 if 'date_inter' in simul:
                     self.model = 'croco_date'
                     self.realyear = True
                     self.realyear_origin = datetime(2007, 1, 1)
-
                     folder= '/data/croco_inter'
                     self.his = folder + '/roms_his_'
                     self.grd = folder + '/roms_grid.nc'
                     self.frc = self.grd
                     self.wind = self.grd
                     self.tstart = 0
-                    #self.Ystart = 2017
-                    #self.Mstart = 1
                     self.tend = 1000
 
+                # croco climatology 'roms_his_Y20M3.nc'
                 elif 'date_clim' in simul:
                     self.model = 'croco_date'
                     self.realyear = False
@@ -846,29 +858,47 @@ class files(object):
                     self.Mstart = 1
                     self.tend = 1000
 
+                # croco xios 'croco_his_2001-01-06-2001-01-10.nc'
                 elif 'xios' in simul:
-                    pass
+                    self.realyear = True
+                    self.realyear_origin = datetime(1999, 1, 1)
+                    self.realyear_tstart = datetime(2001, 1, 1)
+                    self.model = 'croco_xios'
+
+                    folder = '/croco_xios'
+                    self.grd = folder + '/grd.nc'
+
+                    self.his = folder + '/croco_his_'
+                    self.dtfile = 12 * 3600
+                    self.tfile = 10
+                    self.tstart = 0
+                    self.tend = 120    
 
                 else:
-                    pass
+                    # default croco croco_his_1000.nc
+                    self.realyear = True
+                    self.realyear_origin = datetime(1999, 1, 1)
+                    self.model = 'croco'
+                    self.digits = 5
 
-            elif 'ucla' in simul:
-                pass
-
-            elif 'rutgers' in simul:
-                pass
+                    folder = '/croco'
+                    self.grd = folder +'/grd.nc'
+                    self.his = folder +'/polgyr_his.'
+                    self.frc = folder + '/polgyr_his.03360.nc'
+                    self.wind = folder + '/polgyr_his.03360.nc'
+                    self.tfile = 20
+                    self.tstart = 0
+                    self.tend = 1000
 
             elif 'fuild2d' in simul:
                 pass
-
-        
         
         else:
 
             print("""
 
-I never heard about your simulation name,
-please add the definition in Modules/R_files.py
+            I never heard about your simulation name,
+            please add the definition in Modules/R_files.py
 
                    """)
             #sys.exit()
@@ -892,39 +922,60 @@ please add the definition in Modules/R_files.py
 
 def test():
     "test code"
-    print(f"Start to test R_files.py methods\n")
+    
+    def _messsage_ok(test_msg, ok_msg="OK\n"):
+        print(f"{test_msg}: {ok_msg}")
+        return None
+
     def update():
-        print('testing update\n')
-        msg = "Error in update method"
+        """
+        test update method
+        for each velocity input there is a list of parameters defined in params
+    
+        to add a new input file format, specify simulation_name according to 
+        file() Class, update at time and check filename and infiletime
+        
+        params:
+            [simulation_name, time, filename, infiletime]
+        """
+
+        def _test(my_simul, time, fname, infiletime, error_msg):
+            simul = load(my_simul, touchfile=False, loadgrid=False, output=False)
+            simul.update(time=time, output=False)
+            assert simul.ncfile == fname, error_msg
+            assert simul.infiletime == infiletime, error_msg
+            print(simul)
+            _messsage_ok(my_simul)
+
+        # main test.update()
+        params = [
+            ['code_test_croco_date_inter', 59, '/data/croco_inter/roms_his_Y2007M3.nc', 0],
+            ['code_test_croco_date_clim', 60, '/croco_clim/roms_his_Y20M3.nc', 0],
+            ['code_test_croco_xios', 10, '/croco_xios/croco_his_2001-01-06-2001-01-10.nc', 0],
+            ['code_test_croco', 145, '/croco/polgyr_his.00140.nc', 5],
+            ['code_test_ucla', 12, '/ucla/roms_0010.nc', 2],
+            ['code_test_rutgers', 1, '/home/gula/libra/ROMS/Simulations/Rutgers_example/velocity_example.nc', 1]
+        ]
+        error_msg = "Error in R_files test.update()"
+        
+        print("start update \n")
         # croco inter
-        my_simul = 'code_test_croco_date_inter'
-        simul = load(my_simul, touchfile=False, loadgrid=False, output=False)
-        simul.update(time=59, output=False)
-        assert simul.ncfile == '/data/croco_inter/roms_his_Y2007M3.nc', msg
-        assert simul.infiletime == 0, msg
-        print(simul)
-
-        # croco clim
-        my_simul = 'code_test_croco_date_clim'
-        simul = load(my_simul, touchfile=False, loadgrid=False, output=False)
-        simul.update(time=60, output=False)
-        assert simul.ncfile == '/croco_clim/roms_his_Y20M3.nc', msg
-        assert simul.infiletime == 0, msg
-        print(simul)
-
-        # croco xios
-
-        # ucla
-
-        # rutgers 
+        for _my_simul, _time, _fname, _infiletime in params:
+            _test(my_simul=_my_simul, time=_time, fname=_fname,
+                   infiletime=_infiletime, error_msg=error_msg)
 
         print('update ok')
         print('------------------')
         return None
     
-    update()
-
-
+    def main():
+        print(f"Start to test R_files.py methods\n")
+        update()
+        print(f"test OK\n")
+        return None
+    
+    # main test()
+    main()
 
     return None
 
