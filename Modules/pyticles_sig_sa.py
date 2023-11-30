@@ -1601,7 +1601,16 @@ class fluid2d_load(object):
  
 def fluid2d_vel(simul,\
                  x_periodic=False,y_periodic=False,ng=0,\
-                 timing=False,**kwargs):  
+                 timing=False,**kwargs): 
+
+    '''
+    Convert fluid2d streamfunction to velocities
+
+    OK for biperiodic domains
+    
+    But not tested for domains with closed boundaries
+    
+    '''
 
     if timing: tstart2 = tm.time() 
 
