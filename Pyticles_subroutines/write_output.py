@@ -34,8 +34,20 @@ if not os.path.isfile(newfile):
     nc.nnlev = nnlev
     nc.depths0 = depths0
 
+    ####
+    
     nc.description = 'particles tracking'
-    nc.simulation = parameters
+    
+    nc.source = source # type of source file
+    
+    if source == 'roms':
+        nc.simulation = parameters
+    elif source == 'fluid2d':
+        nc.source_file = simul.file
+    elif source == 'analytical':
+        nc.ana_simul_parameters = parameters
+        nc.ana_flow = flow
+    ####
     nc.sub =  subtstep
     nc.base =  0
     nc.ng =  ng

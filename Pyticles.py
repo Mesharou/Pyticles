@@ -762,7 +762,7 @@ def plot_selection_sub(alldomain=False):
 def plot_selection_vel():
 
     if source == 'analytical':
-        [u,v] = part.ana_vel_surf(simul,flow=flow,config=config)
+        [u,v] = part.ana_vel_surf(simul,flow=flow)
         scale=5; col = 'k'
     elif source == 'fluid2d':
         [u,v] = part.fluid2d_vel(simul)

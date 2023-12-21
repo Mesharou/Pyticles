@@ -94,7 +94,7 @@ if np.isnan(pm_s[0,0]):
     elif simul.simul[-4:]=='surf' or advsurf:
         if source == 'analytical':
             [u[:,:,itim[0]],v[:,:,itim[0]]] = part.ana_vel_surf(simul,flow=flow,\
-                                                 coord=subcoord,config=config,\
+                                                               coord=subcoord,\
                                                         x_periodic=x_periodic,\
                                                         y_periodic=y_periodic,\
                                                                          ng=ng)
@@ -182,7 +182,7 @@ else:
         
         if source == 'analytical':
             [u[:,:,itim[1]],v[:,:,itim[1]]] = part.ana_vel_surf(simul,flow=flow,\
-                                                 coord=subcoord,config=config,\
+                                                                coord=subcoord,\
                                                         x_periodic=x_periodic,\
                                                         y_periodic=y_periodic,\
                                                                          ng=ng)

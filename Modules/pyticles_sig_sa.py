@@ -1288,15 +1288,15 @@ class ana_load(object):
 #######################################################
 
 #@profile   
-def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
+def ana_vel_surf(simul,dxy=[1.,1.],flow_tens=[0,1,0,0],norm=[1.,1.],\
                  x_periodic=False,y_periodic=False,ng=0,\
-                 timing=False,config='rot',**kwargs):  
+                 timing=False,flow='rot',**kwargs):  
 
     if timing: tstart2 = tm.time() 
 
     time = simul.oceantime
     
-    [div,rot,S1,S2] = flow
+    [div,rot,S1,S2] = flow_tens
     [u0,v0] = norm
     [dx,dy] = dxy
     
@@ -1317,18 +1317,18 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
 
 ########################################################
 
-    if config=='rot':
+    if flow=='rot':
         ########################################################
         ##Solid body rotation
         
         x0,y0 = nx/2.,ny/2.
         #u = u0*(0.5*S1*(x-x0)+0.5*S2*(y-y0)+0.5*div*(x-x0)-rot/2.*(y-y0))*np.pi/20.
-        #v = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*div*(y-y0)+rot/2.*(x-x0))*np.pi/20.
+        #v = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*d iv*(y-y0)+rot/2.*(x-x0))*np.pi/20.
         
         u = -0.5*(y-y0)*np.pi/4.
         v = 0.5*(x-x0)*np.pi/4.  
 
-    elif config=='rotexp': 
+    elif flow=='rotexp': 
         ########################################################
         ##Solid body rotation with decreasing exp
         
@@ -1341,7 +1341,7 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
         v = v0*(-0.5*S1*(y-y0)+0.5*S2*(x-x0)+0.5*div*(y-y0)\
                 +rot*(x-x0)-rot/2.*(x-x0))*np.exp(-r/r0)*np.pi/4.
     
-    elif config=='birotexp': 
+    elif flow=='birotexp': 
         #######################################################
         # multiple rotations with decreasing exp
         
@@ -1365,7 +1365,7 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
         u = np.roll(u,time,1)
         v = np.roll(v,time,1)
         
-    elif config=='jet':
+    elif flow=='jet':
         ########################################################
      
         x0,y0 = nx/2.,ny/2.
@@ -1407,12 +1407,12 @@ def ana_vel_surf(simul,dxy=[1.,1.],flow=[0,1,0,0],norm=[1.,1.],\
 
 
 #@profile   
-def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False,config='rot',**kwargs):  
+def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow_tens=[0,1,0,0],norm=[1.,1.,0.],timing=False,flow='rot',**kwargs):  
     
 
     if timing: tstart2 = tm.time()   
     
-    [div,rot,S1,S2] = flow
+    [div,rot,S1,S2] = flow_tens
     [u0,v0,w0] = norm
     [dx,dy,dz] = dxyz
     
@@ -1433,7 +1433,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
 
     print('x.shape',x.shape)
     
-    if config=='rot':
+    if flow=='rot':
         ########################################################
         ##Solid body rotation
         
@@ -1446,7 +1446,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
         
         w = z*w0
     
-    elif config=='rotexp': 
+    elif flow=='rotexp': 
         ########################################################
         ##Solid body rotation with decreasing exp
         
@@ -1459,7 +1459,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
         w = z*w0   
         
     
-    elif config=='birotexp': 
+    elif flow=='birotexp': 
         #######################################################
         #double rotation with decreasing exp
         
@@ -1486,7 +1486,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
 
 
 
-    elif config=='front':
+    elif flow=='front':
         ########################################################
         ##Jeroen's front
         u0,v0,w0,z0 = np.zeros((nx-1,ny-1,nz+1)),np.zeros((nx-1,ny-1,nz+1)),np.zeros((nx-1,ny-1,nz+1)),np.zeros((nx-1,ny-1,nz+1))
@@ -1499,7 +1499,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
               
               
 
-    elif config=='jet':
+    elif flow=='jet':
         ########################################################
      
         x0,y0 = nx/2.,ny/2.
@@ -1511,7 +1511,7 @@ def ana_vel(nx,ny,nz,dxyz=[1.,1.,1.],flow=[0,1,0,0],norm=[1.,1.,0.],timing=False
 
     #######################################################
     # Put u,v on u,v grids
-    if config=='front':
+    if flow=='front':
         u,v,w,dz = np.zeros((nx-1,ny,nz)),np.zeros((nx,ny-1,nz)),np.zeros((nx,ny,nz+1)),np.zeros((nx,ny,nz))
 
         u[:,1:-1,:] = 0.25*(u0[:,1:,1:] + u0[:,:-1,1:] + u0[:,1:,:-1] + u0[:,:-1,:-1])

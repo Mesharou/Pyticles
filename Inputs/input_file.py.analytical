@@ -147,11 +147,9 @@ elif source == 'analytical':
     nz = 1; dz = 1
     
     simul = part.ana_load(nxi,nyi,nz,dx,dy,dz)
-    parameters = simul.parameters
-    
-    #Velocity field:
-    flow = [0,1,0,0] # [div,rot,S1,S2]
-    
+    parameters = [nxi,nyi,nz,dx,dy,dz]
+
+    flow = 'birotexp'
     light = True
 
 
