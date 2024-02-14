@@ -43,10 +43,9 @@ mask_s = shared_array(nx_s,ny_s)
 
 print(('Create u,v,w shared arrays...............', tm.time()-tstart))
 tstart = tm.time()   
-    
-###################################################################################
-# LOADING ROMS FIELD
-###################################################################################
+
+#######################
+
 subtiming = True
 
 # Total number of time steps:
@@ -55,11 +54,20 @@ istep = shared_array(1,prec='int',value=-1)
 # Index of the  previous (itim[0]) and next(itim[1]) time-step for u,v,w,dz
 itim = shared_array(2, prec='int', value=[0, 1])
 
+
+###################################################################################
+# LOADING VELOCITY FIELDS
+###################################################################################
+
 tim0 = simul.oceantime
 
 if debug_time:
     print('-->')
     print('u0 time :', simul.time)
+
+################
+# Initialization
+################
 
 if np.isnan(pm_s[0,0]):
     pm_s[:] = part.periodize2d_fromvar(simul, simul.pm, coord=subcoord,
@@ -84,7 +92,14 @@ if np.isnan(pm_s[0,0]):
             w[:, :, :, itim[0]] = w[:, :, :, itim[0]] * 0 +  w_sed 
     
     elif simul.simul[-4:]=='surf' or advsurf:
-        [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
+        if source == 'analytical':
+            [u[:,:,itim[0]],v[:,:,itim[0]]] = part.ana_vel_surf(simul,flow=flow,\
+                                                 coord=subcoord,config=config,\
+                                                        x_periodic=x_periodic,\
+                                                        y_periodic=y_periodic,\
+                                                                         ng=ng)
+        else:
+            [u[:,:,itim[0]], v[:,:,itim[0]]] = part.get_vel_io_surf(simul, pm=pm_s,
                 pn=pn_s, timing=subtiming, x_periodic=x_periodic,
                 y_periodic=y_periodic, ng=ng, coord=subcoord, u_name = u_name, v_name = v_name)
     ### JC 
@@ -112,10 +127,27 @@ if np.isnan(pm_s[0,0]):
     if subtiming: tstart = tm.time()
 
 
-###################################################################################
+#######################################################
 # Update simul at t+1 - and get u,v,w at time-step t+1
+#######################################################
 
-if not meanflow:
+if meanflow:
+
+    try:
+        tim0 = tim1
+    except:
+        pass
+    
+    tim1 = tim0 + delt
+    # No need to update
+    if not adv3d:
+        [u[:,:,itim[1]],v[:,:,itim[1]]] = [u[:,:,itim[0]],v[:,:,itim[0]]]
+    else:
+        [u[:,:,:,itim[1]],v[:,:,:,itim[1]],w[:,:,:,itim[1]]]\
+         = [u[:,:,:,itim[0]],v[:,:,:,itim[0]],w[:,:,:,itim[0]]]
+        dz[:,:,:,itim[1]] = dz[:,:,:,itim[0]]
+
+else:
     if dfile > 0: 
         simul.update(int(np.floor(time) + simul.dtime))
     else:
@@ -125,49 +157,57 @@ if not meanflow:
         print('u1 time :', simul.time)
         print('-->')
 
-# JC
-tim1 = simul.oceantime
+    # JC
+    tim1 = simul.oceantime
 
-if subtiming: print(('Update simulation..............', tm.time()-tstart))
-if subtiming: tstart = tm.time()
+    if subtiming: print(('Update simulation..............', tm.time()-tstart))
+    if subtiming: tstart = tm.time()
 
-if adv3d:
-    [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
-            pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
-            coord=subcoord, cartesian=False, u_name = u_name, v_name = v_name)
-    if sedimentation:
-        w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
-    elif sedimentation_only:
-            w[:, :, :, itim[1]] = w[:,:,:,itim[1]] * 0 + w_sed 
+    if adv3d:
+        [u[:,:,:,itim[1]], v[:,:,:,itim[1]], w[:,:,:,itim[1]]] = part.get_vel_io(simul,
+                pm=pm_s, pn=pn_s, x_periodic=x_periodic, y_periodic=y_periodic, ng=ng,
+                coord=subcoord, cartesian=False, u_name = u_name, v_name = v_name)
+        if sedimentation:
+            w[:,:,:,itim[1]] = w[:,:,:,itim[1]] + w_sed
+        elif sedimentation_only:
+                w[:, :, :, itim[1]] = w[:,:,:,itim[1]] * 0 + w_sed 
 
-elif simul.simul[-4:]=='surf' or advsurf:
-    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
-                                       timing=subtiming, x_periodic=x_periodic,
-                                        y_periodic=y_periodic, ng=ng, coord=subcoord,\
-                                              u_name = u_name, v_name = v_name)
-### JC 
-elif advzavg:
-    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
-            pn=pn_s, timing=subtiming, x_periodic=x_periodic,
-            y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
-            coord=subcoord, u_name = u_name, v_name = v_name)
-### JC
-else:
-    [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
-                                      pn=pn_s, timing=subtiming,
-                                      x_periodic=x_periodic, y_periodic=y_periodic,
-                                      ng=ng, advdepth = advdepth, coord=subcoord,\
-                                          u_name = u_name, v_name = v_name)
+    elif simul.simul[-4:]=='surf' or advsurf:
+        
+        if source == 'analytical':
+            [u[:,:,itim[1]],v[:,:,itim[1]]] = part.ana_vel_surf(simul,flow=flow,\
+                                                 coord=subcoord,config=config,\
+                                                        x_periodic=x_periodic,\
+                                                        y_periodic=y_periodic,\
+                                                                         ng=ng)
+        else:
+            [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_surf(simul, pm=pm_s, pn=pn_s, 
+                                        timing=subtiming, x_periodic=x_periodic,
+                                            y_periodic=y_periodic, ng=ng, coord=subcoord,\
+                                                u_name = u_name, v_name = v_name)
+    ### JC 
+    elif advzavg:
+        [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d_zavg(simul, pm=pm_s,
+                pn=pn_s, timing=subtiming, x_periodic=x_periodic,
+                y_periodic=y_periodic, ng=ng, advdepth = advdepth, z_thick=z_thick,
+                coord=subcoord, u_name = u_name, v_name = v_name)
+    ### JC
+    else:
+        [u[:,:,itim[1]], v[:,:,itim[1]]] = part.get_vel_io_2d(simul, pm=pm_s,
+                                        pn=pn_s, timing=subtiming,
+                                        x_periodic=x_periodic, y_periodic=y_periodic,
+                                        ng=ng, advdepth = advdepth, coord=subcoord,\
+                                            u_name = u_name, v_name = v_name)
 
-if subtiming: print(('Computing velocity at t2.......', tm.time()-tstart))
-if subtiming: tstart = tm.time()
+    if subtiming: print(('Computing velocity at t2.......', tm.time()-tstart))
+    if subtiming: tstart = tm.time()
 
-if adv3d:
-    z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=subcoord)
-    dz[:,:,:,itim[1]] = z_w[:,:,1:] - z_w[:,:,:-1]; del z_w
+    if adv3d:
+        z_w = part.get_depths_w(simul,x_periodic=x_periodic,y_periodic=y_periodic,ng=ng,coord=subcoord)
+        dz[:,:,:,itim[1]] = z_w[:,:,1:] - z_w[:,:,:-1]; del z_w
 
-if subtiming: print(('Computing dz at t2.............', tm.time()-tstart))
-if subtiming: tstart = tm.time()
+    if subtiming: print(('Computing dz at t2.............', tm.time()-tstart))
+    if subtiming: tstart = tm.time()
 
 
 ################################################################################### 
@@ -182,7 +222,7 @@ print(('maxvel is', maxvel))
 if subtiming: print(('Computing maxvel.............', tm.time()-tstart))
 
 ###################################################################################
-# set subtime step betwwen two ROMS frames for integration
+# set subtime step between two ROMS frames for integration
 if not meanflow: delt[0] = simul.dt * np.sign(dfile)
 if inline_cfl:
     if umax is None:
@@ -208,7 +248,7 @@ dfct = 1. / nsub_steps
 def advance_3d(subrange,out,step):
     
     global px, py, pz, u, v, w, pm_s, pn_s, mask_s, dz, dt, dfct, ng, nq, i0, \
-    j0, k0, tim0, delt, subtstep, nx, ny, nz, istep, iab, itim, debug_time, \
+    j0, k0, tim0, delt, subtstep, nxi, nyi, nz, istep, iab, itim, debug_time, \
     remove, klim, below, debug
     
     #from input_file import remove
@@ -302,8 +342,8 @@ def advance_3d(subrange,out,step):
             raise Exception("no time-stepping scheme specified")
 
         #Remove particles exiting the domain:
-        [px_F, py_F, pz_F] = part.cull(px_F, py_F, pz_F, nx, ny, nz,
-                           x_periodic=x_periodic, y_periodic=y_periodic, ng=ng)
+        [px_F, py_F, pz_F] = part.cull(px_F, py_F, pz_F, nxi, nyi, nz,
+                           x_periodic=x_periodic, y_periodic=y_periodic)
                            
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F, nz)
@@ -333,7 +373,7 @@ def advance_3d(subrange,out,step):
 #FIXME not sure 2D was tested with dfile = -1/N
 def advance_2d(subrange,out,step):
     
-    global px, py, u, v, pm_s, pn_s, mask_s, dt, dfct, ng, nq, i0, j0, tim0, delt, subtstep, nx, ny, istep, iab, itim
+    global px, py, u, v, pm_s, pn_s, mask_s, dt, dfct, ng, nq, i0, j0, tim0, delt, subtstep, nxi, nyi, istep, iab, itim
     
     # If using a Adams-Bashforth method we need to have access to previous vel. values
     if timestep[:2]=='AB': global dpx,dpy,iab
@@ -343,11 +383,13 @@ def advance_2d(subrange,out,step):
     istep_F = istep[0]
     subtime = tim0
 
+
+        
     for it in range(subtstep):
         
         fct = (subtime-tim0)/delt[0]
         istep_F += 1; #print 'istep is', istep, istep_F
-        
+
         ########################
         if timestep=='RK4':
             partF.timestep2d_rk4(px_F,py_F,u,v,itim,fct,dfct,pm_s,pn_s,mask_s,\
@@ -358,12 +400,12 @@ def advance_2d(subrange,out,step):
 
         ########################  
         #Remove particles exiting the domain:
-
-        [px_F, py_F] = part.cull2d(px_F, py_F, nx, ny, x_periodic=x_periodic,
-                                   y_periodic=y_periodic, ng=ng)
+        
+        [px_F, py_F] = part.cull2d(px_F, py_F, nxi, nyi, x_periodic=x_periodic,
+                                   y_periodic=y_periodic)
 
         subtime += dt
-            
+
 
     step.put(istep_F) 
     px[subrange],py[subrange]=px_F,py_F

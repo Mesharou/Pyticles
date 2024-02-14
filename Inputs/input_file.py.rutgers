@@ -28,8 +28,7 @@ debug = True # Increase verbosity to help debug
 ################################################################################
 '''
     source can be 'roms', 'fluid2d' or 'analytical'
-            - 'roms' uses model outputs from AGRIF, CROCO, ROMS UCLA or
-                        ROMS rutgers
+            - 'roms' uses model outputs from CROCO, ROMS UCLA or ROMS rutgers
                         information about output files should be 
                         included in Modules/R_files.py (class files)
             - 'fluid2d' uses outputs from the fluid2d CFD code 
@@ -39,23 +38,22 @@ debug = True # Increase verbosity to help debug
                         in Modules/pyticles_sig_sa.py
 '''
 
-source = 'analytical'
+source = 'roms'
 
-# if meanflow = True: Velocity data are not updated in time (used for climatology)
+# if meanflow = True; Velocity data are not updated in time (used for climatology)
 meanflow = False
 
 # in case of periodic channel
-x_periodic = True
-y_periodic = True
-ng = 1 #number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
+x_periodic = False
+y_periodic = False
 
-
+ng = 1 # number of Ghostpoints _ 1 is enough for linear interp _ 2 for other interp
 
 ##############################################################################
 # Particles Dynamics
 ##############################################################################
 # 3D advection
-adv3d = False # 3d or 2d
+adv3d = True # 3d or 2d
 
 '''
     for 2d advection, there are several options: any arbitrary 2d surface, vertically integrated velocity fields, etc.
@@ -65,7 +63,7 @@ adv3d = False # 3d or 2d
 '''
 
 if not adv3d:
-    advsurf = True
+    advsurf = False
     advzavg = False
 else:
     advsurf = False
@@ -90,33 +88,12 @@ if not adv3d:
 '''
 
 ################################################################################
-"""
-- dfile: Pyticles output time step in units of CROCO outputs time step. 
-  - dfile = 1, Pyticles output frequency = CROCO output frequency
-  - dfile = 1/2, Pyticles output frequency = 2 x CROCO output frequency
-  - dfile = -1, backward experiment
-
--  integers, start_file and end_file: CROCO output time step for initial and
-   last Pyticles time step.
-
-- (optional) boolean, restart: If True, restart a Pyticles simulation (typically to re-run
-  a simulation that crashed)
-
-- (optional) integer > 0, restart_time: number of CROCO time steps since initialization
-  used to restart. Note that if simulation backward the sign of dfile is 
-  automatically applied.
-
-- (optional) itime_trap and trap_file: use to initialize a Pyticles simulation from a 
-  former Pyticles simulation. Very specific
-
-- str, my_simul: name of CROCO simulation specified in R_files.py to retrieve
- CROCO files
-
-"""
-
+# dfile is frequency of Pyticles output, if dfile=1 : same freq as ROMS
+# (default is 1 = using all outputs files)
+# Use -1 for backward simulation
 dfile = 1
-start_file = 3360 
-end_file = 3365 
+start_file = 0 #1440
+end_file = 100 #8000
 
 ######
 # only if part_trap=True, time index in trap_file to start backward simulation
@@ -142,10 +119,10 @@ else:
 
 
 if source == 'roms':
-    
+
     # Load simulation
     # parameters = my_simul + [0,nx,0,ny,[1,nz,1]] ; nx, ny, nz Roms domain's shape 
-    my_simul = 'polgyr'
+    my_simul = 'rutgers'
 
     ##########
     if 'surf' in my_simul or advsurf: 
@@ -159,7 +136,8 @@ if source == 'roms':
     # parameters
     parameters = my_simul + ' [0,15000,0,15000,[1,300,1]] '+ format(start_file)
     simul = load(simul = parameters, light = light, floattype=np.float64)
-    
+
+
 
 elif source == 'analytical':
     
@@ -254,12 +232,11 @@ else:
 ##############################################################################
 # Pyticles Outputs
 ##############################################################################
-plot_part = True # Plot figures showing particles positions during execution
+plot_part = True
 
 #Write lon,lat,topo,depth
-write_lonlat = False
-
-if adv3d:
+write_lonlat = True
+if not adv3d:
     write_depth = True
 else:
     write_depth = True
@@ -270,11 +247,11 @@ if advzavg:
                       # bathymetry (topo > |advdepth| - z_thick/2)
 elif light: 
     write_topo = False
-    
+
 
 write_uv = False
 write_ts = False
-write_uvw = False
+write_uvw = True
 # True : pw is w-vertical velocity in z-coordinates
 # False : pw is omega velocity in sigma-coordinates
 cartesian = True
@@ -292,7 +269,7 @@ write_t = False
 if write_t: write_ts = False
 
 # name of your configuration (used to name output files)
-config = 'birotexp'
+config = 'test'
 
 folderout = './out/'
 # create folder if does not exist
@@ -354,7 +331,7 @@ maxvel0 = 5    # Expected maximum velocity (will be updated after the first time
 # (if continuous injection: user may vary its center Directly in Pyticles.py) 
 #[ic, jc] = part.find_points(simul.x,simul.y,-32.28,37.30)
 
-[ic, jc] = [50, 50]
+[ic, jc] = [200, 200]
 print('ic,jc is ',ic,jc)
 
 barycentric = False  # Automatically modifies patch's center to previsously seeded
@@ -362,7 +339,7 @@ barycentric = False  # Automatically modifies patch's center to previsously seed
     
 # Size of the patch and distance between particles in meters are conserved
 # even when box's center moves during simulation
-preserved_meter = False
+preserved_meter = True
 
 # --> injection on lon lat
 spheric_injection = False
@@ -376,8 +353,8 @@ else:
     #dx_m = 1000. # distance between 2 particles [in m]
     #dx0 = dx_m * simul.pm[ic,jc] # conversion in grid points
     dx0 = 1
-    iwd  = 40 * dx0 # half width of seeding patch [in grid points
-    jwd  = 40 * dx0 # half width of seeding patch [in grid points]
+    iwd  = 10 * dx0 # half width of seeding patch [in grid points
+    jwd  = 10 * dx0 # half width of seeding patch [in grid points]
     # density of pyticles (n*dx0: particle every n grid points)
     nnx = 1 * dx0
     nny = 1 * dx0
@@ -449,7 +426,7 @@ if not adv3d:
     lev1 = lev0
     depths0 = [advdepth]
     write_uvw = False
-    write_uv = False
+    write_uv = True
 
 #########
 # define initial vertical position using depth

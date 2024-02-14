@@ -126,8 +126,8 @@ def seed_box(ic=10, jc=10, lev0=0, lev1=0, iwd=2, jwd=2, nx=1, ny=1, nnx=1,
 
     '''
     z, y, x = np.mgrid[lev0:lev1+1:nnlev,
-              np.max([jc-jwd,1]):np.min([jc+jwd+nny,ny]):nny,
-              np.max([ic-iwd,1]):np.min([ic+iwd+nnx,nx]):nnx]
+              np.max([jc-jwd,0]):np.min([jc+jwd+nny,ny]):nny,
+              np.max([ic-iwd,0]):np.min([ic+iwd+nnx,nx]):nnx]
 
     return z, y, x
 
