@@ -650,15 +650,23 @@ example: for an interactive session:
         ncfile = Dataset(self.ncfile, 'r')
 
         if self.ncname.model in ['ucla']:
-            self.oceantime = int(np.array(ncfile.variables['ocean_time'][self.infiletime]))
+            self.oceantime = int(
+                np.array(ncfile.variables['ocean_time'][self.infiletime])
+                )
         else:
             try:
-                self.oceantime = int(np.array(ncfile.variables['scrum_time'][self.infiletime]))
+                self.oceantime = int(
+                    np.array(ncfile.variables['scrum_time'][self.infiletime])
+                )
             except:
                 try:
-                    self.oceantime = int(np.array(ncfile.variables['time'][self.infiletime]))
+                    self.oceantime = int(
+                        np.array(ncfile.variables['time'][self.infiletime])
+                        )
                 except:
-                    self.oceantime = int(np.array(ncfile.variables['time_centered'][self.infiletime]))
+                    self.oceantime = int(
+                        np.array(ncfile.variables['time_centered'][self.infiletime])
+                        )
 
 
         if not self.ncname.realyear:
@@ -668,7 +676,8 @@ example: for an interactive session:
             self.oceantime = self.oceantime%(360*24*3600)
 
             self.month = self.oceantime//(24*3600)//30+1
-            month_name = ["None","Jan","Feb","Mar","Apr", "May", "Jun", "Jul","Aug","Sep","Oct","Nov","Dec"] 
+            month_name = ["None","Jan","Feb","Mar","Apr", "May", "Jun", "Jul",
+                          "Aug","Sep","Oct","Nov","Dec"] 
 
             self.day = self.oceantime//(24*3600) - (self.month-1) * 30 + 1
 
@@ -678,13 +687,15 @@ example: for an interactive session:
 
             self.date = month_name[self.month] + ' ' + '{0:02}'.format(self.day) + ' - ' +'{0:02}'.format(self.hour) + ':' + '{0:02}'.format(self.min) 
 
+
         else:
         
             date = self.ncname.realyear_origin + timedelta(days=self.oceantime/3600./24.)
             
             self.year = date.year
             self.month = date.month
-            month_name = ["None","Jan","Feb","Mar","Apr", "May", "Jun", "Jul","Aug","Sep","Oct","Nov","Dec"] 
+            month_name = ["None","Jan","Feb","Mar","Apr", "May", "Jun", "Jul",
+                          "Aug","Sep","Oct","Nov","Dec"] 
 
             self.day = date.day
             self.hour = date.hour
@@ -711,7 +722,7 @@ example: for an interactive session:
                 self.dt = np.array(ncfile.variables['ocean_time'][1]) \
                         - np.array(ncfile.variables['ocean_time'][0])
             # TODO add croco croco_clim, croco_inter
-            elif  self.ncname.model in ['croco','agrif']:
+            elif  self.ncname.model in ['croco', 'agrif']:
                 self.dt = np.array(ncfile.variables['scrum_time'][1]) \
                         - np.array(ncfile.variables['scrum_time'][0])
             elif  self.ncname.model in ['croco_xios']:
@@ -749,7 +760,6 @@ import sys, os
 ###################################################################################
 class files(object):
 ###################################################################################
-
 
     def __init__(self, simul, time=0, output =True):
 
@@ -921,7 +931,12 @@ class files(object):
 ###################################################################################
 
 def test():
-    "test code"
+    """
+    test code
+    >>> from R_files import test
+    >>> test()
+    
+    """
     
     def _messsage_ok(test_msg, ok_msg="OK\n"):
         print(f"{test_msg}: {ok_msg}")
