@@ -1,119 +1,25 @@
 ################################################
 # install a conda env to run Pyticles on datarmor with python 3
 ################################################
-# maybe python 3.8 is needed 
 
-module load anaconda-py3.6/4.7.12
+module load conda/latest
 
 # create new env
-conda create --name croco
+conda create --name pyticles_2024
 
 conda init tcsh
-conda activate croco
+conda activate pyticles_2024
 
-## install modules
+## install modules (for pyticles)
+conda install matplotlib netCDF4 numpy scipy
 
-conda install numpy
-conda install scipy
-conda install matplotlib
-conda install netCDF4
+## install modules (for post-processing)
+conda install jupyterhub notebook xarray dask distributed
+conda install -c conda-forge gsw
 
-
-################################################
-# py-eddy-tracker env:
-################################################
-
-
-module load anaconda-py3.6/4.7.12
-
-# create new env
-conda create --name eddy
-
-conda init tcsh
-conda activate eddy
-
-conda update -n base -c defaults conda
-
-## install modules
-
-conda install numpy scipy netCDF4 matplotlib pyyaml pyproj 
-
-conda install opencv-python pint polygon3
-
-
-conda install matplotlib netCDF4 numba numpy requests scipy zarr
-conda install -c conda-forge opencv pyyaml pint
-conda install -c tofuproject polygon3
-conda install cftime
-
-
-
-
-
-
-
-################################################
-# install a conda env to run Pyticles on datarmor:
-################################################
-module load NETCDF/4.3.3.1-mpt-intel2016
-
-# ----- load conda
-# Warning since 2020-03-06
-# module load anaconda is deprecated
-# source : https://domicile.ifremer.fr/intraric/Mon-IntraRIC/Calcul-et-donnees-scientifiques/Datarmor-Calcul-et-Donnees/Datarmor-calcul-et-programmes/Pour-aller-plus-loin/,DanaInfo=w3z.ifremer.fr,SSL+Conda-sur-Datarmor#
-# regarding the SHELL 
-# bash : . /appli/anaconda/versions/[numero_version]/etc/profile.d/conda.sh
-# csh : source /appli/anaconda/versions/[numero_version]/etc/profile.d/conda.csh
-
-#module load anaconda-py2.7/4.3.13
-. /appli/anaconda/versions/4.7.12/etc/profile.d/conda.sh
-# create new env
-conda create --name my_conda
-conda create --name my_conda python=3.6.8
-
-conda activate my_conda 
-# conda deactivate to exit environment
-
-## install modules
-
-conda install numpy
-conda install scipy
-conda install matplotlib
-conda install netCDF4
-conda install basemap
-
-
-
-
-################################################
-# A chaque reload (and in pbs)
-################################################
-# Old version
-#####################
-
-bash
-
-source /usr/share/Modules/3.2.10/init/bash
-module load anaconda-py3.6/4.3.13
-
-cd /appli/anaconda/3.6/bin
-source activate my_conda
-
-
-# New version
-#####################
-
-source /usr/share/Modules/3.2.10/init/csh
-
-module load anaconda-py2.7/4.3.13
-export PATH=$PATH:/appli/anaconda/2.7/bin
-export PYTHONPATH=$HOME/Python_Modules
-source activate my_conda
-
-
-
-
-
+# to be able to use your virtual env. from the jupyterhub as well for post-processing
+conda install ipykernel
+python -m ipykernel install --user --name pyticles_2024 --display-name "pyticles_2024"
 
 
 
