@@ -221,8 +221,8 @@ simul.dtime = np.sign(dfile) * np.ceil(np.abs(dfile))
 # Resolution (dx,dy)
 dx, dy   = 1./np.mean(simul.pm), 1./np.mean(simul.pn)
 # Total size of the domain (nx,ny,nz)
-(nx, ny) = simul.pm.shape
-nx += 2*ng; ny += 2*ng # add ghost points to array size
+(nxi, nyi) = simul.pm.shape
+nx = nxi + 2*ng; ny = nyi + 2*ng # add ghost points to array size
 depths = simul.coord[4]
 nz = len(depths)
 k0 = 0
