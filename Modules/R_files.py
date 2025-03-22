@@ -730,17 +730,17 @@ example: for an interactive session:
         if output: print('dt is read in ',self.ncfile)
         try:
             if self.ncname.model in ['ucla','croco_lionel']:
-                self.dt = np.array(ncfile.variables['ocean_time'][1]) \
-                        - np.array(ncfile.variables['ocean_time'][0])
+                self.dt = np.array(ncfile.variables['ocean_time'][-1]) \
+                        - np.array(ncfile.variables['ocean_time'][-2])
             elif  self.ncname.model in ['croco','agrif_jc']:
-                self.dt = np.array(ncfile.variables['scrum_time'][1]) \
-                        - np.array(ncfile.variables['scrum_time'][0])
+                self.dt = np.array(ncfile.variables['scrum_time'][-1]) \
+                        - np.array(ncfile.variables['scrum_time'][-2])
             elif  self.ncname.model in ['croco_xios']:
-                self.dt = np.array(ncfile.variables['time_counter'][1]) \
-                        - np.array(ncfile.variables['time_counter'][0])
+                self.dt = np.array(ncfile.variables['time_counter'][-1]) \
+                        - np.array(ncfile.variables['time_counter'][-2])
             else:
-                self.dt = np.array(ncfile.variables['time'][1]) \
-                        - np.array(ncfile.variables['time'][0])
+                self.dt = np.array(ncfile.variables['time'][-1]) \
+                        - np.array(ncfile.variables['time'][-2])
         except:
             if self.simul[:4]=='natl': self.dt = 24. * 3600
             elif self.simul =='atlbig_mean2': self.dt = 24. * 3600 * 5.
