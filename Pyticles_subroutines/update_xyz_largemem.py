@@ -353,12 +353,18 @@ def advance_3d(subrange,out,step):
         else:
             raise Exception("no time-stepping scheme specified")
 
+        #add some diffusion:
+        if diffusion:
+            [px_F, py_F] = part.diffusion(px_F, py_F, Kdiff, dt)
+            
         #Remove particles exiting the domain:
         [px_F, py_F, pz_F] = part.cull(px_F, py_F, pz_F, nxi, nyi, nz,
                            x_periodic=x_periodic, y_periodic=y_periodic)
                            
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F, nz)
+        
+
 
         
         subtime += dt

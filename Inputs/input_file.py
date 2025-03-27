@@ -215,6 +215,12 @@ else:
 nadv = 1 # deprecated
 
 ##############################################################################
+# Horizontal diffusion
+
+diffusion = False
+Kdiff = 1 #[in m2/s]
+
+##############################################################################
 
 # sedimentation of denser particles (not supported in 2D case)
 sedimentation = False
