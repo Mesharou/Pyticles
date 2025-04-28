@@ -3,7 +3,6 @@
 *.swp
 *.f
 
-Divers/
 env_pyticles/
 
 Inputs/3d_continuous_forward.py
