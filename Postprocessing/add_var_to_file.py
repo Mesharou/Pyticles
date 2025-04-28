@@ -32,22 +32,12 @@ import multiprocessing as mp; import ctypes
 
 
 #add the Modules folder in your python PATH
-sys.path.remove("/home2/datahome/jgula/Python_Modules")
+#sys.path.remove("/home2/datahome/jgula/Python_Modules_p3")
 sys.path.append("../Modules/")
-sys.path.append("/home2/datahome/jgula/Python_Modules")
-#try:
-#    sys.path.remove("/home/gula/Desktop/Work_capella/Python/Python_Modules")
-    #sys.path.remove("/home2/datahome/jgula/Python_Modules")
-#except:
-#    sys.path.remove("/home/gula/Python_Modules")
     
 #Specific modules needed for pyticles
 import pyticles_sig_sa as part
 import pyticles_3d_sig_sa as partF
-
-#sys.path.append("/home/gula/Desktop/Work_capella/Python/Python_Modules")
-#sys.path.append("/home/gula/Python_Modules")
-#sys.path.append("/home2/datawork/jgula/Pyticles/Pyticles_nesea/Modules") 
 
 #Simulations (path, data...)
 from R_files import load
@@ -112,8 +102,8 @@ def linear(var1,var2,alpha):
 # Loop on variables
 ###################################################################################
 
-#for varname in ['u','v','rho1','temp','salt']:
-for varname in ['rho','rho1']:
+for varname in ['u','v','rho1','temp','salt']:
+#for varname in ['rho','rho1']:
 
     pvar = np.zeros(nq)
     
@@ -143,14 +133,15 @@ for varname in ['rho','rho1']:
         px = ionetcdf.get(ncfile,'px',simul,time=itime)
         py = ionetcdf.get(ncfile,'py',simul,time=itime)
 
-        try:
-            adv3d = False
-            nc = Dataset(ncfile, 'r')
-            advdepth = nc.depth
-            nc.close()
-        except:
-            adv3d = True
+
+        nc = Dataset(ncfile, 'r')
+        adv3d = nc.adv3d
+
+        if adv3d:
             pz = ionetcdf.get(ncfile,'pz',simul,time=itime)
+        else:
+            advdepth = nc.depth
+        nc.close()
 
         print('filetime, itime', filetime, itime)
 
