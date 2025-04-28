@@ -4,7 +4,7 @@
 ###################################################################################
 # variables for CFL condition
 from input_file import inline_cfl, umax, vmax, wmax, dzmin, cmax, klim, remove,\
-                       below, debug
+                       below, debug, diffusion, Kdiff
 
 
 debug_time = False
@@ -355,7 +355,7 @@ def advance_3d(subrange,out,step):
 
         #add some diffusion:
         if diffusion:
-            [px_F, py_F] = part.diffusion(px_F, py_F, Kdiff, dt)
+            [px_F, py_F] = part.diffusion(px_F, py_F, Kdiff, dt, pm_s, pn_s)
             
         #Remove particles exiting the domain:
         [px_F, py_F, pz_F] = part.cull(px_F, py_F, pz_F, nxi, nyi, nz,
@@ -364,8 +364,6 @@ def advance_3d(subrange,out,step):
         #Give a kick to particles trapped at surface/bottom       
         [pz_F] = part.kick(pz_F, nz)
         
-
-
         
         subtime += dt
         

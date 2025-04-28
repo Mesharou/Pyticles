@@ -168,11 +168,11 @@ def kick(pz,nz):
 
     
 #@profile   
-def diffusion(px, py, Kdiff, dt):
+def diffusion(px, py, Kdiff, dt, pm, pn):
     """ add horizontal diffusion"""
    
-    px += np.random.normal(0, 1, size=(px.shape[0])) * np.sqrt(2* Kdiff*dt)
-    py += np.random.normal(0, 1, size=(px.shape[0])) * np.sqrt(2* Kdiff*dt)
+    px += np.random.normal(0, 1, size=(px.shape[0])) * np.sqrt(2* Kdiff*dt) * pm.mean()
+    py += np.random.normal(0, 1, size=(px.shape[0])) * np.sqrt(2* Kdiff*dt) * pn.mean()
 
     return [px,py]  
 
