@@ -845,8 +845,27 @@ class files(object):
             self.tend=2
 
         ##################
-        
-        
+        ##################
+
+        elif 'tag0' in simul:
+
+            '''
+            Simulation around TAG hydrothermal vent 
+            '''
+
+            self.realyear = False
+            self.realyear_origin = datetime(1999,1,1)
+            self.model = 'croco'
+            self.digits = 5
+
+            folder='/home/datawork-lops-osi/gescobar/croco-v1.3.1_tracer_HELIUM/Config_TAG_0v131_tracers_HELIUM2/CROCO_FILES/'
+            self.grd= folder + 'GRD/tag0_grd.nc'
+
+            self.his=folder +'AVG/back_up_weno5/tag0_avg.'
+            self.tfile=24
+            self.tstart=72
+            self.tend=3744 
+
         
         else:
 
