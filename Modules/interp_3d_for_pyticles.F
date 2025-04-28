@@ -524,11 +524,11 @@
            ! Compute velocities and level depth at particle position
            !---------------------------------------       
 
-           if (i_u+1 .gt. nx-1) then
-               write(*,*) 'px,nx-1', px,nx-1
-               write(*,*) 'i_u,i_u+1', i_u,i_u+1
-               write(*,*) 'fcx_u', fcx_u
-           endif
+           !if (i_u+1 .gt. nx-1) then
+           !    write(*,*) 'px,nx-1', px,nx-1
+           !    write(*,*) 'i_u,i_u+1', i_u,i_u+1
+           !    write(*,*) 'fcx_u', fcx_u
+           !endif
 
            CALL linear_4d(fcx_u,fcy,fcz,fctl,wt4)
            pu   = sum(u(i_u:i_u+1,j:j+1,k:k+1,:)*wt4)
