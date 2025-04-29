@@ -97,7 +97,7 @@ def smooth(x,window_len=11,window='hanning',cycle=0):
 # 2D Smoothing
 #######################################################
 
-from scipy import signal, mgrid, cos, exp
+from scipy import signal, cos, exp
 
 def gauss_kern(size, sizey=None):
     """ Returns a normalized 2D gauss kernel array for convolutions """
@@ -106,7 +106,7 @@ def gauss_kern(size, sizey=None):
         sizey = size
     else:
         sizey = int(sizey)
-    x, y = mgrid[-2*size:2*size+1, -2*sizey:2*sizey+1]
+    x, y = np.mgrid[-2*size:2*size+1, -2*sizey:2*sizey+1]
     g = exp(-(x**2/(2*float(size/2)**2)+y**2/(2*float(sizey/2)**2)))
     return g / g.sum()
 
