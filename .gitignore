@@ -1,7 +1,6 @@
 *.so
 *.log
 *.swp
-*.f
 
 env_pyticles/
 
