@@ -25,11 +25,13 @@ Pyticles is a Python/Fortran hybrid parallelized code for Lagrangian particles 3
 - Wang, L., J. Gula, J. Collin & L. Memery, **2022** : Effects of mesoscale dynamics on the distribution and transport of gravitationally sinking particles to the deep ocean, *J. Geophys. Res. Ocean*, 127, e2022JC018799. https://doi.org/10.1029/2022JC018799
 - Qu, L., L. Thomas, A. Wienkers, R. Hetland, D. Kobashi, J. Taylor, F. Hsu, J. MacKinnon, R. Shearman, J. Nash, **2022** : Rapid Vertical Exchange at Fronts in the Northern Gulf of Mexico, *Nat Commun*. 13, 5624, https://doi.org/10.1038/s41467-022-33251-7
 - Tagliabue, A., A. Lough, C. Vic, V. Roussenov, J. Gula, M. Lohan, J. Resing, & R. Williams, **2022** : Mechanisms driving the dispersal of hydrothermal iron from the northern Mid Atlantic Ridge, *Geophys. Res. Lett.*, https://doi.org/10.1002/essoar.10512044.1
+- Ragoasha, N., S. Herbette, J. Veitch, G. Cambon,C. Reason, C. Roy, **2022**: Inter-Annual Variability of the Along-Shore Lagrangian Transport Success in the Southern Benguela Current Upwelling System, *J. Geophys. Res. Oceans*, 127, e2020JC017114, https://doi.org/10.1029/2020JC017114
 - Picard, T., J. Gula, R. Fablet, J. Collin & L. Memery, **2024** : Predicting particle catchment areas of deep-ocean sediment traps using machine learning, *Ocean Sci.*, 20, 1149–1165,https://doi.org/10.5194/os-20-1149-2024
-- Picard, T., J. Gula, C. Vic & L. Memery  **2024**: Seasonal tracer subduction in the Subpolar North Atlantic driven by submesoscales, *J. Geophys. Res. Oceans*, 129, e2023JC020782. https://doi.org/10.1029/2023JC020782
-- Wang, L., J. Gula, J. Collin, L. Memery & X. Yu : Connecting the deep collection of sinking particles with surface ocean signatures, submitted.
-- Picard, T., C. Baker, J. Gula, R. Fablet, L. Memery & R. Lampitt : Estimating the variability of deep ocean particle flux collected by sediment traps using satellite data and machine learning, https: //doi.org/10.5194/egusphere-2024-3292.
-- 
+- Picard, T., J. Gula, C. Vic & L. Memery,  **2024**: Seasonal tracer subduction in the Subpolar North Atlantic driven by submesoscales, *J. Geophys. Res. Oceans*, 129, e2023JC020782. https://doi.org/10.1029/2023JC020782
+- Wang, L., J. Gula, J. Collin, L. Memery & X. Yu,  **2025**: Connecting the deep collection of sinking particles with surface ocean signatures, *J. Geophys. Res. Oceans*, in press
+- Picard, T., C. Baker, J. Gula, R. Fablet, L. Memery & R. Lampitt,  **2025**: Estimating the variability of deep ocean particle flux collected by sediment traps using satellite data and machine learning, *Biogeosciences*, https: //doi.org/10.5194/egusphere-2024-3292.
+
+
 ## DOI
 
 The latest release has been archived on zenodo:

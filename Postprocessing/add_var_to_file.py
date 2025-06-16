@@ -42,7 +42,8 @@ import pyticles_3d_sig_sa as partF
 #Simulations (path, data...)
 from R_files import load
 from R_netcdf import ionetcdf
-from R_vars import var
+#from R_vars import var
+from R_vars_gula import var
 
 ###################################################################################
 
@@ -121,7 +122,7 @@ for varname in ['u','v','rho1','temp','salt']:
     for filetime in time[:]:
     ###################################################################################
 
-        itime = np.int(np.abs(time[0] - filetime) / np.abs(dtime))
+        itime = int(np.abs(time[0] - filetime) / np.abs(dtime))
         print(itime, time[itime])
         if not meanflow: simul.update(np.floor(filetime));
         
