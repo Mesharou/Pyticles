@@ -4,7 +4,7 @@
 ###################################################################################
 # variables for CFL condition
 from input_file import inline_cfl, umax, vmax, wmax, dzmin, cmax, klim, remove,\
-                       below, debug, diffusion, Kdiff
+                       below, debug, horizontal_diffusion, Khdiff, vertical_diffusion, Kzdiff
 
 
 debug_time = False
@@ -354,9 +354,13 @@ def advance_3d(subrange,out,step):
             raise Exception("no time-stepping scheme specified")
 
         #add some diffusion:
-        if diffusion:
-            [px_F, py_F] = part.diffusion(px_F, py_F, Kdiff, dt, pm_s, pn_s)
-            
+        if horizontal_diffusion:
+            [px_F, py_F] = part.horizontal_diffusion(px_F, py_F, Khdiff, dt, pm_s, pn_s)
+
+        if vertical_diffusion:
+            [pdz] = partF.interp_3d(px_F,py_F,pz_F,dz,ng,nq,i0,j0,k0)
+            [pz_F] = part.vertical_diffusion(pz_F, Kzdiff, dt, pdz)
+
         #Remove particles exiting the domain:
         [px_F, py_F, pz_F] = part.cull(px_F, py_F, pz_F, nxi, nyi, nz,
                            x_periodic=x_periodic, y_periodic=y_periodic)

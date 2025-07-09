@@ -827,8 +827,8 @@
        integer(kind=4)                    ,intent(in)   :: npmx
        integer(kind=4)                    ,intent(in)   :: i0,j0,k0
        real(kind=8)   ,dimension(nx,ny,nz),intent(in)   :: var1
-       real(kind=8)   ,dimension(np)      ,intent(out):: pvar1
-       real(kind=8)   ,dimension(np)      ,intent(in):: px,py,pz
+       real(kind=8)   ,dimension(np)      ,intent(out)  :: pvar1
+       real(kind=8)   ,dimension(np)      ,intent(in)   :: px,py,pz
 !      local
        integer(kind=8)                  :: ip,jp,kp,i,j,k
        real(kind=8)   ,dimension(2,2,2) :: wt3
@@ -844,7 +844,6 @@
 
        do ip = 1,np
          if (.not.(isnan(px(ip)*py(ip)*pz(ip))) ) then
-
 
            i = max(1,min(floor(px(ip)+1+0.5+ng)-i0,nx-1))
            j = max(1,min(floor(py(ip)+1+0.5+ng)-j0,ny-1))

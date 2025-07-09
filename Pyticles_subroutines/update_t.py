@@ -1,5 +1,5 @@
 '''
-Compute ptemp corresponsing to T at particles positions
+Compute ptemp corresponding to T at particles positions
 
 Input: 
     simul, dx, dy, dz, nx, ny, nz
@@ -43,6 +43,7 @@ else:
 #Load T,S on sigma levels (much faster than accessing nc files through subprocesses)
 temp[:] = part.get_t_io(simul, x_periodic=x_periodic, y_periodic=y_periodic,
                         ng=ng, coord=coord)
+
 if not meanflow and alpha_time != 0:
     simul.update(next_time)
     temp2 = part.get_t_io(simul, x_periodic=x_periodic, y_periodic=y_periodic,

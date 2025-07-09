@@ -217,8 +217,14 @@ nadv = 1 # deprecated
 ##############################################################################
 # Horizontal diffusion
 
-diffusion = False
-Kdiff = 1 #[in m2/s]
+horizontal_diffusion = False
+Khdiff = 1 #[in m2/s]
+
+#########################
+# Vertical diffusion
+
+vertical_diffusion = False
+Khdiff = 1e-5 #[in m2/s]
 
 ##############################################################################
 
