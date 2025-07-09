@@ -180,11 +180,11 @@ def horizontal_diffusion(px, py, Khdiff, dt, pm, pn):
 ###################################################################################
     
 #@profile   
-def vertical_diffusion(pz, Kzdiff, dt, pm, pn):
+def vertical_diffusion(pz, Kzdiff, dt, dz):
     """ add horizontal diffusion"""
    
-    pz += np.random.normal(0, 1, size=(pz.shape[0])) * np.sqrt(2* Kzdiff*dt) * dz
-\
+    pz += np.random.normal(0, 1, size=(pz.shape[0])) * np.sqrt(2 * Kzdiff * dt) / dz
+
     return [pz]  
 
 

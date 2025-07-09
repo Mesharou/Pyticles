@@ -224,7 +224,7 @@ Khdiff = 1 #[in m2/s]
 # Vertical diffusion
 
 vertical_diffusion = False
-Khdiff = 1e-5 #[in m2/s]
+Kzdiff = 1e-5 #[in m2/s]
 
 ##############################################################################
 
